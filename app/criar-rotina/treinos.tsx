@@ -13,7 +13,6 @@ import {
 
 // Components
 import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHeader';
-import { SafeText } from '../../components/SafeText';
 
 // Constants - grupos musculares disponíveis
 import { GRUPOS_MUSCULARES } from '../../constants/exercicios';
@@ -218,7 +217,7 @@ export default function TreinosRotinaScreen() {
         {/* Header do treino */}
         <View style={styles.treinoHeader}>
           <View style={styles.treinoTitleContainer}>
-            <SafeText style={styles.treinoNome}>{treino.nome}</SafeText>
+            <Text style={styles.treinoNome}>{treino.nome}</Text>
             <View style={[
               styles.statusBadge,
               isCompleto ? styles.statusBadgeCompleto : styles.statusBadgePendente
@@ -251,7 +250,7 @@ export default function TreinosRotinaScreen() {
                 .filter(grupo => grupo && typeof grupo === 'string' && grupo.trim() && grupo.trim() !== '.' && grupo.trim() !== '')
                 .map(grupo => (
                 <View key={grupo} style={styles.grupoTag}>
-                  <SafeText style={styles.grupoTagText}>{grupo}</SafeText>
+                  <Text style={styles.grupoTagText}>{grupo}</Text>
                   <TouchableOpacity
                     onPress={() => toggleGrupoMuscular(treino.id, grupo)}
                     hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
@@ -280,12 +279,12 @@ export default function TreinosRotinaScreen() {
                   ]}
                   onPress={() => toggleGrupoMuscular(treino.id, grupo)}
                 >
-                  <SafeText style={[
+                  <Text style={[
                     styles.grupoButtonText,
                     isSelected && styles.grupoButtonTextSelected
                   ]}>
                     {grupo}
-                  </SafeText>
+                  </Text>
                 </TouchableOpacity>
               );
             })}

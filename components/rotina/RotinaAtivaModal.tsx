@@ -2,7 +2,6 @@
 import { AlertCircle } from 'lucide-react-native';
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeText } from '../SafeText';
 
 interface RotinaAtivaModalProps {
   visible: boolean;
@@ -67,17 +66,17 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
 
           <Text style={styles.title}>Rotina já existe</Text>
           
-          <SafeText style={styles.rotinaNome}>&quot;{rotinaNome}&quot;</SafeText>
+          <Text style={styles.rotinaNome}>&quot;{rotinaNome}&quot;</Text>
 
           <View style={styles.statusContainer}>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(rotinaStatus) }]}>
-              <SafeText style={styles.statusText}>{getStatusLabel(rotinaStatus)}</SafeText>
+              <Text style={styles.statusText}>{getStatusLabel(rotinaStatus)}</Text>
             </View>
           </View>
 
-          <SafeText style={styles.message}>
+          <Text style={styles.message}>
             {getMessage(rotinaStatus)}
-          </SafeText>
+          </Text>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity

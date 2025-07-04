@@ -301,8 +301,13 @@ CREATE TABLE execucoes_series (
 
 ### 📊 Estrutura do SessionStorage (Desenvolvimento)
 
+**Usa o utilitário `RotinaStorage` para gerenciar os dados:**
+
 ```javascript
-// rotina_configuracao
+// Como os dados ficam estruturados:
+
+// Configuração da rotina
+RotinaStorage.getConfig() retorna:
 {
   nomeRotina: "Rotina João - Jan/2025",
   descricao: "Rotina para ganho de massa",
@@ -312,7 +317,8 @@ CREATE TABLE execucoes_series (
   alunoId: "uuid-do-aluno"
 }
 
-// rotina_treinos
+// Lista de treinos
+RotinaStorage.getTreinos() retorna:
 [
   {
     id: "treino-1",
@@ -322,7 +328,8 @@ CREATE TABLE execucoes_series (
   }
 ]
 
-// rotina_exercicios
+// Exercícios organizados por treino
+RotinaStorage.getExercicios() retorna:
 {
   "treino-1": [
     {
@@ -334,7 +341,7 @@ CREATE TABLE execucoes_series (
         {
           id: "serie-1",
           numero: 1,
-          repeticoes: 12, // ✅ Valor padrão garantido
+          repeticoes: 12,
           carga: 80,
           intervaloAposSerie: 120
         }
@@ -391,7 +398,7 @@ ORDER BY es.data_execucao;
 
 ### 🛠️ Fluxo de Dados:
 1. Usuário preenche telas
-2. Dados salvos no sessionStorage
+2. Dados salvos no sessionStorage via `RotinaStorage`
 3. Na revisão: lê tudo e salva no banco
 4. **PT cria:** rotinas → treinos → exercicios_rotina → series → execucoes_sessao
 5. **Aluno cria:** execucoes_series (durante execução dos treinos)
@@ -410,25 +417,54 @@ ORDER BY es.data_execucao;
 - **Status**: usar enum para validação
 - **RLS**: políticas otimizadas para performance
 
-### 🐛 Problemas Resolvidos
+### �️ Gerenciamento de SessionStorage
 
-1. **❌ Tabela `series` com NOT NULL em `repeticoes`**
-   - **✅ Solucionado**: Removido NOT NULL constraint
+Para simplificar o gerenciamento dos dados temporários durante a criação de rotinas, foi criado um utilitário centralizado:
 
-2. **❌ RLS bloqueando PT de criar execuções**
-   - **✅ Solucionado**: Política permite PT gerenciar execuções dos seus alunos
+#### **Arquivo: `utils/rotinaStorage.ts`**
 
-3. **❌ Referência incorreta `pt.alunos`**
-   - **✅ Solucionado**: Usa `alunos.personal_trainer_id` corretamente
+```javascript
+// Como usar:
+import RotinaStorage from '@/utils/rotinaStorage';
 
-4. **❌ Módulo `emailValidationService` não encontrado**
-   - **✅ Solucionado**: Criado serviço usando função existente de `utils/emailValidation.ts`
+// Salvar configuração
+RotinaStorage.saveConfig({
+  nomeRotina: "Rotina João",
+  treinosPorSemana: 3,
+  dificuldade: "Média"
+});
 
-5. **❌ RLS bloqueando criação de `execucoes_series` pelo PT**
-   - **✅ Solucionado**: PT cria apenas `execucoes_sessao`, séries são criadas quando aluno executa
+// Buscar configuração
+const config = RotinaStorage.getConfig();
 
-6. **❌ Warning "Unexpected text node" em React Native**
-   - **✅ Solucionado**: Filtros robustos para evitar strings vazias e uso correto de `<Text>` em `<View>`
+// Salvar treinos
+RotinaStorage.saveTreinos([
+  { nome: "Treino A", gruposMusculares: ["Peito"] }
+]);
+
+// Verificar se dados estão válidos
+if (RotinaStorage.isConfigValid()) {
+  // Prosseguir para próxima tela
+}
+
+// Limpar tudo
+RotinaStorage.clearAll();
+```
+
+#### **Vantagens:**
+- ✅ **Centralizado**: Todas as operações de sessionStorage em um lugar
+- ✅ **Type-safe**: Interfaces TypeScript para todos os dados
+- ✅ **Validação**: Métodos para verificar se dados estão corretos
+- ✅ **Debug**: Método `debug()` para ver estado atual
+- ✅ **Limpeza**: Métodos específicos para limpar dados
+
+#### **Métodos Disponíveis:**
+- `getConfig()`, `saveConfig()`, `clearConfig()`
+- `getTreinos()`, `saveTreinos()`, `clearTreinos()` 
+- `getExercicios()`, `saveExercicios()`, `clearExercicios()`
+- `getRotinaCompleta()`, `saveRotinaCompleta()`
+- `isConfigValid()`, `hasTreinos()`, `hasExercicios()`
+- `clearAll()`, `debug()`
 
 ---
 
@@ -469,7 +505,94 @@ ORDER BY es.data_execucao;
 - `docs/`: Documentação técnica
 - `utils/`: Funções auxiliares
 - `components/`: Componentes reutilizáveis
+- `components/rotina/`: Componentes específicos do fluxo de rotinas
 - `services/`: Serviços como validação de email
+
+---
+
+## 🧩 Componentes da Rotina
+
+### Localização: `components/rotina/`
+
+#### **1. RotinaProgressHeader.tsx**
+**Função:** Cabeçalho com progresso do fluxo de criação
+**Onde usa:** Todas as telas do fluxo (configuração, treinos, exercícios, revisão)
+
+**Funcionalidades:**
+- ✅ **Navegação**: Botão voltar e sair do fluxo
+- ✅ **Progresso visual**: Mostra em qual etapa está (1/4, 2/4...)
+- ✅ **Títulos dinâmicos**: Cada tela tem seu título
+- ✅ **Limpeza automática**: Limpa sessionStorage ao sair
+
+**Como usar:**
+```tsx
+<RotinaProgressHeader 
+  title="Configuração da Rotina"
+  subtitle="Defina os dados básicos"
+  showExitButton={true}
+  alunoId={alunoId}
+/>
+```
+
+#### **2. RotinaAtivaModal.tsx**
+**Função:** Modal de aviso quando aluno já tem rotina ativa
+**Onde usa:** Ao tentar criar nova rotina para aluno que já tem uma
+
+**Funcionalidades:**
+- ✅ **Detecta status**: Mostra se rotina é ativa, pausada ou pendente
+- ✅ **Cores dinâmicas**: Badge colorido conforme status
+- ✅ **Ações**: "Entendi" (fecha) ou "Ver Rotina" (navega)
+- ✅ **Mensagens personalizadas**: Texto diferente para cada status
+
+**Como usar:**
+```tsx
+<RotinaAtivaModal
+  visible={showModal}
+  rotinaNome="Rotina do João"
+  rotinaStatus="ativa"
+  onViewRotina={() => router.push('/rotina/123')}
+  onCancel={() => setShowModal(false)}
+/>
+```
+
+#### **3. ExitRotinaModal.tsx**
+**Função:** Modal de confirmação ao sair do fluxo de criação
+**Onde usa:** Quando usuário clica no "X" do header
+
+**Funcionalidades:**
+- ✅ **Aviso de perda**: Alerta que dados não salvos serão perdidos
+- ✅ **Ícone de atenção**: Visual claro de warning
+- ✅ **Duas opções**: "Continuar Editando" ou "Sair e Perder Dados"
+- ✅ **Prevenção de perda acidental**: Confirmation layer
+
+**Como usar:**
+```tsx
+<ExitRotinaModal
+  visible={showExitModal}
+  onConfirmExit={() => {
+    clearStorage();
+    router.back();
+  }}
+  onCancel={() => setShowExitModal(false)}
+/>
+```
+
+### 🎯 **Design System dos Componentes:**
+- **Cores consistentes**: #007AFF (azul), #F59E0B (warning), #10B981 (sucesso)
+- **Bordas arredondadas**: 8px para botões, 16px para modals
+- **Espaçamentos**: Múltiplos de 4px (8, 12, 16, 24...)
+- **Tipografia**: Títulos em 20px, textos em 16px, labels em 14px
+- **Sombras**: Modais com overlay rgba(0,0,0,0.6)
+
+---
+
+## 🚀 Para Novos Desenvolvedores
+
+### **Primeira vez no projeto?**
+1. Leia esta documentação completa
+2. Execute `npm run typecheck` para verificar tipos
+3. Execute `npm run lint` para verificar código
+4. Entenda o fluxo: **Configuração → Treinos → Exercícios → Revisão**
 
 ### **Regras de negócio:**
 - 1 rotina ativa por aluno

@@ -13,13 +13,9 @@ import {
 // Components
 import LoadingIcon from '../../components/LoadingIcon';
 import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHeader';
-import { SafeText } from '../../components/SafeText';
 
 // Supabase
 import { supabase } from '../../lib/supabase';
-
-// Debug
-import { setupTextNodeDebug } from '../../utils/debugTextNode';
 
 function RevisaoRotinaContent() {
   const router = useRouter();
@@ -77,9 +73,6 @@ function RevisaoRotinaContent() {
 
   // ✅ CARREGAR DADOS DO SESSIONSTORAGE - CORRIGIDO
   useEffect(() => {
-    // Ativar debug para capturar warnings
-    setupTextNodeDebug();
-    
     const loadRotinaData = () => {
       try {
         const configuracao = JSON.parse(sessionStorage.getItem('rotina_configuracao') || '{}');
@@ -583,19 +576,19 @@ function RevisaoRotinaContent() {
           <Text style={styles.statsTitle}>Resumo da Rotina</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <SafeText style={styles.statNumber}>{estatisticas.totalTreinos}</SafeText>
+              <Text style={styles.statNumber}>{estatisticas.totalTreinos}</Text>
               <Text style={styles.statLabel}>Treinos</Text>
             </View>
             <View style={styles.statItem}>
-              <SafeText style={styles.statNumber}>{estatisticas.totalExercicios}</SafeText>
+              <Text style={styles.statNumber}>{estatisticas.totalExercicios}</Text>
               <Text style={styles.statLabel}>Exercícios</Text>
             </View>
             <View style={styles.statItem}>
-              <SafeText style={styles.statNumber}>{estatisticas.totalSeries}</SafeText>
+              <Text style={styles.statNumber}>{estatisticas.totalSeries}</Text>
               <Text style={styles.statLabel}>Séries</Text>
             </View>
             <View style={styles.statItem}>
-              <SafeText style={styles.statNumber}>{estatisticas.sessõesTotais}</SafeText>
+              <Text style={styles.statNumber}>{estatisticas.sessõesTotais}</Text>
               <Text style={styles.statLabel}>Sessões Total</Text>
             </View>
           </View>
@@ -689,25 +682,25 @@ function RevisaoRotinaContent() {
           <View style={styles.configContainer}>
             <View style={styles.configRow}>
               <Text style={styles.configLabel}>Nome:</Text>
-              <SafeText style={styles.configValue}>{rotinaData.nomeRotina || 'Nome não definido'}</SafeText>
+              <Text style={styles.configValue}>{rotinaData.nomeRotina || 'Nome não definido'}</Text>
             </View>
             
             {rotinaData.descricao && rotinaData.descricao.trim() && rotinaData.descricao.trim() !== '.' && (
               <View style={styles.configRow}>
                 <Text style={styles.configLabel}>Descrição:</Text>
-                <SafeText style={styles.configValue}>{rotinaData.descricao.trim()}</SafeText>
+                <Text style={styles.configValue}>{rotinaData.descricao.trim()}</Text>
               </View>
             )}
             
             <View style={styles.configRow}>
               <Text style={styles.configLabel}>Frequência:</Text>
-              <SafeText style={styles.configValue}>{`${rotinaData.treinosPorSemana || 3}x por semana`}</SafeText>
+              <Text style={styles.configValue}>{`${rotinaData.treinosPorSemana || 3}x por semana`}</Text>
             </View>
             
             <View style={styles.configRow}>
               <Text style={styles.configLabel}>Dificuldade:</Text>
               <View style={[styles.dificuldadeBadge, { backgroundColor: getCorDificuldade(rotinaData.dificuldade) }]}>
-                <SafeText style={styles.dificuldadeText}>{rotinaData.dificuldade || 'Média'}</SafeText>
+                <Text style={styles.dificuldadeText}>{rotinaData.dificuldade || 'Média'}</Text>
               </View>
             </View>
           </View>
@@ -723,10 +716,10 @@ function RevisaoRotinaContent() {
               return (
                 <View key={treino.id || `treino-${index}`} style={styles.treinoResumo}>
                   <View style={styles.treinoHeaderCondensado}>
-                    <SafeText style={styles.treinoNome}>{treino.nome || 'Treino sem nome'}</SafeText>
-                    <SafeText style={styles.exerciciosCount}>
+                    <Text style={styles.treinoNome}>{treino.nome || 'Treino sem nome'}</Text>
+                    <Text style={styles.exerciciosCount}>
                       {`${treino.exercicios?.length || 0} exercício(s)`}
-                    </SafeText>
+                    </Text>
                   </View>
                   
                   <View style={styles.gruposContainer}>
@@ -734,7 +727,7 @@ function RevisaoRotinaContent() {
                       .filter((grupo: string) => grupo && typeof grupo === 'string' && grupo.trim() && grupo.trim() !== '.' && grupo.trim() !== '')
                       .map((grupo: string, grupoIndex: number) => (
                         <View key={`${String(grupo).trim()}-${grupoIndex}`} style={styles.grupoTag}>
-                          <SafeText style={styles.grupoTagText}>{String(grupo).trim()}</SafeText>
+                          <Text style={styles.grupoTagText}>{String(grupo).trim()}</Text>
                         </View>
                       ))}
                   </View>
@@ -746,12 +739,12 @@ function RevisaoRotinaContent() {
                         .filter((exercicio: any) => exercicio && exercicio.nome) // ✅ Filtrar exercícios válidos
                         .map((exercicio: any, exIndex: number) => {
                           return (
-                            <View key={exercicio.id || `ex-${exIndex}`} style={styles.exercicioResumoCondensado}>                            <SafeText style={styles.exercicioNomeCondensado}>
+                            <View key={exercicio.id || `ex-${exIndex}`} style={styles.exercicioResumoCondensado}>                            <Text style={styles.exercicioNomeCondensado}>
                               {`${exIndex + 1}. ${exercicio.nome || 'Exercício sem nome'}`}
-                            </SafeText>
-                            <SafeText style={styles.exercicioMetaCondensado}>
+                            </Text>
+                            <Text style={styles.exercicioMetaCondensado}>
                               {`${exercicio.series?.length || 0} série(s)`}
-                            </SafeText>
+                            </Text>
                             </View>
                           );
                         })}
@@ -760,7 +753,7 @@ function RevisaoRotinaContent() {
                 </View>
               );
             }) : (
-              <SafeText style={styles.exerciciosCount}>Nenhum treino configurado</SafeText>
+              <Text style={styles.exerciciosCount}>Nenhum treino configurado</Text>
             )}
           </View>
         ))}

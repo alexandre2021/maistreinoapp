@@ -2,15 +2,9 @@ import { Session } from '@supabase/supabase-js';
 import { SplashScreen, Stack } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { setupTextNodeDebug } from '../utils/debugTextNode';
 
 // Impede que a tela de splash seja escondida automaticamente
 SplashScreen.preventAutoHideAsync();
-
-// Ativa debug de text node em desenvolvimento
-if (__DEV__) {
-  setupTextNodeDebug();
-}
 
 export default function RootLayout() {
   const [, setSession] = useState<Session | null>(null) // ✅ CORREÇÃO: _ indica que não usamos a variável
