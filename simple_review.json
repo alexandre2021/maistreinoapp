@@ -1,0 +1,1878 @@
+[
+  {
+    "nome_original": "One-Arm-Pronated-Dumbbell-Triceps",
+    "nome_sugerido": "one-arm-pronated-dumbbell-triceps",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Halteres",
+    "arquivo": "One-Arm-Pronated-Dumbbell-Triceps.gif"
+  },
+  {
+    "nome_original": "Cable-Rope-Overhead-Triceps",
+    "nome_sugerido": "cable-rope-overhead-triceps",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "Cable-Rope-Overhead-Triceps.gif"
+  },
+  {
+    "nome_original": "Dumbbell-Skull-Crusher",
+    "nome_sugerido": "dumbbell-skull-crusher",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell-Skull-Crusher.gif"
+  },
+  {
+    "nome_original": "Seated-EZ-Bar-Overhead-Triceps",
+    "nome_sugerido": "seated-ez-bar-overhead-triceps",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Seated-EZ-Bar-Overhead-Triceps.gif"
+  },
+  {
+    "nome_original": "Lever-Tricep-Extension",
+    "nome_sugerido": "lever-tricep-extension",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Máquina",
+    "arquivo": "Lever-Tricep-Extension.gif"
+  },
+  {
+    "nome_original": "Cable-Rear-Drive",
+    "nome_sugerido": "cable-rear-drive",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "Cable-Rear-Drive.gif"
+  },
+  {
+    "nome_original": "Cable-One-Arm-Overhead-Triceps",
+    "nome_sugerido": "cable-one-arm-overhead-triceps",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "Cable-One-Arm-Overhead-Triceps.gif"
+  },
+  {
+    "nome_original": "Barbell-Incline-Triceps-Extension",
+    "nome_sugerido": "barbell-incline-triceps-extension",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Barra",
+    "arquivo": "Barbell-Incline-Triceps-Extension.gif"
+  },
+  {
+    "nome_original": "Triceps Extension with Standing Cable and Reverse Grip",
+    "nome_sugerido": "triceps-extension-with-standing-cable-and-reverse-grip",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "Triceps Extension with Standing Cable and Reverse Grip.webp"
+  },
+  {
+    "nome_original": "tricep dip",
+    "nome_sugerido": "mergulho-triceps",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "tricep dip.webp"
+  },
+  {
+    "nome_original": "standing cable straight arm pushdown",
+    "nome_sugerido": "standing-cable-straight-arm-pushdown",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "standing cable straight arm pushdown.webp"
+  },
+  {
+    "nome_original": "Seated Triceps Extension with Dumbbells",
+    "nome_sugerido": "seated-triceps-extension-with-dumbbells",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Halteres",
+    "arquivo": "Seated Triceps Extension with Dumbbells.webp"
+  },
+  {
+    "nome_original": "Lying Triceps Extension with Dumbbells",
+    "nome_sugerido": "lying-triceps-extension-with-dumbbells",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Halteres",
+    "arquivo": "Lying Triceps Extension with Dumbbells.webp"
+  },
+  {
+    "nome_original": "incline skullcrusher",
+    "nome_sugerido": "incline-skullcrusher",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "incline skullcrusher.webp"
+  },
+  {
+    "nome_original": "flat bench skull crusher",
+    "nome_sugerido": "flat-bench-skull-crusher",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "flat bench skull crusher.webp"
+  },
+  {
+    "nome_original": "Dumbbell Kickback",
+    "nome_sugerido": "dumbbell-kickback",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Kickback.webp"
+  },
+  {
+    "nome_original": "Diamond Pushup",
+    "nome_sugerido": "flexao-diamante",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Diamond Pushup.webp"
+  },
+  {
+    "nome_original": "Closed Dumbbell Bench Press",
+    "nome_sugerido": "supino-halteres",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Halteres",
+    "arquivo": "Closed Dumbbell Bench Press.webp"
+  },
+  {
+    "nome_original": "Close Grip Bar Press",
+    "nome_sugerido": "supino-pegada-fechada",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Close Grip Bar Press.webp"
+  },
+  {
+    "nome_original": "cable tricep pushdown",
+    "nome_sugerido": "cable-tricep-pushdown",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable tricep pushdown.webp"
+  },
+  {
+    "nome_original": "cable tricep overhead extensions",
+    "nome_sugerido": "cable-tricep-overhead-extensions",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable tricep overhead extensions.webp"
+  },
+  {
+    "nome_original": "cable reverse grip pushdown",
+    "nome_sugerido": "cable-reverse-grip-pushdown",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable reverse grip pushdown.webp"
+  },
+  {
+    "nome_original": "cable lying tricep extension",
+    "nome_sugerido": "cable-lying-tricep-extension",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable lying tricep extension.webp"
+  },
+  {
+    "nome_original": "bench tricep dips",
+    "nome_sugerido": "mergulho-triceps",
+    "grupo_muscular": "Tríceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "bench tricep dips.webp"
+  },
+  {
+    "nome_original": "standing landmine press",
+    "nome_sugerido": "standing-landmine-press",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "standing landmine press.webp"
+  },
+  {
+    "nome_original": "single arm arnold press",
+    "nome_sugerido": "desenvolvimento-arnold",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "single arm arnold press.webp"
+  },
+  {
+    "nome_original": "seated overhead press",
+    "nome_sugerido": "seated-overhead-press",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "seated overhead press.webp"
+  },
+  {
+    "nome_original": "Seated Military Press with Bar Behind Head",
+    "nome_sugerido": "desenvolvimento-militar",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Seated Military Press with Bar Behind Head.webp"
+  },
+  {
+    "nome_original": "One-Arm Cable Lateral Raise",
+    "nome_sugerido": "one-arm-cable-lateral-raise",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Cabo",
+    "arquivo": "One-Arm Cable Lateral Raise.webp"
+  },
+  {
+    "nome_original": "military press",
+    "nome_sugerido": "desenvolvimento-militar",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "military press.webp"
+  },
+  {
+    "nome_original": "Lateral Raise with Dumbbells",
+    "nome_sugerido": "lateral-raise-with-dumbbells",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Halteres",
+    "arquivo": "Lateral Raise with Dumbbells.webp"
+  },
+  {
+    "nome_original": "landmine press",
+    "nome_sugerido": "landmine-press",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "landmine press.webp"
+  },
+  {
+    "nome_original": "kettlebell upright row",
+    "nome_sugerido": "kettlebell-upright-row",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Kettlebell",
+    "arquivo": "kettlebell upright row.webp"
+  },
+  {
+    "nome_original": "Incline Lateral Raise with Dumbbells",
+    "nome_sugerido": "incline-lateral-raise-with-dumbbells",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Halteres",
+    "arquivo": "Incline Lateral Raise with Dumbbells.webp"
+  },
+  {
+    "nome_original": "Incline Lateral Raise",
+    "nome_sugerido": "incline-lateral-raise",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Incline Lateral Raise.webp"
+  },
+  {
+    "nome_original": "Front elevation",
+    "nome_sugerido": "elevacao-frontal",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Front elevation.webp"
+  },
+  {
+    "nome_original": "Dumbbell press",
+    "nome_sugerido": "dumbbell-press",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell press.webp"
+  },
+  {
+    "nome_original": "Dumbbell Front Raise",
+    "nome_sugerido": "dumbbell-front-raise",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Front Raise.webp"
+  },
+  {
+    "nome_original": "dumbbell external rotation",
+    "nome_sugerido": "dumbbell-external-rotation",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell external rotation.webp"
+  },
+  {
+    "nome_original": "cable y raise movement",
+    "nome_sugerido": "cable-y-raise-movement",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Cabo",
+    "arquivo": "cable y raise movement.webp"
+  },
+  {
+    "nome_original": "cable front raise movement",
+    "nome_sugerido": "cable-front-raise-movement",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Cabo",
+    "arquivo": "cable front raise movement.webp"
+  },
+  {
+    "nome_original": "barbell upright row standing",
+    "nome_sugerido": "barbell-upright-row-standing",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Barra",
+    "arquivo": "barbell upright row standing.webp"
+  },
+  {
+    "nome_original": "Barbell Lateral Raise",
+    "nome_sugerido": "barbell-lateral-raise",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Barra",
+    "arquivo": "Barbell Lateral Raise.webp"
+  },
+  {
+    "nome_original": "arnold presses",
+    "nome_sugerido": "desenvolvimento-arnold",
+    "grupo_muscular": "Ombros",
+    "equipamento": "Peso Corporal",
+    "arquivo": "arnold presses.webp"
+  },
+  {
+    "nome_original": "weighted calf raise",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Peso Corporal",
+    "arquivo": "weighted calf raise.webp"
+  },
+  {
+    "nome_original": "Standing Calf Raise with Lever",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Máquina",
+    "arquivo": "Standing Calf Raise with Lever.webp"
+  },
+  {
+    "nome_original": "Standing Calf Raise on Stairs",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Standing Calf Raise on Stairs.webp"
+  },
+  {
+    "nome_original": "single leg standing calf raise",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Peso Corporal",
+    "arquivo": "single leg standing calf raise.webp"
+  },
+  {
+    "nome_original": "Seated Calf Raise with Lever",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Máquina",
+    "arquivo": "Seated Calf Raise with Lever.webp"
+  },
+  {
+    "nome_original": "seated calf raise dumbbell",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Halteres",
+    "arquivo": "seated calf raise dumbbell.webp"
+  },
+  {
+    "nome_original": "dumbbell calf raise",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell calf raise.webp"
+  },
+  {
+    "nome_original": "Calf Raises in Leg Press",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Calf Raises in Leg Press.webp"
+  },
+  {
+    "nome_original": "Calf raise",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Calf raise.webp"
+  },
+  {
+    "nome_original": "Bodyweight Calf Raises",
+    "nome_sugerido": "elevacao-panturrilha",
+    "grupo_muscular": "Panturrilha",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Bodyweight Calf Raises.webp"
+  },
+  {
+    "nome_original": "barbell shrug",
+    "nome_sugerido": "encolhimento-barra",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Barra",
+    "arquivo": "barbell shrug.webp"
+  },
+  {
+    "nome_original": "smith machine shrug",
+    "nome_sugerido": "encolhimento-smith",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Máquina",
+    "arquivo": "smith machine shrug.webp"
+  },
+  {
+    "nome_original": "overhead shrug",
+    "nome_sugerido": "overhead-shrug",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Peso Corporal",
+    "arquivo": "overhead shrug.webp"
+  },
+  {
+    "nome_original": "monkey row",
+    "nome_sugerido": "monkey-row",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Peso Corporal",
+    "arquivo": "monkey row.webp"
+  },
+  {
+    "nome_original": "Incline Dumbbell Curl",
+    "nome_sugerido": "incline-dumbbell-curl",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Halteres",
+    "arquivo": "Incline Dumbbell Curl.webp"
+  },
+  {
+    "nome_original": "Guided Bar Shrug (Smith Machine)",
+    "nome_sugerido": "guided-bar-shrug-smith-machine",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Máquina",
+    "arquivo": "Guided Bar Shrug (Smith Machine).webp"
+  },
+  {
+    "nome_original": "Dumbbell Shoulder Shrugs",
+    "nome_sugerido": "dumbbell-shoulder-shrugs",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Shoulder Shrugs.webp"
+  },
+  {
+    "nome_original": "behind the back shrugs",
+    "nome_sugerido": "behind-the-back-shrugs",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Peso Corporal",
+    "arquivo": "behind the back shrugs.webp"
+  },
+  {
+    "nome_original": "band hip abduction",
+    "nome_sugerido": "band-hip-abduction",
+    "grupo_muscular": "Trapézio",
+    "equipamento": "Peso Corporal",
+    "arquivo": "band hip abduction.webp"
+  },
+  {
+    "nome_original": "Unilateral Dumbbell Row",
+    "nome_sugerido": "unilateral-dumbbell-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "Unilateral Dumbbell Row.webp"
+  },
+  {
+    "nome_original": "supinated lat pulldown",
+    "nome_sugerido": "supinated-lat-pulldown",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "supinated lat pulldown.webp"
+  },
+  {
+    "nome_original": "standing cable row",
+    "nome_sugerido": "standing-cable-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "standing cable row.webp"
+  },
+  {
+    "nome_original": "smith machine bent over row",
+    "nome_sugerido": "smith-machine-bent-over-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Máquina",
+    "arquivo": "smith machine bent over row.webp"
+  },
+  {
+    "nome_original": "seated reverse fly",
+    "nome_sugerido": "seated-reverse-fly",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "seated reverse fly.webp"
+  },
+  {
+    "nome_original": "Rope Pull with Extended Arms",
+    "nome_sugerido": "rope-pull-with-extended-arms",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Rope Pull with Extended Arms.webp"
+  },
+  {
+    "nome_original": "Reverse Fly with Dumbbells",
+    "nome_sugerido": "reverse-fly-with-dumbbells",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "Reverse Fly with Dumbbells.webp"
+  },
+  {
+    "nome_original": "Pulldown with Cable and a Back Arm",
+    "nome_sugerido": "pulldown-with-cable-and-a-back-arm",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "Pulldown with Cable and a Back Arm.webp"
+  },
+  {
+    "nome_original": "Pulldown with barbell",
+    "nome_sugerido": "pulldown-with-barbell",
+    "grupo_muscular": "Costas",
+    "equipamento": "Barra",
+    "arquivo": "Pulldown with barbell.webp"
+  },
+  {
+    "nome_original": "pull up",
+    "nome_sugerido": "pull-up",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "pull up.webp"
+  },
+  {
+    "nome_original": "power rack row",
+    "nome_sugerido": "power-rack-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "power rack row.webp"
+  },
+  {
+    "nome_original": "One-Arm Kneeling Band Pulldown",
+    "nome_sugerido": "one-arm-kneeling-band-pulldown",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "One-Arm Kneeling Band Pulldown.webp"
+  },
+  {
+    "nome_original": "one handed t bar row",
+    "nome_sugerido": "one-handed-t-bar-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "one handed t bar row.webp"
+  },
+  {
+    "nome_original": "neutral grip pull ups shoulder width",
+    "nome_sugerido": "neutral-grip-pull-ups-shoulder-width",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "neutral grip pull ups shoulder width.webp"
+  },
+  {
+    "nome_original": "landmine row",
+    "nome_sugerido": "landmine-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "landmine row.webp"
+  },
+  {
+    "nome_original": "Inverted Row with Smith Machine",
+    "nome_sugerido": "inverted-row-with-smith-machine",
+    "grupo_muscular": "Costas",
+    "equipamento": "Máquina",
+    "arquivo": "Inverted Row with Smith Machine.webp"
+  },
+  {
+    "nome_original": "Incline Dumbbell Row",
+    "nome_sugerido": "incline-dumbbell-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "Incline Dumbbell Row.webp"
+  },
+  {
+    "nome_original": "High rowing on the machine",
+    "nome_sugerido": "high-rowing-on-the-machine",
+    "grupo_muscular": "Costas",
+    "equipamento": "Máquina",
+    "arquivo": "High rowing on the machine.webp"
+  },
+  {
+    "nome_original": "dumbbell row",
+    "nome_sugerido": "dumbbell-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell row.webp"
+  },
+  {
+    "nome_original": "dumbbell rear delt fly",
+    "nome_sugerido": "dumbbell-rear-delt-fly",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell rear delt fly.webp"
+  },
+  {
+    "nome_original": "Dumbbell Pullover",
+    "nome_sugerido": "pullover-halter",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Pullover.webp"
+  },
+  {
+    "nome_original": "close grip lat pulldown standard bar attachment",
+    "nome_sugerido": "close-grip-lat-pulldown-standard-bar-attachment",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "close grip lat pulldown standard bar attachment.webp"
+  },
+  {
+    "nome_original": "close grip lat pulldown",
+    "nome_sugerido": "close-grip-lat-pulldown",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "close grip lat pulldown.webp"
+  },
+  {
+    "nome_original": "close grip chin up",
+    "nome_sugerido": "close-grip-chin-up",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "close grip chin up.webp"
+  },
+  {
+    "nome_original": "chin ups",
+    "nome_sugerido": "chin-ups",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "chin ups.webp"
+  },
+  {
+    "nome_original": "cable wide grip row",
+    "nome_sugerido": "cable-wide-grip-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "cable wide grip row.webp"
+  },
+  {
+    "nome_original": "cable underhand row",
+    "nome_sugerido": "cable-underhand-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "cable underhand row.webp"
+  },
+  {
+    "nome_original": "cable row barra reta",
+    "nome_sugerido": "cable-row-barra-reta",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "cable row barra reta.webp"
+  },
+  {
+    "nome_original": "cable rear delt row",
+    "nome_sugerido": "cable-rear-delt-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "cable rear delt row.webp"
+  },
+  {
+    "nome_original": "Cable machine row",
+    "nome_sugerido": "cable-machine-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "Cable machine row.webp"
+  },
+  {
+    "nome_original": "cable high row kneeling",
+    "nome_sugerido": "cable-high-row-kneeling",
+    "grupo_muscular": "Costas",
+    "equipamento": "Cabo",
+    "arquivo": "cable high row kneeling.webp"
+  },
+  {
+    "nome_original": "Bent-over Dumbbell Row",
+    "nome_sugerido": "bent-over-dumbbell-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "Bent-over Dumbbell Row.webp"
+  },
+  {
+    "nome_original": "Bent over dumbbell row",
+    "nome_sugerido": "bent-over-dumbbell-row",
+    "grupo_muscular": "Costas",
+    "equipamento": "Halteres",
+    "arquivo": "Bent over dumbbell row.webp"
+  },
+  {
+    "nome_original": "barbell pullover",
+    "nome_sugerido": "barbell-pullover",
+    "grupo_muscular": "Costas",
+    "equipamento": "Barra",
+    "arquivo": "barbell pullover.webp"
+  },
+  {
+    "nome_original": "assisted pull up machine",
+    "nome_sugerido": "assisted-pull-up-machine",
+    "grupo_muscular": "Costas",
+    "equipamento": "Máquina",
+    "arquivo": "assisted pull up machine.webp"
+  },
+  {
+    "nome_original": "archer pull up",
+    "nome_sugerido": "archer-pull-up",
+    "grupo_muscular": "Costas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "archer pull up.webp"
+  },
+  {
+    "nome_original": "Kneeling-Push-up",
+    "nome_sugerido": "kneeling-push-up",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Kneeling-Push-up.gif"
+  },
+  {
+    "nome_original": "Push-Up",
+    "nome_sugerido": "push-up",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Push-Up.gif"
+  },
+  {
+    "nome_original": "svend press",
+    "nome_sugerido": "svend-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "svend press.webp"
+  },
+  {
+    "nome_original": "suspended push ups",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "suspended push ups.webp"
+  },
+  {
+    "nome_original": "Seated Fly with Lever",
+    "nome_sugerido": "seated-fly-with-lever",
+    "grupo_muscular": "Peito",
+    "equipamento": "Máquina",
+    "arquivo": "Seated Fly with Lever.webp"
+  },
+  {
+    "nome_original": "Seated Cable Press",
+    "nome_sugerido": "seated-cable-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Cabo",
+    "arquivo": "Seated Cable Press.webp"
+  },
+  {
+    "nome_original": "Reverse Dumbbell Bench Press",
+    "nome_sugerido": "supino-halteres",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "Reverse Dumbbell Bench Press.webp"
+  },
+  {
+    "nome_original": "pin press",
+    "nome_sugerido": "pin-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "pin press.webp"
+  },
+  {
+    "nome_original": "pec deck",
+    "nome_sugerido": "pec-deck",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "pec deck.webp"
+  },
+  {
+    "nome_original": "Lever Chest Press",
+    "nome_sugerido": "supino-peito",
+    "grupo_muscular": "Peito",
+    "equipamento": "Máquina",
+    "arquivo": "Lever Chest Press.webp"
+  },
+  {
+    "nome_original": "knuckle push ups",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "knuckle push ups.webp"
+  },
+  {
+    "nome_original": "incline push up",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "incline push up.webp"
+  },
+  {
+    "nome_original": "Incline Fly with Dumbbells",
+    "nome_sugerido": "incline-fly-with-dumbbells",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "Incline Fly with Dumbbells.webp"
+  },
+  {
+    "nome_original": "incline dumbbell hex press",
+    "nome_sugerido": "incline-dumbbell-hex-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "incline dumbbell hex press.webp"
+  },
+  {
+    "nome_original": "Incline Dumbbell Bench Press",
+    "nome_sugerido": "supino-halteres",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "Incline Dumbbell Bench Press.webp"
+  },
+  {
+    "nome_original": "Incline Bench Press with Guided Bar (Smith Machine)",
+    "nome_sugerido": "incline-bench-press-with-guided-bar-smith-machine",
+    "grupo_muscular": "Peito",
+    "equipamento": "Máquina",
+    "arquivo": "Incline Bench Press with Guided Bar (Smith Machine).webp"
+  },
+  {
+    "nome_original": "Incline Barbell Bench Press",
+    "nome_sugerido": "incline-barbell-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Barra",
+    "arquivo": "Incline Barbell Bench Press.webp"
+  },
+  {
+    "nome_original": "Guided Barbell Bench Press (Smith Machine)",
+    "nome_sugerido": "guided-barbell-bench-press-smith-machine",
+    "grupo_muscular": "Peito",
+    "equipamento": "Barra",
+    "arquivo": "Guided Barbell Bench Press (Smith Machine).webp"
+  },
+  {
+    "nome_original": "Graviton parallels",
+    "nome_sugerido": "graviton-parallels",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Graviton parallels.webp"
+  },
+  {
+    "nome_original": "forearm push ups",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "forearm push ups.webp"
+  },
+  {
+    "nome_original": "finger push up",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "finger push up.webp"
+  },
+  {
+    "nome_original": "dumbbell svend press",
+    "nome_sugerido": "dumbbell-svend-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell svend press.webp"
+  },
+  {
+    "nome_original": "dumbbell one arm chest press",
+    "nome_sugerido": "supino-peito",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell one arm chest press.webp"
+  },
+  {
+    "nome_original": "dumbbell incline reverse grip bench",
+    "nome_sugerido": "dumbbell-incline-reverse-grip-bench",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell incline reverse grip bench.webp"
+  },
+  {
+    "nome_original": "dumbbell incline chest press",
+    "nome_sugerido": "supino-peito",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell incline chest press.webp"
+  },
+  {
+    "nome_original": "dumbbell hex press",
+    "nome_sugerido": "dumbbell-hex-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell hex press.webp"
+  },
+  {
+    "nome_original": "dumbbell floor press",
+    "nome_sugerido": "dumbbell-floor-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell floor press.webp"
+  },
+  {
+    "nome_original": "Dumbbell Decline Bench Press",
+    "nome_sugerido": "dumbbell-decline-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Decline Bench Press.webp"
+  },
+  {
+    "nome_original": "dumbbell chest fly",
+    "nome_sugerido": "dumbbell-chest-fly",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell chest fly.webp"
+  },
+  {
+    "nome_original": "Dumbbell Bench Press",
+    "nome_sugerido": "supino-halteres",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Bench Press.webp"
+  },
+  {
+    "nome_original": "deficit push ups",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "deficit push ups.webp"
+  },
+  {
+    "nome_original": "Decline Flexion",
+    "nome_sugerido": "decline-flexion",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Decline Flexion.webp"
+  },
+  {
+    "nome_original": "decline cable fly",
+    "nome_sugerido": "decline-cable-fly",
+    "grupo_muscular": "Peito",
+    "equipamento": "Cabo",
+    "arquivo": "decline cable fly.webp"
+  },
+  {
+    "nome_original": "Decline Bench Press with Guided Bar (Smith Machine)",
+    "nome_sugerido": "decline-bench-press-with-guided-bar-smith-machine",
+    "grupo_muscular": "Peito",
+    "equipamento": "Máquina",
+    "arquivo": "Decline Bench Press with Guided Bar (Smith Machine).webp"
+  },
+  {
+    "nome_original": "close grip push up",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "close grip push up.webp"
+  },
+  {
+    "nome_original": "close grip bench press",
+    "nome_sugerido": "close-grip-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "close grip bench press.webp"
+  },
+  {
+    "nome_original": "clapping push ups",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "clapping push ups.webp"
+  },
+  {
+    "nome_original": "chest dip movement",
+    "nome_sugerido": "chest-dip-movement",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "chest dip movement.webp"
+  },
+  {
+    "nome_original": "Cable Fly in Middle Position",
+    "nome_sugerido": "cable-fly-in-middle-position",
+    "grupo_muscular": "Peito",
+    "equipamento": "Cabo",
+    "arquivo": "Cable Fly in Middle Position.webp"
+  },
+  {
+    "nome_original": "Cable Fly in Low Position",
+    "nome_sugerido": "cable-fly-in-low-position",
+    "grupo_muscular": "Peito",
+    "equipamento": "Cabo",
+    "arquivo": "Cable Fly in Low Position.webp"
+  },
+  {
+    "nome_original": "cable cross over",
+    "nome_sugerido": "cable-cross-over",
+    "grupo_muscular": "Peito",
+    "equipamento": "Cabo",
+    "arquivo": "cable cross over.webp"
+  },
+  {
+    "nome_original": "cable bench press",
+    "nome_sugerido": "cable-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Cabo",
+    "arquivo": "cable bench press.webp"
+  },
+  {
+    "nome_original": "bosu ball push up",
+    "nome_sugerido": "flexao",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "bosu ball push up.webp"
+  },
+  {
+    "nome_original": "Bench press",
+    "nome_sugerido": "bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Bench press.webp"
+  },
+  {
+    "nome_original": "Bench press with dumbbells",
+    "nome_sugerido": "bench-press-with-dumbbells",
+    "grupo_muscular": "Peito",
+    "equipamento": "Halteres",
+    "arquivo": "Bench press with dumbbells.webp"
+  },
+  {
+    "nome_original": "barbell wide grip bench press",
+    "nome_sugerido": "barbell-wide-grip-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Barra",
+    "arquivo": "barbell wide grip bench press.webp"
+  },
+  {
+    "nome_original": "barbell decline bench press",
+    "nome_sugerido": "barbell-decline-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Barra",
+    "arquivo": "barbell decline bench press.webp"
+  },
+  {
+    "nome_original": "Barbell Bench Press",
+    "nome_sugerido": "barbell-bench-press",
+    "grupo_muscular": "Peito",
+    "equipamento": "Barra",
+    "arquivo": "Barbell Bench Press.webp"
+  },
+  {
+    "nome_original": "Scott barbell curl",
+    "nome_sugerido": "scott-barbell-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "Scott barbell curl.webp"
+  },
+  {
+    "nome_original": "wide grip ez bar curl",
+    "nome_sugerido": "wide-grip-ez-bar-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "wide grip ez bar curl.webp"
+  },
+  {
+    "nome_original": "wide grip barbell curls",
+    "nome_sugerido": "wide-grip-barbell-curls",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "wide grip barbell curls.webp"
+  },
+  {
+    "nome_original": "tricep bar hammer curl",
+    "nome_sugerido": "tricep-bar-hammer-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "tricep bar hammer curl.webp"
+  },
+  {
+    "nome_original": "Scott Thread with Handle",
+    "nome_sugerido": "scott-thread-with-handle",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Scott Thread with Handle.webp"
+  },
+  {
+    "nome_original": "rope hammer curl machine",
+    "nome_sugerido": "rope-hammer-curl-machine",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Máquina",
+    "arquivo": "rope hammer curl machine.webp"
+  },
+  {
+    "nome_original": "Reverse Dumbbell Biceps Curl",
+    "nome_sugerido": "reverse-dumbbell-biceps-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "Reverse Dumbbell Biceps Curl.webp"
+  },
+  {
+    "nome_original": "Lying Biceps Curl with Cable",
+    "nome_sugerido": "lying-biceps-curl-with-cable",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "Lying Biceps Curl with Cable.webp"
+  },
+  {
+    "nome_original": "lat pullover",
+    "nome_sugerido": "lat-pullover",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "lat pullover.webp"
+  },
+  {
+    "nome_original": "inner bicep curl",
+    "nome_sugerido": "inner-bicep-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "inner bicep curl.webp"
+  },
+  {
+    "nome_original": "Incline Dumbbell Biceps Curl",
+    "nome_sugerido": "incline-dumbbell-biceps-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "Incline Dumbbell Biceps Curl.webp"
+  },
+  {
+    "nome_original": "incline cable curl",
+    "nome_sugerido": "incline-cable-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "incline cable curl.webp"
+  },
+  {
+    "nome_original": "Hammer curl",
+    "nome_sugerido": "hammer-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Hammer curl.webp"
+  },
+  {
+    "nome_original": "ez bar bicep curl",
+    "nome_sugerido": "ez-bar-bicep-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "ez bar bicep curl.webp"
+  },
+  {
+    "nome_original": "dumbbell seated zottman curl",
+    "nome_sugerido": "dumbbell-seated-zottman-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell seated zottman curl.webp"
+  },
+  {
+    "nome_original": "dumbbell reverse curl",
+    "nome_sugerido": "dumbbell-reverse-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell reverse curl.webp"
+  },
+  {
+    "nome_original": "dumbbell hammer curl",
+    "nome_sugerido": "dumbbell-hammer-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell hammer curl.webp"
+  },
+  {
+    "nome_original": "Direct thread",
+    "nome_sugerido": "direct-thread",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Direct thread.webp"
+  },
+  {
+    "nome_original": "Curl with Squat Cable",
+    "nome_sugerido": "curl-with-squat-cable",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "Curl with Squat Cable.webp"
+  },
+  {
+    "nome_original": "Curl with EZ Bar and Standing Wide Grip",
+    "nome_sugerido": "curl-with-ez-bar-and-standing-wide-grip",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "Curl with EZ Bar and Standing Wide Grip.webp"
+  },
+  {
+    "nome_original": "Curl with Cable Above the Head",
+    "nome_sugerido": "curl-with-cable-above-the-head",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "Curl with Cable Above the Head.webp"
+  },
+  {
+    "nome_original": "Curl Spider with EZ Bar",
+    "nome_sugerido": "curl-spider-with-ez-bar",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "Curl Spider with EZ Bar.webp"
+  },
+  {
+    "nome_original": "Curl Hammer with Rope",
+    "nome_sugerido": "curl-hammer-with-rope",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Curl Hammer with Rope.webp"
+  },
+  {
+    "nome_original": "Curl Hammer with Dumbbells",
+    "nome_sugerido": "curl-hammer-with-dumbbells",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "Curl Hammer with Dumbbells.webp"
+  },
+  {
+    "nome_original": "Concentrated Curl with Seated One-Arm Cable",
+    "nome_sugerido": "concentrated-curl-with-seated-one-arm-cable",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "Concentrated Curl with Seated One-Arm Cable.webp"
+  },
+  {
+    "nome_original": "Concentrated Curl with Dumbbells",
+    "nome_sugerido": "concentrated-curl-with-dumbbells",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Halteres",
+    "arquivo": "Concentrated Curl with Dumbbells.webp"
+  },
+  {
+    "nome_original": "close grip preacher curl",
+    "nome_sugerido": "close-grip-preacher-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "close grip preacher curl.webp"
+  },
+  {
+    "nome_original": "close grip barbell curl",
+    "nome_sugerido": "close-grip-barbell-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "close grip barbell curl.webp"
+  },
+  {
+    "nome_original": "cable single arm hammer curl",
+    "nome_sugerido": "cable-single-arm-hammer-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable single arm hammer curl.webp"
+  },
+  {
+    "nome_original": "cable one arm curl",
+    "nome_sugerido": "cable-one-arm-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable one arm curl.webp"
+  },
+  {
+    "nome_original": "cable drag curl",
+    "nome_sugerido": "cable-drag-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable drag curl.webp"
+  },
+  {
+    "nome_original": "cable bicep curl",
+    "nome_sugerido": "cable-bicep-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Cabo",
+    "arquivo": "cable bicep curl.webp"
+  },
+  {
+    "nome_original": "bayesian curl",
+    "nome_sugerido": "bayesian-curl",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "bayesian curl.webp"
+  },
+  {
+    "nome_original": "barbell concentration curls",
+    "nome_sugerido": "rosca-concentrada",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Barra",
+    "arquivo": "barbell concentration curls.webp"
+  },
+  {
+    "nome_original": "alternating hammer curls",
+    "nome_sugerido": "rosca-martelo",
+    "grupo_muscular": "Bíceps",
+    "equipamento": "Peso Corporal",
+    "arquivo": "alternating hammer curls.webp"
+  },
+  {
+    "nome_original": "weighted hyperextension",
+    "nome_sugerido": "weighted-hyperextension",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Peso Corporal",
+    "arquivo": "weighted hyperextension.webp"
+  },
+  {
+    "nome_original": "stiff legged smith deadlift",
+    "nome_sugerido": "stiff-legged-smith-deadlift",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Máquina",
+    "arquivo": "stiff legged smith deadlift.webp"
+  },
+  {
+    "nome_original": "reverse hyperextension",
+    "nome_sugerido": "reverse-hyperextension",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Peso Corporal",
+    "arquivo": "reverse hyperextension.webp"
+  },
+  {
+    "nome_original": "kneeling hip thrust",
+    "nome_sugerido": "kneeling-hip-thrust",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Peso Corporal",
+    "arquivo": "kneeling hip thrust.webp"
+  },
+  {
+    "nome_original": "Inverted Declined Bridge",
+    "nome_sugerido": "inverted-declined-bridge",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Inverted Declined Bridge.webp"
+  },
+  {
+    "nome_original": "glute ham raise muscles",
+    "nome_sugerido": "glute-ham-raise-muscles",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Peso Corporal",
+    "arquivo": "glute ham raise muscles.webp"
+  },
+  {
+    "nome_original": "frog reverse hyperextension",
+    "nome_sugerido": "frog-reverse-hyperextension",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Peso Corporal",
+    "arquivo": "frog reverse hyperextension.webp"
+  },
+  {
+    "nome_original": "dumbbell single leg glute bridge",
+    "nome_sugerido": "dumbbell-single-leg-glute-bridge",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell single leg glute bridge.webp"
+  },
+  {
+    "nome_original": "Dumbbell Pelvic Raise",
+    "nome_sugerido": "dumbbell-pelvic-raise",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Pelvic Raise.webp"
+  },
+  {
+    "nome_original": "dumbbell hip thrust",
+    "nome_sugerido": "dumbbell-hip-thrust",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell hip thrust.webp"
+  },
+  {
+    "nome_original": "cable donkey kickback",
+    "nome_sugerido": "cable-donkey-kickback",
+    "grupo_muscular": "Glúteos",
+    "equipamento": "Cabo",
+    "arquivo": "cable donkey kickback.webp"
+  },
+  {
+    "nome_original": "weighted knee crunch",
+    "nome_sugerido": "abdominal",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "weighted knee crunch.webp"
+  },
+  {
+    "nome_original": "v sit ups",
+    "nome_sugerido": "abdominal-v",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "v sit ups.webp"
+  },
+  {
+    "nome_original": "toes to bar muscles",
+    "nome_sugerido": "toes-to-bar-muscles",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "toes to bar muscles.webp"
+  },
+  {
+    "nome_original": "supine leg raises",
+    "nome_sugerido": "supine-leg-raises",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "supine leg raises.webp"
+  },
+  {
+    "nome_original": "straight leg crunch",
+    "nome_sugerido": "abdominal",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "straight leg crunch.webp"
+  },
+  {
+    "nome_original": "stability ball rollout",
+    "nome_sugerido": "stability-ball-rollout",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Bola Suíça",
+    "arquivo": "stability ball rollout.webp"
+  },
+  {
+    "nome_original": "side crunch",
+    "nome_sugerido": "abdominal",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "side crunch.webp"
+  },
+  {
+    "nome_original": "raised sit up",
+    "nome_sugerido": "raised-sit-up",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "raised sit up.webp"
+  },
+  {
+    "nome_original": "plank movement",
+    "nome_sugerido": "prancha",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "plank movement.webp"
+  },
+  {
+    "nome_original": "kettlebell russian twist",
+    "nome_sugerido": "kettlebell-russian-twist",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Kettlebell",
+    "arquivo": "kettlebell russian twist.webp"
+  },
+  {
+    "nome_original": "hanging leg raise movement",
+    "nome_sugerido": "hanging-leg-raise-movement",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "hanging leg raise movement.webp"
+  },
+  {
+    "nome_original": "full sit up",
+    "nome_sugerido": "full-sit-up",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "full sit up.webp"
+  },
+  {
+    "nome_original": "crunch",
+    "nome_sugerido": "abdominal",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "crunch.webp"
+  },
+  {
+    "nome_original": "captains chair leg raise",
+    "nome_sugerido": "captains-chair-leg-raise",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "captains chair leg raise.webp"
+  },
+  {
+    "nome_original": "cable seated crunch",
+    "nome_sugerido": "abdominal",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Cabo",
+    "arquivo": "cable seated crunch.webp"
+  },
+  {
+    "nome_original": "bosu ball crunch",
+    "nome_sugerido": "abdominal",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Bola Suíça",
+    "arquivo": "bosu ball crunch.webp"
+  },
+  {
+    "nome_original": "body saw plank",
+    "nome_sugerido": "prancha",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "body saw plank.webp"
+  },
+  {
+    "nome_original": "ab wheel",
+    "nome_sugerido": "ab-wheel",
+    "grupo_muscular": "Abdômem",
+    "equipamento": "Peso Corporal",
+    "arquivo": "ab wheel.webp"
+  },
+  {
+    "nome_original": "smith machine squat",
+    "nome_sugerido": "smith-machine-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Máquina",
+    "arquivo": "smith machine squat.webp"
+  },
+  {
+    "nome_original": "smith machine rack pull",
+    "nome_sugerido": "smith-machine-rack-pull",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Máquina",
+    "arquivo": "smith machine rack pull.webp"
+  },
+  {
+    "nome_original": "Sumo Deadlift with Barbell",
+    "nome_sugerido": "sumo-deadlift-with-barbell",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "Sumo Deadlift with Barbell.webp"
+  },
+  {
+    "nome_original": "Rack Pull with Bar",
+    "nome_sugerido": "rack-pull-with-bar",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Rack Pull with Bar.webp"
+  },
+  {
+    "nome_original": "reverse hack squat",
+    "nome_sugerido": "reverse-hack-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "reverse hack squat.webp"
+  },
+  {
+    "nome_original": "pistol squat high box",
+    "nome_sugerido": "pistol-squat-high-box",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "pistol squat high box.webp"
+  },
+  {
+    "nome_original": "leg press",
+    "nome_sugerido": "leg-press",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "leg press.webp"
+  },
+  {
+    "nome_original": "leg extension machine",
+    "nome_sugerido": "leg-extension-machine",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Máquina",
+    "arquivo": "leg extension machine.webp"
+  },
+  {
+    "nome_original": "landmine squat",
+    "nome_sugerido": "landmine-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "landmine squat.webp"
+  },
+  {
+    "nome_original": "landmine deadlift",
+    "nome_sugerido": "landmine-deadlift",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "landmine deadlift.webp"
+  },
+  {
+    "nome_original": "kettlebell pistol squat",
+    "nome_sugerido": "kettlebell-pistol-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Kettlebell",
+    "arquivo": "kettlebell pistol squat.webp"
+  },
+  {
+    "nome_original": "kettlebell overhead squat",
+    "nome_sugerido": "kettlebell-overhead-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Kettlebell",
+    "arquivo": "kettlebell overhead squat.webp"
+  },
+  {
+    "nome_original": "kettlebell sumo squat",
+    "nome_sugerido": "kettlebell-sumo-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Kettlebell",
+    "arquivo": "kettlebell sumo squat.webp"
+  },
+  {
+    "nome_original": "high bar squat form",
+    "nome_sugerido": "high-bar-squat-form",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "high bar squat form.webp"
+  },
+  {
+    "nome_original": "half knee bend squat",
+    "nome_sugerido": "half-knee-bend-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "half knee bend squat.webp"
+  },
+  {
+    "nome_original": "Hack Squat with Sled",
+    "nome_sugerido": "hack-squat-with-sled",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Hack Squat with Sled.webp"
+  },
+  {
+    "nome_original": "Goblet Squat with Dumbbells",
+    "nome_sugerido": "goblet-squat-with-dumbbells",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "Goblet Squat with Dumbbells.webp"
+  },
+  {
+    "nome_original": "goblet box squat",
+    "nome_sugerido": "goblet-box-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "goblet box squat.webp"
+  },
+  {
+    "nome_original": "Full Squat with Guided Bar (Smith Machine)",
+    "nome_sugerido": "full-squat-with-guided-bar-smith-machine",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Máquina",
+    "arquivo": "Full Squat with Guided Bar (Smith Machine).webp"
+  },
+  {
+    "nome_original": "Front Squat",
+    "nome_sugerido": "agachamento-frontal",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Front Squat.webp"
+  },
+  {
+    "nome_original": "frog squat",
+    "nome_sugerido": "frog-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "frog squat.webp"
+  },
+  {
+    "nome_original": "Foot Elevated Squat",
+    "nome_sugerido": "foot-elevated-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Foot Elevated Squat.webp"
+  },
+  {
+    "nome_original": "explosive goblet squat",
+    "nome_sugerido": "explosive-goblet-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "explosive goblet squat.webp"
+  },
+  {
+    "nome_original": "dumbbell sumo squat",
+    "nome_sugerido": "dumbbell-sumo-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell sumo squat.webp"
+  },
+  {
+    "nome_original": "dumbbell sumo deadlift",
+    "nome_sugerido": "dumbbell-sumo-deadlift",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell sumo deadlift.webp"
+  },
+  {
+    "nome_original": "dumbbell squat",
+    "nome_sugerido": "dumbbell-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell squat.webp"
+  },
+  {
+    "nome_original": "dumbbell front squat",
+    "nome_sugerido": "agachamento-frontal",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell front squat.webp"
+  },
+  {
+    "nome_original": "dumbbell deadlift neutral grip",
+    "nome_sugerido": "dumbbell-deadlift-neutral-grip",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell deadlift neutral grip.webp"
+  },
+  {
+    "nome_original": "Dumbbell Back Lunge",
+    "nome_sugerido": "dumbbell-back-lunge",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "Dumbbell Back Lunge.webp"
+  },
+  {
+    "nome_original": "Deadlift with Hexagonal Bar",
+    "nome_sugerido": "deadlift-with-hexagonal-bar",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Deadlift with Hexagonal Bar.webp"
+  },
+  {
+    "nome_original": "dead squat",
+    "nome_sugerido": "dead-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "dead squat.webp"
+  },
+  {
+    "nome_original": "curtsy lunge",
+    "nome_sugerido": "curtsy-lunge",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "curtsy lunge.webp"
+  },
+  {
+    "nome_original": "cable step up",
+    "nome_sugerido": "cable-step-up",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Cabo",
+    "arquivo": "cable step up.webp"
+  },
+  {
+    "nome_original": "cable front squat",
+    "nome_sugerido": "agachamento-frontal",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Cabo",
+    "arquivo": "cable front squat.webp"
+  },
+  {
+    "nome_original": "Bulgarian Earth Survey",
+    "nome_sugerido": "bulgarian-earth-survey",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Bulgarian Earth Survey.webp"
+  },
+  {
+    "nome_original": "Bulgarian Dumbbell Squat",
+    "nome_sugerido": "bulgarian-dumbbell-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "Bulgarian Dumbbell Squat.webp"
+  },
+  {
+    "nome_original": "Bulgarian Bodyweight Squat",
+    "nome_sugerido": "agachamento-peso-corporal",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Bulgarian Bodyweight Squat.webp"
+  },
+  {
+    "nome_original": "Bodyweight Squats",
+    "nome_sugerido": "agachamento",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Bodyweight Squats.webp"
+  },
+  {
+    "nome_original": "bodyweight forward lunge",
+    "nome_sugerido": "bodyweight-forward-lunge",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "bodyweight forward lunge.webp"
+  },
+  {
+    "nome_original": "block pull deadlift",
+    "nome_sugerido": "block-pull-deadlift",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "block pull deadlift.webp"
+  },
+  {
+    "nome_original": "barbell sumo squat",
+    "nome_sugerido": "barbell-sumo-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "barbell sumo squat.webp"
+  },
+  {
+    "nome_original": "barbell squat clean",
+    "nome_sugerido": "barbell-squat-clean",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "barbell squat clean.webp"
+  },
+  {
+    "nome_original": "barbell split squat",
+    "nome_sugerido": "barbell-split-squat",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "barbell split squat.webp"
+  },
+  {
+    "nome_original": "barbell pin front squat",
+    "nome_sugerido": "agachamento-frontal",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "barbell pin front squat.webp"
+  },
+  {
+    "nome_original": "barbell deadlift mixed grip",
+    "nome_sugerido": "barbell-deadlift-mixed-grip",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "barbell deadlift mixed grip.webp"
+  },
+  {
+    "nome_original": "Barbell Deadlift",
+    "nome_sugerido": "barbell-deadlift",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "Barbell Deadlift.webp"
+  },
+  {
+    "nome_original": "Single-Leg Barbell Deadlift",
+    "nome_sugerido": "single-leg-barbell-deadlift",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Barra",
+    "arquivo": "Single-Leg Barbell Deadlift.webp"
+  },
+  {
+    "nome_original": "seated leg curl",
+    "nome_sugerido": "seated-leg-curl",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "seated leg curl.webp"
+  },
+  {
+    "nome_original": "lying leg curl",
+    "nome_sugerido": "lying-leg-curl",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "lying leg curl.webp"
+  },
+  {
+    "nome_original": "Lumbar extension",
+    "nome_sugerido": "lumbar-extension",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Lumbar extension.webp"
+  },
+  {
+    "nome_original": "kettlebell good morning",
+    "nome_sugerido": "kettlebell-good-morning",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Kettlebell",
+    "arquivo": "kettlebell good morning.webp"
+  },
+  {
+    "nome_original": "exericise ball leg curl",
+    "nome_sugerido": "exericise-ball-leg-curl",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Bola Suíça",
+    "arquivo": "exericise ball leg curl.webp"
+  },
+  {
+    "nome_original": "dumbbell stiff leg deadlift",
+    "nome_sugerido": "dumbbell-stiff-leg-deadlift",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell stiff leg deadlift.webp"
+  },
+  {
+    "nome_original": "dumbbell leg curl",
+    "nome_sugerido": "dumbbell-leg-curl",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Halteres",
+    "arquivo": "dumbbell leg curl.webp"
+  },
+  {
+    "nome_original": "Deadlift with straight legs",
+    "nome_sugerido": "deadlift-with-straight-legs",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Peso Corporal",
+    "arquivo": "Deadlift with straight legs.webp"
+  },
+  {
+    "nome_original": "Adduction into the machine",
+    "nome_sugerido": "adduction-into-the-machine",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Máquina",
+    "arquivo": "Adduction into the machine.webp"
+  },
+  {
+    "nome_original": "Machine abduction",
+    "nome_sugerido": "machine-abduction",
+    "grupo_muscular": "Pernas",
+    "equipamento": "Máquina",
+    "arquivo": "Machine abduction.webp"
+  }
+]

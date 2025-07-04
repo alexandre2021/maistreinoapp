@@ -37,3 +37,12 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Google Service Account
+google-service-account.json
+
+# Documentos sensíveis
+/docs/BLOQUEIO_EMAIL_TEMPORARIO.md
+/docs/EDGE_FUNCTIONS_MIDIAS.md
+/docs/ESTRUTURA_TABELAS.md
+/docs/EXERCICIOS.md

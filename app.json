@@ -5,18 +5,54 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "maistreinoapp",
+    "scheme": "maistreino",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "associatedDomains": [
+        "applinks:maistreino.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "maistreino"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "maistreino"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.anonymous.MaisTreinoApp"
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +68,14 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app precisa acessar suas fotos para alterar o avatar do perfil.",
+          "cameraPermission": "O app precisa acessar a câmera para tirar fotos do avatar."
         }
       ]
     ],

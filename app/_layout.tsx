@@ -1,29 +1,58 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Session } from '@supabase/supabase-js';
+import { SplashScreen, Stack } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { setupTextNodeDebug } from '../utils/debugTextNode';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// Impede que a tela de splash seja escondida automaticamente
+SplashScreen.preventAutoHideAsync();
+
+// Ativa debug de text node em desenvolvimento
+if (__DEV__) {
+  setupTextNodeDebug();
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const [, setSession] = useState<Session | null>(null) // ✅ CORREÇÃO: _ indica que não usamos a variável
+  const [isLoading, setIsLoading] = useState(true)
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
+  useEffect(() => {
+    // ✅ CARREGA SESSÃO APENAS UMA VEZ
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setIsLoading(false)
+      SplashScreen.hideAsync();
+    })
+
+    // ✅ ESCUTA MUDANÇAS DE AUTH (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, authSession) => {
+      console.log('🔄 [AUTH] Mudança de estado:', _event, authSession ? 'LOGADO' : 'DESLOGADO');
+      setSession(authSession) // ✅ CORREÇÃO: Usa authSession em vez de session
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, []) // ✅ CORREÇÃO: Array vazio - não precisa de dependências
+
+  // ✅ IMPORTANTE: REMOVI TODOS OS REDIRECIONAMENTOS AUTOMÁTICOS!
+  // Agora cada página gerencia sua própria navegação
+
+  if (isLoading) {
     return null;
   }
 
+  // ✅ STACK SIMPLES - SEM REDIRECIONAMENTOS FORÇADOS
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="tipo-conta" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="detalhes-exercicio/[id]" />
+      <Stack.Screen name="detalhes-aluno/[id]" />
+      <Stack.Screen name="criar-copia-exercicio/[id]" />
+      <Stack.Screen name="perfil-pt/perfil-pt" />
+      <Stack.Screen name="perfil-aluno/perfil-aluno" />
+    </Stack>
+  )
 }
