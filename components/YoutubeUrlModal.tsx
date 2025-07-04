@@ -17,7 +17,7 @@ export const YoutubeUrlModal: React.FC<YoutubeUrlModalProps> = ({ visible, initi
   }, [initialUrl, visible]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} accessible={false} importantForAccessibility="no">
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={styles.title}>Adicionar link do YouTube</Text>

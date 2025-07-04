@@ -74,7 +74,7 @@ export const ExercicioForm: React.FC<ExercicioFormProps> = ({
     onSelect: (value: string) => void;
     onClose: () => void;
   }) => (
-    <Modal visible={visible} transparent animationType="fade" accessible={false} importantForAccessibility="no">
+    <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>

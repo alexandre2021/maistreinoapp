@@ -20,8 +20,6 @@ export const ExitRotinaModal: React.FC<ExitRotinaModalProps> = ({
      transparent
      animationType="fade"
      onRequestClose={onCancel}
-     accessible={false}
-     importantForAccessibility="no"
    >
      <View style={styles.overlay}>
        <View style={styles.container}>

@@ -101,7 +101,6 @@ export default function ConfiguracaoRotinaScreen() {
   const [duracaoPersonalizada, setDuracaoPersonalizada] = useState('');
   const [usandoPersonalizada, setUsandoPersonalizada] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showTreinosDropdown, setShowTreinosDropdown] = useState(false);
 
   // Buscar dados do aluno se alunoId estiver presente
   useEffect(() => {
@@ -261,7 +260,6 @@ export default function ConfiguracaoRotinaScreen() {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        onTouchStart={() => setShowTreinosDropdown(false)}
       >
         {/* ✅ NOME DA ROTINA - COM SUGESTÃO AUTOMÁTICA MAS AINDA OBRIGATÓRIO */}
         <View style={styles.section}>
@@ -322,50 +320,27 @@ export default function ConfiguracaoRotinaScreen() {
             Treinos por Semana <Text style={styles.required}>*</Text>
           </Text>
           
-          <TouchableOpacity
-            style={[
-              styles.dropdownContainer,
-              showTreinosDropdown && styles.dropdownContainerOpen
-            ]}
-            onPress={() => setShowTreinosDropdown(!showTreinosDropdown)}
-          >
-            <Text style={styles.dropdownText}>
-              {treinosPorSemanaOptions.find(opt => opt.value === treinosPorSemana)?.label || 'Selecione'}
-            </Text>
-            <Ionicons 
-              name={showTreinosDropdown ? 'chevron-up' : 'chevron-down'} 
-              size={20} 
-              color="#6B7280" 
-            />
-          </TouchableOpacity>
-          
-          {showTreinosDropdown && (
-            <View style={styles.dropdownOptions}>
-              {treinosPorSemanaOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.dropdownOption,
-                    treinosPorSemana === option.value && styles.dropdownOptionSelected
-                  ]}
-                  onPress={() => {
-                    setTreinosPorSemana(option.value);
-                    setShowTreinosDropdown(false);
-                  }}
-                >
-                  <Text style={[
-                    styles.dropdownOptionText,
-                    treinosPorSemana === option.value && styles.dropdownOptionTextSelected
-                  ]}>
-                    {option.label}
-                  </Text>
-                  {treinosPorSemana === option.value && (
-                    <Ionicons name="checkmark" size={20} color="#007AFF" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+          {/* Grid de opções de treinos por semana */}
+          <View style={styles.optionsGrid}>
+            {treinosPorSemanaOptions.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.optionCard,
+                  treinosPorSemana === option.value && styles.optionCardSelected
+                ]}
+                onPress={() => setTreinosPorSemana(option.value)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.optionCardText,
+                  treinosPorSemana === option.value && styles.optionCardTextSelected
+                ]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* ✅ NOVA SEÇÃO: DURAÇÃO SIMPLIFICADA */}
@@ -669,6 +644,15 @@ const styles = StyleSheet.create({
   },
   optionSubtitleSelected: {
     color: '#1E40AF',
+  },
+  optionCardText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
+  },
+  optionCardTextSelected: {
+    color: '#007AFF',
   },
   optionCheck: {
     position: 'absolute',

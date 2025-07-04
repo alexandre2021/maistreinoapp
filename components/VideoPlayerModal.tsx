@@ -22,8 +22,6 @@ export const VideoPlayerModal = ({ visible, onClose, title, videoUrl }: VideoPla
       visible={visible}
       onRequestClose={onClose}
       supportedOrientations={['portrait', 'landscape']} // Permite rotação
-      accessible={false}
-      importantForAccessibility="no"
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>

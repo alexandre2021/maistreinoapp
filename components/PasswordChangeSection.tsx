@@ -223,7 +223,7 @@ const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
       </View>
 
       {/* Modal de Edição de Senha */}
-      <Modal visible={showModal} transparent animationType="slide" accessible={false} importantForAccessibility="no">
+      <Modal visible={showModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             {/* Header do Modal */}
