@@ -18,8 +18,6 @@ export const StatusInfoModal: React.FC<StatusInfoModalProps> = ({
       transparent
       animationType="fade"
       onRequestClose={onClose}
-      accessible={false}
-      importantForAccessibility="no"
     >
       <View style={styles.overlay}>
         <View style={styles.container}>

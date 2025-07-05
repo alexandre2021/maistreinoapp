@@ -17,8 +17,6 @@ export const ErrorModal = ({ visible, onClose, title, message }: ErrorModalProps
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
-      accessible={false}
-      importantForAccessibility="no"
     >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>

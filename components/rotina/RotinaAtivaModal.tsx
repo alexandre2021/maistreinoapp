@@ -19,30 +19,25 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
   onCancel
 }) => {
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pendente': return 'Pendente';
-      case 'ativa': return 'Ativa';
-      case 'pausada': return 'Pausada';
-      default: return status;
-    }
+    return status; // Agora o status já é o texto legível
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pendente': return '#F59E0B';
-      case 'ativa': return '#10B981';
-      case 'pausada': return '#6B7280';
+      case 'Aguardando pagamento': return '#F59E0B';
+      case 'Ativa': return '#10B981';
+      case 'Pausada': return '#6B7280';
       default: return '#9CA3AF';
     }
   };
 
   const getMessage = (status: string) => {
     switch (status) {
-      case 'ativa': 
+      case 'Ativa': 
         return 'Este aluno já possui uma rotina ativa. Finalize ou cancele a rotina atual antes de criar uma nova.';
-      case 'pendente':
-        return 'Este aluno já possui uma rotina pendente. Finalize ou cancele a rotina atual antes de criar uma nova.';
-      case 'pausada':
+      case 'Aguardando pagamento':
+        return 'Este aluno já possui uma rotina aguardando pagamento. Finalize ou cancele a rotina atual antes de criar uma nova.';
+      case 'Pausada':
         return 'Este aluno já possui uma rotina pausada. Reative ou cancele a rotina atual antes de criar uma nova.';
       default:
         return 'Este aluno já possui uma rotina em andamento. Finalize ou cancele a rotina atual antes de criar uma nova.';
@@ -55,8 +50,6 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
       transparent
       animationType="fade"
       onRequestClose={onCancel}
-      accessible={false}
-      importantForAccessibility="no"
     >
       <View style={styles.overlay}>
         <View style={styles.container}>

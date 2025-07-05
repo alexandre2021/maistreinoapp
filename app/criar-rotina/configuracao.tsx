@@ -1,76 +1,50 @@
-// app/criar-rotina/configuracao.tsx - VERSÃO COM SESSIONSTORAGE
+// app/criar-rotina/configuracao.tsx - STORAGE CENTRALIZADO
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+
+// Constants
+import { DifficultyColors } from '../../constants/Colors';
 
 // Components
 import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHeader';
 import { supabase } from '../../lib/supabase';
 
+// ✅ STORAGE CENTRALIZADO
+import RotinaStorage, { RotinaConfig } from '../../utils/rotinaStorage';
+
 // ✅ TIPOS LOCAIS (sem Context)
 type DificuldadeRotina = 'Baixa' | 'Média' | 'Alta';
-
-interface RotinaConfig {
-  nomeRotina: string;
-  descricao: string;
-  treinosPorSemana: number;
-  dificuldade: DificuldadeRotina;
-  duracaoSemanas: number;
-  alunoId: string;
-}
-
-// ✅ FUNÇÕES DE SESSIONSTORAGE
-const STORAGE_KEYS = {
-  CONFIG: 'rotina_configuracao',
-  TREINOS: 'rotina_treinos',
-  EXERCICIOS: 'rotina_exercicios'
-};
-
-const salvarConfig = (config: RotinaConfig) => {
-  try {
-    // ✅ VERIFICAR SE HOUVE MUDANÇA QUE AFETA PASSOS SEGUINTES
-    const configAnterior = lerConfig();
-    const mudouTreinosPorSemana = configAnterior.treinosPorSemana && 
-                                  configAnterior.treinosPorSemana !== config.treinosPorSemana;
-    
-    if (mudouTreinosPorSemana) {
-      console.log('⚠️ Mudança detectada em treinos/semana - limpando passos seguintes');
-      // Limpar dados dos treinos e exercícios
-      sessionStorage.removeItem(STORAGE_KEYS.TREINOS);
-      sessionStorage.removeItem(STORAGE_KEYS.EXERCICIOS);
-    }
-    
-    sessionStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(config));
-    console.log('✅ Configuração salva:', config);
-  } catch (error) {
-    console.error('❌ Erro ao salvar configuração:', error);
-  }
-};
-
-const lerConfig = (): Partial<RotinaConfig> => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEYS.CONFIG);
-    return saved ? JSON.parse(saved) : {};
-  } catch (error) {
-    console.error('❌ Erro ao ler configuração:', error);
-    return {};
-  }
-};
 
 export default function ConfiguracaoRotinaScreen() {
   const router = useRouter();
   const { alunoId } = useLocalSearchParams<{ alunoId?: string }>();
+
+  // ✅ FUNÇÃO PARA ALTERAR TREINOS POR SEMANA E RESETAR DURAÇÃO PERSONALIZADA
+  const handleTreinosPorSemanaChange = (novoValor: number) => {
+    console.log('🔄 Alterando treinos por semana:', treinosPorSemana, '->', novoValor);
+    
+    // Se estava usando duração personalizada, resetar para o padrão
+    if (usandoPersonalizada) {
+      console.log('🔄 Resetando duração personalizada para padrão (12 semanas)');
+      setDuracaoPersonalizada('');
+      setUsandoPersonalizada(false);
+      setDuracaoSemanas(getDefaultDuracao());
+    }
+    
+    setTreinosPorSemana(novoValor);
+  };
 
   // ✅ FUNÇÃO PARA DEFAULT FIXO DE DURAÇÃO (SEMPRE 12 SEMANAS)
   const getDefaultDuracao = (): number => {
@@ -80,27 +54,45 @@ export default function ConfiguracaoRotinaScreen() {
   // ✅ BUSCAR NOME DO ALUNO PARA SUGESTÃO AUTOMÁTICA
   const [alunoNome, setAlunoNome] = useState<string>('');
 
-  // ✅ ESTADOS LOCAIS - INICIALIZADOS COM SESSIONSTORAGE
-  const configSalva = lerConfig();
+  // ✅ ESTADOS LOCAIS - INICIALIZADOS COM STORAGE CENTRALIZADO
+  const configSalva = RotinaStorage.getConfig();
   
   const [nomeRotina, setNomeRotina] = useState(() => {
-    return configSalva.nomeRotina || '';
+    return configSalva?.nomeRotina || '';
   });
   const [descricao, setDescricao] = useState(() => {
-    return configSalva.descricao || '';
+    return configSalva?.descricao || '';
   });
   const [treinosPorSemana, setTreinosPorSemana] = useState(() => {
-    return configSalva.treinosPorSemana || 3;
+    return configSalva?.treinosPorSemana || 3;
   });
   const [dificuldade, setDificuldade] = useState<DificuldadeRotina>(() => {
-    return configSalva.dificuldade || 'Média';
+    return configSalva?.dificuldade || 'Média';
   });
   const [duracaoSemanas, setDuracaoSemanas] = useState(() => {
-    return configSalva.duracaoSemanas || getDefaultDuracao();
+    return configSalva?.duracaoSemanas || getDefaultDuracao();
   });
   const [duracaoPersonalizada, setDuracaoPersonalizada] = useState('');
   const [usandoPersonalizada, setUsandoPersonalizada] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // ✅ NOVO: Inicializar campos de duração personalizada com base na duração salva
+  useEffect(() => {
+    if (configSalva?.duracaoSemanas) {
+      const duracaoSalva = configSalva.duracaoSemanas;
+      const duracoesPadrao = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      
+      // Se a duração salva não está nos botões padrão, é personalizada
+      if (!duracoesPadrao.includes(duracaoSalva)) {
+        setDuracaoPersonalizada(duracaoSalva.toString());
+        setUsandoPersonalizada(true);
+        console.log('🔄 Duração personalizada detectada:', duracaoSalva);
+      } else {
+        setDuracaoPersonalizada('');
+        setUsandoPersonalizada(false);
+      }
+    }
+  }, [configSalva?.duracaoSemanas]);
 
   // Buscar dados do aluno se alunoId estiver presente
   useEffect(() => {
@@ -122,7 +114,7 @@ export default function ConfiguracaoRotinaScreen() {
           setAlunoNome(aluno.nome_completo);
           
           // ✅ GERAR SUGESTÃO AUTOMÁTICA DE NOME (só se não tem nome salvo)
-          if (!configSalva.nomeRotina) {
+          if (!configSalva?.nomeRotina) {
             const agora = new Date();
             const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
                           'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -141,7 +133,7 @@ export default function ConfiguracaoRotinaScreen() {
     };
 
     fetchAlunoData();
-  }, [alunoId, configSalva.nomeRotina]);
+  }, [alunoId, configSalva?.nomeRotina]);
 
   // ✅ ATUALIZAR DURAÇÃO QUANDO TREINOS/SEMANA MUDAR - REMOVIDO
   // Agora a duração é sempre 12 semanas por padrão, independente dos treinos
@@ -161,19 +153,19 @@ export default function ConfiguracaoRotinaScreen() {
       value: 'Baixa', 
       label: 'Baixa', 
       subtitle: 'Exercícios básicos, técnica simples',
-      color: '#10B981' 
+      color: DifficultyColors.Baixa
     },
     { 
       value: 'Média', 
       label: 'Média', 
       subtitle: 'Exercícios intermediários, técnica moderada',
-      color: '#F59E0B' 
+      color: DifficultyColors.Média
     },
     { 
       value: 'Alta', 
       label: 'Alta', 
       subtitle: 'Exercícios avançados, técnica complexa',
-      color: '#EF4444' 
+      color: DifficultyColors.Alta
     }
   ];
 
@@ -219,7 +211,7 @@ export default function ConfiguracaoRotinaScreen() {
     try {
       console.log('📝 Salvando configuração no SessionStorage...');
       
-      // ✅ SALVAR NO SESSIONSTORAGE
+      // ✅ SALVAR NO STORAGE CENTRALIZADO
       const configCompleta: RotinaConfig = {
         nomeRotina: nomeRotina.trim(),
         descricao: descricao.trim(),
@@ -229,7 +221,7 @@ export default function ConfiguracaoRotinaScreen() {
         alunoId: alunoId || ''
       };
 
-      salvarConfig(configCompleta);
+      RotinaStorage.saveConfig(configCompleta);
       
       // ✅ NAVEGAÇÃO SIMPLES - SEM PARAMS
       router.push('/criar-rotina/treinos');
@@ -329,7 +321,7 @@ export default function ConfiguracaoRotinaScreen() {
                   styles.optionCard,
                   treinosPorSemana === option.value && styles.optionCardSelected
                 ]}
-                onPress={() => setTreinosPorSemana(option.value)}
+                onPress={() => handleTreinosPorSemanaChange(option.value)}
                 activeOpacity={0.7}
               >
                 <Text style={[

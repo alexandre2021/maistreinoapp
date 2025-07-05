@@ -28,7 +28,7 @@ export default function ImageModals({
   return (
     <>
       {/* Modal de Opções de Imagem */}
-      <Modal visible={showImageOptions} transparent animationType="fade" accessible={false} importantForAccessibility="no">
+      <Modal visible={showImageOptions} transparent animationType="fade">
         <TouchableOpacity 
           style={styles.modalOverlay}
           activeOpacity={1}
@@ -68,7 +68,7 @@ export default function ImageModals({
       </Modal>
 
       {/* Modal de Preview de Imagem */}
-      <Modal visible={showImagePreview && !!previewImageUri} transparent animationType="fade" accessible={false} importantForAccessibility="no">
+      <Modal visible={showImagePreview && !!previewImageUri} transparent animationType="fade">
         <View style={styles.imagePreviewOverlay}>
           <TouchableOpacity
             style={styles.imagePreviewClose}

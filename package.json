@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.830.0",
+    "@expo/cli": "^0.24.18",
     "@expo/vector-icons": "^14.1.0",
     "@react-navigation/bottom-tabs": "^7.3.14",
     "@react-navigation/elements": "^2.3.8",

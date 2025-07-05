@@ -88,7 +88,7 @@ export default function NovaAvaliacaoModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" accessible={false} importantForAccessibility="no">
+    <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>

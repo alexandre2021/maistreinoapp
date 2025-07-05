@@ -5,7 +5,8 @@ export interface RotinaConfig {
   nomeRotina: string;
   descricao: string;
   treinosPorSemana: number;
-  dificuldade: 'Iniciante' | 'Intermediário' | 'Avançado';
+  dificuldade: 'Baixa' | 'Média' | 'Alta';
+  duracaoSemanas: number;
   alunoId?: string;
 }
 
@@ -111,6 +112,43 @@ class RotinaStorage {
     this.saveConfig(rotina.config);
     this.saveTreinos(rotina.treinos);
     this.saveExercicios(rotina.exercicios);
+  }
+
+  // ✅ NOVO: Limpar exercícios de um treino específico
+  static clearExerciciosDoTreino(treinoId: string): void {
+    try {
+      const exercicios = this.getExercicios();
+      if (exercicios[treinoId]) {
+        delete exercicios[treinoId];
+        this.saveExercicios(exercicios);
+        console.log(`🧹 Exercícios do treino ${treinoId} foram limpos`);
+      }
+    } catch (error) {
+      console.error('Erro ao limpar exercícios do treino:', error);
+    }
+  }
+
+  // ✅ NOVO: Verificar se treino mudou grupos musculares
+  static verificarELimparExerciciosInconsistentes(treinoId: string, novosGrupos: string[]): void {
+    try {
+      const exercicios = this.getExercicios();
+      const exerciciosDoTreino = exercicios[treinoId];
+      
+      if (!exerciciosDoTreino || exerciciosDoTreino.length === 0) {
+        return; // Não há exercícios para verificar
+      }
+
+      // Se há exercícios, mas grupos musculares foram alterados, limpar os exercícios
+      console.log(`🔍 Verificando inconsistências no treino ${treinoId}`);
+      console.log('Novos grupos:', novosGrupos);
+      console.log('Exercícios existentes:', exerciciosDoTreino.length);
+      
+      // Por segurança, sempre limpar quando grupos musculares são alterados
+      this.clearExerciciosDoTreino(treinoId);
+      
+    } catch (error) {
+      console.error('Erro ao verificar inconsistências:', error);
+    }
   }
 
   // Métodos de limpeza

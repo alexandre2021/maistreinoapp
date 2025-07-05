@@ -1,7 +1,7 @@
 // app/rotinas/[id].tsx - VERSÃO FINAL COM useEffect CORRIGIDO
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 
 import { ErrorModal } from '../../components/ErrorModal';
+import { SuccessModal } from '../../components/SuccessModal';
 import { AtivarRotinaModal } from '../../components/rotina/AtivarRotinaModal';
 import { ConfirmActionModal } from '../../components/rotina/ConfirmActionModal';
 import { RotinaAtivaModal } from '../../components/rotina/RotinaAtivaModal';
+import { RotinaOptionsModal } from '../../components/rotina/RotinaOptionsModal';
 import { useModalManager } from '../../hooks/useModalManager';
 import { supabase } from '../../lib/supabase';
 
@@ -57,25 +59,85 @@ export default function RotinasAlunoScreen() {
     status: string;
   } | null>(null);
 
+  // ✅ ESTADOS PARA ATIVAÇÃO DE ROTINA
+  const [rotinaParaAtivar, setRotinaParaAtivar] = useState<Rotina | null>(null);
+  const [permiteExecucaoAluno, setPermiteExecucaoAluno] = useState(true);
+  const [enviaResumoEmail, setEnviaResumoEmail] = useState(false);
+
+  // ✅ ESTADO PARA MENU DE OPÇÕES
+  const [rotinaComOpcoes, setRotinaComOpcoes] = useState<Rotina | null>(null);
+
+  // ✅ ESTADOS PARA MODAIS
+  const [errorModal, setErrorModal] = useState<{ title: string; message: string } | null>(null);
+  const [successModal, setSuccessModal] = useState<{ title: string; message: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    confirmText: string;
+    destructive: boolean;
+    onConfirm: () => void;
+  } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
   // ✅ MODAL MANAGER
   const { modals, openModal, closeModal } = useModalManager({
     rotinaAtiva: false,
     ativarRotina: false,
-    excluirRotina: false,
-    pausarRotina: false,
-    reativarRotina: false,
-    error: false
+    opcoes: false,
+    error: false,
+    success: false,
+    confirm: false
   });
 
-  // ✅ ESTADOS PARA MODAIS
-  const [modalData, setModalData] = useState({
-    error: { title: '', message: '' },
-    rotinaParaAtivar: null as Rotina | null,
-    rotinaParaExcluir: null as Rotina | null,
-    rotinaParaPausar: null as Rotina | null,
-    rotinaParaReativar: null as Rotina | null,
-    loading: false
-  });
+  // ✅ FUNÇÕES AUXILIARES PARA MODAIS
+  const showError = useCallback((title: string, message: string) => {
+    setErrorModal({ title, message });
+    openModal('error');
+  }, [openModal]);
+
+  const showSuccess = useCallback((title: string, message: string) => {
+    setSuccessModal({ title, message });
+    openModal('success');
+  }, [openModal]);
+
+  const showConfirm = useCallback((
+    title: string,
+    message: string,
+    confirmText: string,
+    onConfirm: () => void,
+    destructive: boolean = false
+  ) => {
+    setConfirmModal({ title, message, confirmText, destructive, onConfirm });
+    openModal('confirm');
+  }, [openModal]);
+
+  const handleCloseError = useCallback(() => {
+    closeModal('error');
+    setErrorModal(null);
+  }, [closeModal]);
+
+  const handleCloseSuccess = useCallback(() => {
+    closeModal('success');
+    setSuccessModal(null);
+  }, [closeModal]);
+
+  const handleCloseConfirm = useCallback(() => {
+    closeModal('confirm');
+    setConfirmModal(null);
+  }, [closeModal]);
+
+  const handleConfirmAction = useCallback(async () => {
+    if (!confirmModal) return;
+    
+    setActionLoading(true);
+    try {
+      await confirmModal.onConfirm();
+    } catch (error) {
+      console.error('Erro na ação:', error);
+    } finally {
+      setActionLoading(false);
+    }
+  }, [confirmModal]);
 
   // ✅ CARREGAR DADOS - VERSÃO CORRIGIDA SEM WARNINGS
   useEffect(() => {
@@ -95,14 +157,7 @@ export default function RotinasAlunoScreen() {
           .single();
 
         if (alunoError || !alunoData) {
-          setModalData(prev => ({ 
-            ...prev, 
-            error: { 
-              title: 'Erro', 
-              message: 'Aluno não encontrado' 
-            }
-          }));
-          openModal('error');
+          showError('Erro', 'Aluno não encontrado');
           router.back();
           return;
         }
@@ -148,17 +203,21 @@ export default function RotinasAlunoScreen() {
         setRotinas(rotinasData || []);
       } catch (error) {
         console.error('Erro ao buscar rotinas:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
     const loadData = async () => {
-      await Promise.all([fetchAluno(), fetchRotinas()]);
+      try {
+        await Promise.all([fetchAluno(), fetchRotinas()]);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     loadData();
-  }, [alunoId, router, openModal]); // ✅ Todas as dependências incluídas
+  }, [alunoId, router, showError]); // ✅ Incluindo showError como dependência
 
   // ✅ REFRESH - MANTÉM FUNÇÕES SEPARADAS PARA REUSO
   const handleRefresh = async () => {
@@ -180,14 +239,7 @@ export default function RotinasAlunoScreen() {
           .single();
 
         if (alunoError || !alunoData) {
-          setModalData(prev => ({ 
-            ...prev, 
-            error: { 
-              title: 'Erro', 
-              message: 'Aluno não encontrado' 
-            }
-          }));
-          openModal('error');
+          showError('Erro', 'Aluno não encontrado');
           router.back();
           return;
         }
@@ -286,25 +338,18 @@ export default function RotinasAlunoScreen() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) return;
 
-      // ✅ VERIFICAR SE JÁ TEM ROTINA ATIVA/PAUSADA/PENDENTE
+      // ✅ VERIFICAR SE JÁ TEM ROTINA ATIVA/PAUSADA/AGUARDANDO PAGAMENTO
       const { data: rotinaAtiva, error: checkError } = await supabase
         .from('rotinas')
         .select('id, nome, status')
         .eq('aluno_id', alunoId)
         .eq('personal_trainer_id', user.id)
-        .in('status', ['pendente', 'ativa', 'pausada'])
+        .in('status', ['Aguardando pagamento', 'Ativa', 'Pausada'])
         .limit(1);
 
       if (checkError) {
         console.error('Erro ao verificar rotinas:', checkError);
-        setModalData(prev => ({ 
-          ...prev, 
-          error: { 
-            title: 'Erro', 
-            message: 'Não foi possível verificar rotinas existentes' 
-          }
-        }));
-        openModal('error');
+        showError('Erro', 'Não foi possível verificar rotinas existentes');
         return;
       }
 
@@ -320,14 +365,7 @@ export default function RotinasAlunoScreen() {
       router.push(`/criar-rotina?alunoId=${alunoId}`);
     } catch (error) {
       console.error('Erro ao validar nova rotina:', error);
-      setModalData(prev => ({ 
-        ...prev, 
-        error: { 
-          title: 'Erro', 
-          message: 'Não foi possível verificar rotinas existentes' 
-        }
-      }));
-      openModal('error');
+      showError('Erro', 'Não foi possível verificar rotinas existentes');
     }
   };
 
@@ -348,199 +386,175 @@ export default function RotinasAlunoScreen() {
   };
 
   // ✅ AÇÕES DA ROTINA
-  const handlePausarRotina = async (rotina: Rotina) => {
-    setModalData(prev => ({ ...prev, rotinaParaPausar: rotina }));
-    openModal('pausarRotina');
-  };
-
-  const confirmarPausarRotina = async () => {
-    if (!modalData.rotinaParaPausar) return;
-
-    try {
-      setModalData(prev => ({ ...prev, loading: true }));
-
-      const { error } = await supabase
-        .from('rotinas')
-        .update({ status: 'Pausada' })
-        .eq('id', modalData.rotinaParaPausar.id);
-
-      if (error) throw error;
-
-      closeModal('pausarRotina');
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        rotinaParaPausar: null
-      }));
-      
-      await refetchRotinas();
-    } catch (error) {
-      console.error('❌ Erro ao pausar rotina:', error);
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        error: { 
-          title: 'Erro', 
-          message: 'Não foi possível pausar a rotina. Tente novamente.' 
-        }
-      }));
-      closeModal('pausarRotina');
-      openModal('error');
-    }
-  };
-
-  const handleReativarRotina = async (rotina: Rotina) => {
-    setModalData(prev => ({ ...prev, rotinaParaReativar: rotina }));
-    openModal('reativarRotina');
-  };
-
-  const confirmarReativarRotina = async () => {
-    if (!modalData.rotinaParaReativar) return;
-
-    try {
-      setModalData(prev => ({ ...prev, loading: true }));
-
-      const { error } = await supabase
-        .from('rotinas')
-        .update({ status: 'Ativa' })
-        .eq('id', modalData.rotinaParaReativar.id);
-
-      if (error) throw error;
-
-      closeModal('reativarRotina');
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        rotinaParaReativar: null
-      }));
-      
-      await refetchRotinas();
-    } catch (error) {
-      console.error('❌ Erro ao reativar rotina:', error);
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        error: { 
-          title: 'Erro', 
-          message: 'Não foi possível reativar a rotina. Tente novamente.' 
-        }
-      }));
-      closeModal('reativarRotina');
-      openModal('error');
-    }
-  };
-
   const handleRotinaPress = (rotina: Rotina) => {
     console.log('Ver rotina:', rotina.id);
     // TODO: Navegar para detalhes quando tela estiver pronta
   };
 
-  // ✅ HANDLER PARA ATIVAR ROTINA - COM MODAL
-  const handleAtivarRotina = async (rotina: Rotina) => {
-    setModalData(prev => ({ ...prev, rotinaParaAtivar: rotina }));
-    openModal('ativarRotina');
+  // ✅ NOVA FUNCIONALIDADE: Ativar rotina aguardando pagamento
+  const handleAtivarRotina = (rotina: Rotina) => {
+    console.log('🔍 DEBUG: handleAtivarRotina chamada para rotina:', rotina.nome);
+    
+    showConfirm(
+      'Ativar Rotina',
+      `Confirmar que o pagamento foi efetuado e ativar a rotina "${rotina.nome}"?`,
+      'Ativar',
+      () => {
+        console.log('🔍 DEBUG: Usuário confirmou ativação, abrindo modal...');
+        // Mostrar modal com opções adicionais
+        setRotinaParaAtivar(rotina);
+        openModal('ativarRotina');
+        console.log('🔍 DEBUG: Modal deveria estar aberto agora. Estado:', {
+          rotinaParaAtivar: rotina.nome,
+          modalAtivo: 'ativarRotina'
+        });
+      }
+    );
   };
 
-  const confirmarAtivarRotina = async (config: { permiteExecucao: boolean; enviarEmail: boolean }) => {
-    if (!modalData.rotinaParaAtivar) return;
+  // ✅ CONFIRMAR ATIVAÇÃO COM OPÇÕES
+  const handleConfirmarAtivacao = async () => {
+    if (!rotinaParaAtivar) return;
 
     try {
-      setModalData(prev => ({ ...prev, loading: true }));
-
       const { error } = await supabase
         .from('rotinas')
         .update({ 
           status: 'Ativa',
-          permite_execucao_aluno: config.permiteExecucao
+          permite_execucao_aluno: permiteExecucaoAluno,
+          // TODO: Adicionar campo de envio de email quando disponível
         })
-        .eq('id', modalData.rotinaParaAtivar.id);
+        .eq('id', rotinaParaAtivar.id);
 
       if (error) throw error;
 
-      closeModal('ativarRotina');
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        rotinaParaAtivar: null
-      }));
-      
-      await refetchRotinas();
-    } catch (error) {
-      console.error('❌ Erro ao ativar rotina:', error);
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        error: { 
-          title: 'Erro', 
-          message: 'Não foi possível ativar a rotina. Tente novamente.' 
-        }
-      }));
-      closeModal('ativarRotina');
-      openModal('error');
-    }
-  };
-
-  // ✅ HANDLER PARA EXCLUIR ROTINA - COM MODAL
-  const handleExcluirRotina = async (rotina: Rotina) => {
-    setModalData(prev => ({ ...prev, rotinaParaExcluir: rotina }));
-    openModal('excluirRotina');
-  };
-
-  const confirmarExcluirRotina = async () => {
-    if (!modalData.rotinaParaExcluir) return;
-
-    try {
-      setModalData(prev => ({ ...prev, loading: true }));
-      console.log('🗑️ Iniciando exclusão da rotina:', modalData.rotinaParaExcluir.id);
-      
-      const { error } = await supabase
-        .from('rotinas')
-        .delete()
-        .eq('id', modalData.rotinaParaExcluir.id);
-
-      if (error) {
-        console.error('❌ Erro ao excluir rotina:', error);
-        throw error;
+      // TODO: Implementar envio de email se necessário
+      if (enviaResumoEmail) {
+        console.log('Enviando resumo por email...');
+        // Implementar envio de email
       }
 
-      console.log('✅ Rotina excluída com sucesso');
-      closeModal('excluirRotina');
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        rotinaParaExcluir: null
-      }));
-      
+      showSuccess('Sucesso', 'Rotina ativada com sucesso!');
+      closeModal('ativarRotina');
+      setRotinaParaAtivar(null);
       await refetchRotinas();
     } catch (error) {
-      console.error('❌ Erro ao excluir rotina:', error);
-      setModalData(prev => ({ 
-        ...prev, 
-        loading: false,
-        error: { 
-          title: 'Erro', 
-          message: 'Não foi possível excluir a rotina. Tente novamente.' 
+      console.error('Erro ao ativar rotina:', error);
+      showError('Erro', 'Não foi possível ativar a rotina');
+    }
+  };
+
+  // ✅ AÇÕES PARA ROTINAS ATIVAS
+  const handlePausarRotina = async (rotina: Rotina) => {
+    showConfirm(
+      'Pausar Rotina',
+      `Tem certeza que deseja pausar a rotina "${rotina.nome}"?`,
+      'Pausar',
+      async () => {
+        try {
+          const { error } = await supabase
+            .from('rotinas')
+            .update({ status: 'Pausada' })
+            .eq('id', rotina.id);
+
+          if (error) throw error;
+
+          showSuccess('Sucesso', 'Rotina pausada com sucesso!');
+          await refetchRotinas();
+        } catch (error) {
+          console.error('Erro ao pausar rotina:', error);
+          showError('Erro', 'Não foi possível pausar a rotina');
         }
-      }));
-      closeModal('excluirRotina');
-      openModal('error');
-    }
+      },
+      true // destructive
+    );
   };
 
-  // ✅ HANDLER PARA MOSTRAR OPÇÕES
+  const handleExcluirRotina = async (rotina: Rotina) => {
+    showConfirm(
+      'Excluir Rotina',
+      `Tem certeza que deseja excluir a rotina "${rotina.nome}"? Esta ação não pode ser desfeita.`,
+      'Excluir',
+      async () => {
+        try {
+          console.log('🗑️ Iniciando exclusão da rotina:', rotina.id);
+          
+          const { error } = await supabase
+            .from('rotinas')
+            .delete()
+            .eq('id', rotina.id);
+
+          if (error) {
+            console.error('❌ Erro ao excluir rotina:', error);
+            throw error;
+          }
+
+          console.log('✅ Rotina excluída com sucesso');
+          showSuccess('Sucesso', 'Rotina excluída com sucesso!');
+          await refetchRotinas();
+        } catch (error) {
+          console.error('❌ Erro ao excluir rotina:', error);
+          showError('Erro', 'Não foi possível excluir a rotina');
+        }
+      },
+      true // destructive
+    );
+  };
+
+  // ✅ AÇÕES PARA ROTINAS PAUSADAS
+  const handleReativarRotina = async (rotina: Rotina) => {
+    showConfirm(
+      'Reativar Rotina',
+      `Tem certeza que deseja reativar a rotina "${rotina.nome}"?`,
+      'Reativar',
+      async () => {
+        try {
+          const { error } = await supabase
+            .from('rotinas')
+            .update({ status: 'Ativa' })
+            .eq('id', rotina.id);
+
+          if (error) throw error;
+
+          showSuccess('Sucesso', 'Rotina reativada com sucesso!');
+          await refetchRotinas();
+        } catch (error) {
+          console.error('Erro ao reativar rotina:', error);
+          showError('Erro', 'Não foi possível reativar a rotina');
+        }
+      }
+    );
+  };
+
+  // ✅ AÇÕES DO MENU DE OPÇÕES
   const handleMostrarOpcoes = (rotina: Rotina) => {
-    console.log('Mostrar opções para rotina:', rotina.id);
-    // TODO: Abrir modal de opções com ações adicionais
+    setRotinaComOpcoes(rotina);
+    openModal('opcoes');
   };
 
-  // ✅ FILTRAR ROTINAS POR ABA
-  const rotinasFiltradas = rotinas.filter(rotina => {
-    if (abaAtiva === 'atual') {
-      return ['Aguardando pagamento', 'Ativa', 'Pausada'].includes(rotina.status);
-    } else {
-      return rotina.status === 'Concluída';
+  const handleIrParaExecucao = () => {
+    closeModal('opcoes');
+    if (rotinaComOpcoes) {
+      // TODO: Implementar navegação para execução
+      console.log('Ir para execução da rotina:', rotinaComOpcoes.id);
     }
-  });
+  };
+
+  const handleVerEvolucao = () => {
+    closeModal('opcoes');
+    if (rotinaComOpcoes) {
+      // TODO: Implementar navegação para evolução
+      console.log('Ver evolução da rotina:', rotinaComOpcoes.id);
+    }
+  };
+
+  const handleDuplicarRotina = () => {
+    closeModal('opcoes');
+    if (rotinaComOpcoes) {
+      // TODO: Implementar duplicação de rotina
+      console.log('Duplicar rotina:', rotinaComOpcoes.id);
+    }
+  };
 
   // ✅ HELPER FUNCTIONS
   const getStatusColor = (status: string) => {
@@ -556,6 +570,15 @@ export default function RotinasAlunoScreen() {
   const getStatusLabel = (status: string) => {
     return status; // Agora o status já é o texto legível
   };
+
+  // ✅ FILTRAR ROTINAS POR ABA
+  const rotinasFiltradas = rotinas.filter(rotina => {
+    if (abaAtiva === 'atual') {
+      return ['Aguardando pagamento', 'Ativa', 'Pausada'].includes(rotina.status);
+    } else {
+      return rotina.status === 'Concluída';
+    }
+  });
 
   // ✅ RENDERIZAR ROTINA
   const renderRotina = ({ item }: { item: Rotina }) => {
@@ -588,7 +611,7 @@ export default function RotinasAlunoScreen() {
           </Text>
         )}
 
-        {/* Linha 5: Botões de ação conforme o status */}
+        {/* Linha 4: Botões de ação conforme o status */}
         {item.status === 'Aguardando pagamento' && (
           <View style={styles.acaoRow}>
             <View style={styles.botoesAcao}>
@@ -699,7 +722,7 @@ export default function RotinasAlunoScreen() {
   };
 
   // ✅ LOADING - Só mostra loading se não tiver aluno E loading for true
-  if (loading) {
+  if (loading && !aluno) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Carregando rotinas...</Text>
@@ -803,81 +826,71 @@ export default function RotinasAlunoScreen() {
         />
       )}
 
-      {/* ✅ MODAL PARA ATIVAR ROTINA */}
-      {modalData.rotinaParaAtivar && (
+      {/* ✅ MODAL DE ATIVAR ROTINA */}
+      {rotinaParaAtivar && (
         <AtivarRotinaModal
           visible={modals.ativarRotina}
-          rotinaNome={modalData.rotinaParaAtivar.nome}
-          onConfirm={confirmarAtivarRotina}
+          rotinaNome={rotinaParaAtivar.nome}
+          permiteExecucaoAluno={permiteExecucaoAluno}
+          enviaResumoEmail={enviaResumoEmail}
+          onPermiteExecucaoChange={setPermiteExecucaoAluno}
+          onEnviaEmailChange={setEnviaResumoEmail}
+          onConfirm={handleConfirmarAtivacao}
           onCancel={() => {
             closeModal('ativarRotina');
-            setModalData(prev => ({ ...prev, rotinaParaAtivar: null }));
+            setRotinaParaAtivar(null);
           }}
-          loading={modalData.loading}
         />
       )}
 
-      {/* ✅ MODAL PARA EXCLUIR ROTINA */}
-      {modalData.rotinaParaExcluir && (
-        <ConfirmActionModal
-          visible={modals.excluirRotina}
-          title="Excluir Rotina"
-          message="ATENÇÃO: Esta ação irá deletar permanentemente a rotina e todos os dados relacionados. Esta ação não pode ser desfeita."
-          itemName={modalData.rotinaParaExcluir.nome}
-          actionType="delete"
-          confirmText="Excluir"
-          onConfirm={confirmarExcluirRotina}
-          onCancel={() => {
-            closeModal('excluirRotina');
-            setModalData(prev => ({ ...prev, rotinaParaExcluir: null }));
+      {/* ✅ MODAL DE OPÇÕES */}
+      {rotinaComOpcoes && (
+        <RotinaOptionsModal
+          visible={modals.opcoes}
+          status={rotinaComOpcoes.status}
+          onClose={() => {
+            closeModal('opcoes');
+            setRotinaComOpcoes(null);
           }}
-          loading={modalData.loading}
-        />
-      )}
-
-      {/* ✅ MODAL PARA PAUSAR ROTINA */}
-      {modalData.rotinaParaPausar && (
-        <ConfirmActionModal
-          visible={modals.pausarRotina}
-          title="Pausar Rotina"
-          message="A rotina será pausada e o aluno não poderá mais executá-la até que seja reativada."
-          itemName={modalData.rotinaParaPausar.nome}
-          actionType="warning"
-          confirmText="Pausar"
-          onConfirm={confirmarPausarRotina}
-          onCancel={() => {
-            closeModal('pausarRotina');
-            setModalData(prev => ({ ...prev, rotinaParaPausar: null }));
-          }}
-          loading={modalData.loading}
-        />
-      )}
-
-      {/* ✅ MODAL PARA REATIVAR ROTINA */}
-      {modalData.rotinaParaReativar && (
-        <ConfirmActionModal
-          visible={modals.reativarRotina}
-          title="Reativar Rotina"
-          message="A rotina será reativada e o aluno poderá executá-la novamente."
-          itemName={modalData.rotinaParaReativar.nome}
-          actionType="warning"
-          confirmText="Reativar"
-          onConfirm={confirmarReativarRotina}
-          onCancel={() => {
-            closeModal('reativarRotina');
-            setModalData(prev => ({ ...prev, rotinaParaReativar: null }));
-          }}
-          loading={modalData.loading}
+          onIrParaExecucao={handleIrParaExecucao}
+          onVerEvolucao={handleVerEvolucao}
+          onDuplicarRotina={handleDuplicarRotina}
         />
       )}
 
       {/* ✅ MODAL DE ERRO */}
-      <ErrorModal
-        visible={modals.error}
-        title={modalData.error.title}
-        message={modalData.error.message}
-        onClose={() => closeModal('error')}
-      />
+      {errorModal && (
+        <ErrorModal
+          visible={modals.error}
+          onClose={handleCloseError}
+          title={errorModal.title}
+          message={errorModal.message}
+        />
+      )}
+
+      {/* ✅ MODAL DE SUCESSO */}
+      {successModal && (
+        <SuccessModal
+          visible={modals.success}
+          onClose={handleCloseSuccess}
+          title={successModal.title}
+          message={successModal.message}
+        />
+      )}
+
+      {/* ✅ MODAL DE CONFIRMAÇÃO */}
+      {confirmModal && (
+        <ConfirmActionModal
+          visible={modals.confirm}
+          onClose={handleCloseConfirm}
+          onConfirm={handleConfirmAction}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          destructive={confirmModal.destructive}
+          loading={actionLoading}
+        />
+      )}
     </View>
   );
 }
@@ -950,6 +963,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+
+  // Abas
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  tabTextActive: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+
   contador: {
     fontSize: 16,
     fontWeight: '600',
@@ -974,12 +1021,19 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-
-  // Status e badges
   statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  rotinaNome: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  rotinaInfo: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -992,59 +1046,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-
-  // Detalhes da rotina
-  rotinaNome: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  rotinaInfo: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
-  },
   descricao: {
     fontSize: 14,
     color: '#6B7280',
-    lineHeight: 18,
     marginBottom: 12,
+    lineHeight: 20,
   },
-  metadataRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  dificuldadeBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  dificuldadeText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  valorText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#10B981',
+  acaoRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
   },
 
-  // Ações
-  acaoRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  botoesAcao: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
+  // Ações da rotina
   ativarButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1053,10 +1068,31 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
+    flex: 1,
   },
   ativarButtonText: {
     color: 'white',
     fontSize: 14,
+    fontWeight: '600',
+  },
+  botoesAcao: {
+    flexDirection: 'row',
+    gap: 8,
+    flex: 1,
+  },
+  pausarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    gap: 4,
+    flex: 1,
+  },
+  pausarButtonText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: '600',
   },
   excluirButton: {
@@ -1067,28 +1103,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
+    flex: 1,
   },
   excluirButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
   },
-  pausarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F59E0B',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
-  },
-  pausarButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   optionsButton: {
     padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginLeft: 8,
   },
 
@@ -1126,39 +1153,6 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
-  },
-
-  // Abas
-  tabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
-    padding: 4,
-    marginBottom: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  tabActive: {
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  tabTextActive: {
-    color: '#007AFF',
     fontWeight: '600',
   },
 

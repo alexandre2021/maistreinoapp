@@ -193,7 +193,7 @@ export default function TabLayout() {
   const renderDropdownMenu = () => {
     if (!showMenu) return null;
     return (
-      <Modal visible={showMenu} transparent animationType="none" onRequestClose={closeMenu} accessible={false} importantForAccessibility="no">
+      <Modal visible={showMenu} transparent animationType="none" onRequestClose={closeMenu}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={closeMenu}>
           <Animated.View style={[ styles.dropdownMenu, { opacity: menuAnimation, transform: [{ translateY: menuAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }, { scale: menuAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] }) }] }]}>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuOption('perfil')} activeOpacity={0.7}><User size={20} color="#374151" /><Text style={styles.menuItemText}>Perfil</Text></TouchableOpacity>

@@ -1,4 +1,4 @@
-// app/criar-rotina/exercicios.tsx - VERSÃO COM SESSIONSTORAGE
+// app/criar-rotina/exercicios.tsx - VERSÃO REFATORADA COM ROTINASTORAGE
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -16,6 +16,7 @@ import {
 import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHeader';
 import { useModalManager } from '../../hooks/useModalManager';
 import { supabase } from '../../lib/supabase';
+import RotinaStorage from '../../utils/rotinaStorage';
 
 // ✅ TIPOS LOCAIS (sem Context)
 interface ExercicioBanco {
@@ -74,60 +75,62 @@ interface RotinaConfig {
   alunoId: string;
 }
 
-// ✅ FUNÇÕES DE SESSIONSTORAGE
-const STORAGE_KEYS = {
-  CONFIG: 'rotina_configuracao',
-  TREINOS: 'rotina_treinos',
-  EXERCICIOS: 'rotina_exercicios'
-};
+// ✅ STORAGE MANAGER CENTRALIZADO
+class ExerciciosStorage {
+  private static readonly STORAGE_KEYS = {
+    CONFIG: 'rotina_configuracao',
+    TREINOS: 'rotina_treinos',
+    EXERCICIOS: 'rotina_exercicios'
+  };
 
-const salvarExercicios = (exercicios: { [key: string]: ExercicioRotinaLocal[] }) => {
-  try {
-    console.log('💾 Salvando exercícios completos:', exercicios);
-    sessionStorage.setItem(STORAGE_KEYS.EXERCICIOS, JSON.stringify(exercicios));
-    console.log('✅ Exercícios salvos:', Object.keys(exercicios).length, 'treinos');
-  } catch (error) {
-    console.error('❌ Erro ao salvar exercícios:', error);
+  static salvarExercicios(exercicios: { [key: string]: ExercicioRotinaLocal[] }) {
+    try {
+      console.log('💾 Salvando exercícios completos:', exercicios);
+      sessionStorage.setItem(this.STORAGE_KEYS.EXERCICIOS, JSON.stringify(exercicios));
+      console.log('✅ Exercícios salvos:', Object.keys(exercicios).length, 'treinos');
+    } catch (error) {
+      console.error('❌ Erro ao salvar exercícios:', error);
+    }
   }
-};
 
-const lerExercicios = (): { [key: string]: ExercicioRotinaLocal[] } => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEYS.EXERCICIOS);
-    return saved ? JSON.parse(saved) : {};
-  } catch (error) {
-    console.error('❌ Erro ao ler exercícios:', error);
-    return {};
+  static lerExercicios(): { [key: string]: ExercicioRotinaLocal[] } {
+    try {
+      const saved = sessionStorage.getItem(this.STORAGE_KEYS.EXERCICIOS);
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('❌ Erro ao ler exercícios:', error);
+      return {};
+    }
   }
-};
 
-const lerTreinos = (): TreinoConfig[] => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEYS.TREINOS);
-    return saved ? JSON.parse(saved) : [];
-  } catch (error) {
-    console.error('❌ Erro ao ler treinos:', error);
-    return [];
+  static lerTreinos(): TreinoConfig[] {
+    try {
+      const saved = sessionStorage.getItem(this.STORAGE_KEYS.TREINOS);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('❌ Erro ao ler treinos:', error);
+      return [];
+    }
   }
-};
 
-const lerConfig = (): Partial<RotinaConfig> => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEYS.CONFIG);
-    return saved ? JSON.parse(saved) : {};
-  } catch (error) {
-    console.error('❌ Erro ao ler configuração:', error);
-    return {};
+  static lerConfig(): Partial<RotinaConfig> {
+    try {
+      const saved = sessionStorage.getItem(this.STORAGE_KEYS.CONFIG);
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('❌ Erro ao ler configuração:', error);
+      return {};
+    }
   }
-};
+}
 
 function ExerciciosRotinaContent() {
   const router = useRouter();
   
-  // ✅ LER DADOS SALVOS
-  const configSalva = lerConfig();
-  const treinosSalvos = lerTreinos();
-  const exerciciosSalvos = lerExercicios();
+  // ✅ LER DADOS SALVOS COM STORAGE MANAGER
+  const configSalva = ExerciciosStorage.lerConfig();
+  const treinosSalvos = ExerciciosStorage.lerTreinos();
+  const exerciciosSalvos = ExerciciosStorage.lerExercicios();
 
   // MODAL MANAGER
   const { modals, openModal, closeModal } = useModalManager({
@@ -195,7 +198,7 @@ function ExerciciosRotinaContent() {
   // ✅ SALVAR EXERCÍCIOS SEMPRE QUE MUDAR
   useEffect(() => {
     if (initialized && Object.keys(exerciciosAdicionados).length > 0) {
-      salvarExercicios(exerciciosAdicionados);
+      ExerciciosStorage.salvarExercicios(exerciciosAdicionados);
     }
   }, [exerciciosAdicionados, initialized]);
 
@@ -680,8 +683,14 @@ function ExerciciosRotinaContent() {
     console.log('🔙 Voltando para treinos...');
     
     // ✅ DADOS JÁ ESTÃO SALVOS NO SESSIONSTORAGE
-    // Só navegar de volta
-    router.push('/criar-rotina/treinos');
+    // Navegar de volta com alunoId
+    const configSalva = RotinaStorage.getConfig();
+    const alunoId = configSalva?.alunoId;
+    if (alunoId) {
+      router.push(`/criar-rotina/treinos?alunoId=${alunoId}`);
+    } else {
+      router.push('/criar-rotina/treinos');
+    }
   };
 
   const handleNext = async () => {
@@ -695,8 +704,14 @@ function ExerciciosRotinaContent() {
       console.log('🚀 Avançando para revisão...');
       
       // ✅ DADOS JÁ ESTÃO SALVOS NO SESSIONSTORAGE
-      // Só navegar para frente  
-      router.push('/criar-rotina/revisao');
+      // Navegar para frente com alunoId
+      const configSalva = RotinaStorage.getConfig();
+      const alunoId = configSalva?.alunoId;
+      if (alunoId) {
+        router.push(`/criar-rotina/revisao?alunoId=${alunoId}`);
+      } else {
+        router.push('/criar-rotina/revisao');
+      }
     } catch (error) {
       console.error('Erro ao avançar:', error);
       Alert.alert('Erro', 'Não foi possível avançar');
@@ -1624,14 +1639,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8
   },
-  inputGroup: {
-    flex: 1
-  },
-  inputLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4
-  },
   serieInput: {
     borderWidth: 1,
     borderColor: '#D1D5DB',
@@ -1639,24 +1646,37 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 14,
     textAlign: 'center',
-    backgroundColor: 'white'
-  },
-  dropButton: {
-    width: 40,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 6,
     backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center'
+    color: '#1F2937'
+  },
+  inputGroup: {
+    flex: 1
+  },
+  inputLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 4,
+    marginTop: 16
   },
   dropButtonActive: {
     backgroundColor: '#FEF3C7',
     borderColor: '#F59E0B'
   },
+  dropButton: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 6,
+    padding: 8,
+    fontSize: 14,
+    textAlign: 'center',
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 40
+  },
   dropButtonIcon: {
-    fontSize: 16
+    fontSize: 12,
+    color: '#6B7280'
   },
   dropSetContainer: {
     marginTop: 12,

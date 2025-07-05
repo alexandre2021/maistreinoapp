@@ -1,4 +1,4 @@
-// app/criar-rotina/revisao.tsx - VERSÃO CORRIGIDA COM SWITCH FIXES
+// app/criar-rotina/revisao.tsx - VERSÃO REFATORADA E SIMPLIFICADA
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -10,33 +10,144 @@ import {
   View
 } from 'react-native';
 
+// Constants
+import { DifficultyColors } from '../../constants/Colors';
+
 // Components
 import LoadingIcon from '../../components/LoadingIcon';
 import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHeader';
+import { CustomSwitch } from '../../components/ui/CustomSwitch';
 
 // Supabase
 import { supabase } from '../../lib/supabase';
 
+// ✅ STORAGE MANAGER CENTRALIZADO
+class RevisaoStorage {
+  private static readonly STORAGE_KEYS = {
+    CONFIG: 'rotina_configuracao',
+    TREINOS: 'rotina_treinos',
+    EXERCICIOS: 'rotina_exercicios'
+  };
+
+  static lerDadosCompletos() {
+    try {
+      const configuracao = JSON.parse(sessionStorage.getItem(this.STORAGE_KEYS.CONFIG) || '{}');
+      const treinos = JSON.parse(sessionStorage.getItem(this.STORAGE_KEYS.TREINOS) || '[]');
+      const exercicios = JSON.parse(sessionStorage.getItem(this.STORAGE_KEYS.EXERCICIOS) || '{}');
+
+      console.log('🔍 [Revisao] Dados carregados do sessionStorage:');
+      console.log('📋 Configuração:', configuracao);
+      console.log('🏋️ Treinos:', treinos);
+      console.log('💪 Exercícios:', exercicios);
+
+      return { configuracao, treinos, exercicios };
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados:', error);
+      return { configuracao: {}, treinos: [], exercicios: {} };
+    }
+  }
+
+  static limparDados() {
+    try {
+      sessionStorage.removeItem(this.STORAGE_KEYS.CONFIG);
+      sessionStorage.removeItem(this.STORAGE_KEYS.TREINOS);
+      sessionStorage.removeItem(this.STORAGE_KEYS.EXERCICIOS);
+      console.log('🧹 Dados da rotina limpos');
+    } catch (error) {
+      console.error('❌ Erro ao limpar dados:', error);
+    }
+  }
+}
+
+// ✅ INTERFACES SIMPLIFICADAS
+interface RotinaCompleta {
+  nomeRotina: string;
+  descricao: string;
+  alunoId: string;
+  treinosPorSemana: number;
+  dificuldade: string;
+  duracaoSemanas: number;
+  treinos: TreinoCompleto[];
+}
+
+interface TreinoCompleto {
+  id: string;
+  nome: string;
+  gruposMusculares: string[];
+  exercicios: ExercicioCompleto[];
+}
+
+interface ExercicioCompleto {
+  id: string;
+  nome: string;
+  tipo: 'tradicional' | 'combinada';
+  series: SerieCompleta[];
+  exerciciosCombinados?: { nome: string }[];
+  intervaloAposExercicio?: number;
+}
+
+interface SerieCompleta {
+  numero: number;
+  repeticoes: number;
+  carga?: number;
+  isDropSet?: boolean;
+  dropsConfig?: { cargaReduzida: number }[];
+  intervaloAposSerie?: number;
+}
+
+interface SessaoExecucao {
+  rotina_id: string;
+  treino_id: string;
+  aluno_id: string;
+  sessao_numero: number;
+  status: string;
+  data_execucao: string | null;
+  tempo_total_minutos: number | null;
+  observacoes: string | null;
+}
+
+interface ConfiguracaoRotina {
+  nomeRotina: string;
+  descricao?: string;
+  alunoId: string;
+  treinosPorSemana: number;
+  dificuldade: string;
+  duracaoSemanas: number;
+}
+
 function RevisaoRotinaContent() {
   const router = useRouter();
-  const { alunoId } = useLocalSearchParams<{ alunoId?: string }>();
+  const params = useLocalSearchParams();
+  const alunoId = params.alunoId as string;
 
-  // Estados locais
+  // ✅ ESTADOS SIMPLIFICADOS
   const [enviarResumoEmail, setEnviarResumoEmail] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [statusRotina, setStatusRotina] = useState<'pendente' | 'ativa'>('pendente');
+  const [statusRotina, setStatusRotina] = useState<'Aguardando pagamento' | 'Ativa'>('Aguardando pagamento');
   const [permitirExecucaoAluno, setPermitirExecucaoAluno] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     configuracao: true,
-    treinos: false
+    treinos: false,
+    status: true // Status sempre expandido (não pode ser colapsado)
   });
 
-  // 🔥 ESTADO DO TOAST
+  // ✅ TOAST SIMPLIFICADO
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-  // 🔥 FUNÇÃO PARA MOSTRAR TOAST
+  // ✅ DADOS DA ROTINA
+  const [rotinaData, setRotinaData] = useState<RotinaCompleta>({
+    nomeRotina: '',
+    descricao: '',
+    alunoId: '',
+    treinosPorSemana: 3,
+    dificuldade: 'Média',
+    duracaoSemanas: 4,
+    treinos: []
+  });
+
+  // ✅ FUNÇÃO PARA MOSTRAR TOAST
   const showToast = (message: string, type: 'success' | 'error') => {
     setToastMessage(message);
     setToastType(type);
@@ -44,64 +155,25 @@ function RevisaoRotinaContent() {
     setTimeout(() => setToastVisible(false), 4000);
   };
 
-  // Estado para dados da rotina carregados do sessionStorage
-  const [rotinaData, setRotinaData] = useState<{
-    nomeRotina: string;
-    descricao: string;
-    alunoId: string;
-    treinosPorSemana: number;
-    dificuldade: string;
-    duracaoSemanas: number;
-    dataInicio: string;
-    valorTotal: number;
-    formaPagamento: string;
-    treinos: any[];
-    exercicios: any[];
-  }>({
-    nomeRotina: '',
-    descricao: '',
-    alunoId: '',
-    treinosPorSemana: 3,
-    dificuldade: 'Média',
-    duracaoSemanas: 4,
-    dataInicio: '',
-    valorTotal: 0,
-    formaPagamento: 'pix',
-    treinos: [],
-    exercicios: []
-  });
-
-  // ✅ CARREGAR DADOS DO SESSIONSTORAGE - CORRIGIDO
+  // ✅ CARREGAR DADOS DO STORAGE
   useEffect(() => {
-    const loadRotinaData = () => {
+    const loadData = () => {
       try {
-        const configuracao = JSON.parse(sessionStorage.getItem('rotina_configuracao') || '{}');
-        const treinos = JSON.parse(sessionStorage.getItem('rotina_treinos') || '[]');
-        const exercicios = JSON.parse(sessionStorage.getItem('rotina_exercicios') || '{}');
+        const { configuracao, treinos, exercicios } = RevisaoStorage.lerDadosCompletos();
 
-        console.log('🔍 [Revisao] Dados carregados do sessionStorage:');
-        console.log('📋 Configuração:', configuracao);
-        console.log('🏋️ Treinos:', treinos);
-        console.log('💪 Exercícios:', exercicios);
-
-        // ✅ LIMPAR E VALIDAR DADOS
-        const treinosLimpos = Array.isArray(treinos) ? treinos.filter(t => t && typeof t === 'object') : [];
+        const treinosLimpos = Array.isArray(treinos) 
+          ? treinos.filter(t => t && typeof t === 'object' && t.nome) 
+          : [];
         
-        // ✅ MESCLAR EXERCÍCIOS COM TREINOS - COM VALIDAÇÃO
-        const treinosComExercicios = treinosLimpos.map((treino: any) => {
-          const exerciciosDoTreino = exercicios[treino.id] || [];
-          return {
-            ...treino,
-            exercicios: Array.isArray(exerciciosDoTreino) ? exerciciosDoTreino : [],
-            gruposMusculares: Array.isArray(treino.gruposMusculares) 
-              ? treino.gruposMusculares
-                  .filter((g: any) => g && typeof g === 'string' && g.trim() && g.trim() !== '.')
-                  .map((g: string) => g.trim())
-              : []
-          };
-        });
-
-        console.log('🔀 Treinos com exercícios mesclados:', treinosComExercicios);
+        const treinosComExercicios = treinosLimpos.map((treino: any) => ({
+          ...treino,
+          exercicios: Array.isArray(exercicios[treino.id]) ? exercicios[treino.id] : [],
+          gruposMusculares: Array.isArray(treino.gruposMusculares) 
+            ? treino.gruposMusculares
+                .filter((g: any) => g && typeof g === 'string' && g.trim())
+                .map((g: string) => g.trim())
+            : []
+        }));
 
         setRotinaData({
           nomeRotina: (configuracao.nomeRotina || '').toString().trim(),
@@ -110,561 +182,388 @@ function RevisaoRotinaContent() {
           treinosPorSemana: Number(configuracao.treinosPorSemana) || 3,
           dificuldade: (configuracao.dificuldade || 'Média').toString().trim(),
           duracaoSemanas: Number(configuracao.duracaoSemanas) || 4,
-          dataInicio: configuracao.dataInicio || '',
-          valorTotal: configuracao.valorTotal || 0,
-          formaPagamento: configuracao.formaPagamento || 'pix',
-          treinos: treinosComExercicios,
-          exercicios: exercicios
+          treinos: treinosComExercicios
         });
       } catch (error) {
-        console.error('Erro ao carregar dados da rotina:', error);
+        console.error('Erro ao carregar dados:', error);
         showToast('Erro ao carregar dados da rotina', 'error');
       }
     };
 
-    loadRotinaData();
+    loadData();
   }, [alunoId]);
 
-  // ✅ RESETAR EXECUÇÃO PELO ALUNO QUANDO STATUS MUDAR PARA PENDENTE
-  useEffect(() => {
-    if (statusRotina === 'pendente') {
-      setPermitirExecucaoAluno(false);
-    }
-  }, [statusRotina]);
-
-  // ✅ FUNÇÃO PARA GERAR EXECUÇÕES AUTOMÁTICAS
-  const gerarExecucoesAutomaticas = async (rotinaId: string, treinosCreated: { id: string }[], configuracao: any) => {
-    try {
-      console.log('🎯 [EXECUÇÕES] Gerando execuções automáticas...');
-      
-      const totalSessoes = configuracao.treinosPorSemana * configuracao.duracaoSemanas;
-      const sessoes: {
-        rotina_id: string;
-        treino_id: string;
-        aluno_id: string;
-        sessao_numero: number;
-        status: string;
-        data_execucao: null;
-        tempo_total_minutos: null;
-        observacoes: null;
-      }[] = [];
-
-      // ✅ CRIAR SESSÕES (execucoes_sessao)
-      for (let i = 1; i <= totalSessoes; i++) {
-        const treinoIndex = (i - 1) % treinosCreated.length;
-        const treino = treinosCreated[treinoIndex];
-        
-        sessoes.push({
-          rotina_id: rotinaId,
-          treino_id: treino.id,
-          aluno_id: configuracao.alunoId as string,
-          sessao_numero: i,
-          status: 'nao_iniciada',
-          data_execucao: null,
-          tempo_total_minutos: null,
-          observacoes: null
-        });
-      }
-
-      console.log(`📅 Criando ${totalSessoes} sessões de execução...`);
-      const { data: sessoesCreated, error: sessoesError } = await supabase
-        .from('execucoes_sessao')
-        .insert(sessoes)
-        .select('id, treino_id');
-
-      if (sessoesError) throw sessoesError;
-      console.log('✅ Sessões criadas:', sessoesCreated?.length);
-
-      // ✅ CRIAR EXECUÇÕES DE SÉRIES (execucoes_series)
-      // ⚠️ ATENÇÃO: Séries serão criadas quando o aluno executar o treino
-      // As políticas RLS só permitem que o próprio aluno crie suas execuções de séries
-      console.log('ℹ️ Execuções de séries serão criadas durante a execução pelo aluno');
-
-      console.log('🎉 Execuções automáticas criadas com sucesso!');
-    } catch (error) {
-      console.error('❌ Erro ao gerar execuções automáticas:', error);
-      throw error;
-    }
-  };
-
-  // ✅ FUNÇÃO COMPLETA PARA CRIAR ROTINA - CORRIGIDA COM VALIDAÇÕES DE SÉRIE
+  // ✅ FUNÇÃO PARA CRIAR ROTINA COMPLETA
   const criarRotinaCompleta = async () => {
     setCreating(true);
-
     try {
-      console.log('🏋️ [CRIAR ROTINA] Iniciando criação completa...');
-
-      // ✅ 1. OBTER USUÁRIO AUTENTICADO
+      // 1. Validar usuário
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('Usuário não autenticado');
+      if (authError || !user) throw new Error('Usuário não autenticado');
+
+      // ✅ VALIDAR SE O ID DO USUÁRIO É UM UUID VÁLIDO
+      console.log('👤 Usuário autenticado:', user.id);
+      if (!user.id || typeof user.id !== 'string') {
+        throw new Error('ID do usuário inválido');
       }
 
-      // ✅ 2. LER DADOS DO SESSIONSTORAGE
-      const configuracao = JSON.parse(sessionStorage.getItem('rotina_configuracao') || '{}');
-      const treinos = JSON.parse(sessionStorage.getItem('rotina_treinos') || '[]');
-      const exerciciosPorTreino = JSON.parse(sessionStorage.getItem('rotina_exercicios') || '{}');
+      // 2. Ler dados
+      const { configuracao, treinos, exercicios } = RevisaoStorage.lerDadosCompletos();
 
-      console.log('📋 Dados carregados:', {
-        configuracao: !!configuracao.nomeRotina,
-        treinos: treinos.length,
-        exercicios: Object.keys(exerciciosPorTreino).length
-      });
+      if (!configuracao.nomeRotina) throw new Error('Nome da rotina não encontrado');
+      if (!treinos.length) throw new Error('Nenhum treino configurado');
 
-      // ✅ VALIDAÇÕES BÁSICAS
-      if (!configuracao.nomeRotina) {
-        throw new Error('Configuração da rotina não encontrada');
-      }
-      if (treinos.length === 0) {
-        throw new Error('Nenhum treino configurado');
+      // ✅ VALIDAR SE ALUNO_ID É VÁLIDO
+      console.log('👨‍🎓 Aluno ID:', configuracao.alunoId);
+      if (!configuracao.alunoId || typeof configuracao.alunoId !== 'string') {
+        throw new Error('ID do aluno inválido');
       }
 
-      // ✅ 3. CRIAR ROTINA PRINCIPAL
-      console.log('🔧 Criando rotina principal...');
-      
-      const rotinaData = {
-        nome: configuracao.nomeRotina,
-        descricao: configuracao.descricao || null,
-        aluno_id: configuracao.alunoId,
-        personal_trainer_id: user.id,
-        treinos_por_semana: configuracao.treinosPorSemana,
-        dificuldade: configuracao.dificuldade,
-        duracao_semanas: configuracao.duracaoSemanas,
-        data_inicio: new Date().toISOString().split('T')[0],
-        valor_total: 0,
-        forma_pagamento: 'pix',
-        status: statusRotina,
-        permite_execucao_aluno: statusRotina === 'ativa' && permitirExecucaoAluno,
-        observacoes_pagamento: null
-      };
-
+      // 3. Criar rotina
       const { data: rotinaCreated, error: rotinaError } = await supabase
         .from('rotinas')
-        .insert([rotinaData])
+        .insert([{
+          nome: configuracao.nomeRotina,
+          descricao: configuracao.descricao || null,
+          aluno_id: configuracao.alunoId,
+          personal_trainer_id: user.id,
+          treinos_por_semana: configuracao.treinosPorSemana,
+          dificuldade: configuracao.dificuldade,
+          duracao_semanas: configuracao.duracaoSemanas,
+          data_inicio: new Date().toISOString().split('T')[0],
+          valor_total: 0,
+          forma_pagamento: 'pix',
+          status: statusRotina,
+          permite_execucao_aluno: statusRotina === 'Ativa' && permitirExecucaoAluno,
+          observacoes_pagamento: null
+        }])
         .select('id')
         .single();
 
       if (rotinaError) throw rotinaError;
-      if (!rotinaCreated) throw new Error('Falha ao criar rotina');
-
       console.log('✅ Rotina criada:', rotinaCreated.id);
 
-      // ✅ 4. CRIAR TREINOS
-      console.log('🏋️ Criando treinos...');
+      // 4. Criar treinos e exercícios
       const treinosCreated: { id: string }[] = [];
-      
-      for (const [treinoIndex, treino] of treinos.entries()) {
-        const exerciciosDoTreino = exerciciosPorTreino[treino.id] || [];
+      for (const [index, treino] of treinos.entries()) {
+        const exerciciosDoTreino = exercicios[treino.id] || [];
         
-        const treinoData = {
-          rotina_id: rotinaCreated.id,
-          nome: treino.nome,
-          grupos_musculares: treino.gruposMusculares?.length > 0 ? treino.gruposMusculares.join(', ') : '',
-          ordem: treinoIndex + 1,
-          tempo_estimado_minutos: 60 + (exerciciosDoTreino.length * 15),
-          observacoes: null
-        };
-
         const { data: treinoCreated, error: treinoError } = await supabase
           .from('treinos')
-          .insert([treinoData])
+          .insert([{
+            rotina_id: rotinaCreated.id,
+            nome: treino.nome,
+            grupos_musculares: treino.gruposMusculares?.join(', ') || '',
+            ordem: index + 1,
+            observacoes: null
+          }])
           .select('id')
           .single();
 
         if (treinoError) throw treinoError;
         treinosCreated.push(treinoCreated);
-        console.log(`✅ Treino criado: ${treino.nome} (${exerciciosDoTreino.length} exercícios)`);
 
-        // ✅ 5. CRIAR EXERCÍCIOS DO TREINO
-        if (exerciciosDoTreino.length > 0) {
-          console.log(`💪 Criando exercícios do ${treino.nome}...`);
-          
-          for (const [exercicioIndex, exercicio] of exerciciosDoTreino.entries()) {
-            
-            // ✅ DETERMINAR SE É ÚLTIMO EXERCÍCIO (para intervalo)
-            const isUltimoExercicio = exercicioIndex === exerciciosDoTreino.length - 1;
-            
-            let exercicioData;
-            
-            // ✅ EXERCÍCIO SIMPLES
-            if (exercicio.tipo === 'tradicional') {
-              exercicioData = {
-                treino_id: treinoCreated.id,
-                exercicio_1: exercicio.nome,
-                exercicio_2: null,
-                intervalo_apos_exercicio: isUltimoExercicio ? null : (exercicio.intervaloAposExercicio || 180),
-                ordem: exercicioIndex + 1
-              };
-            }
-            // ✅ EXERCÍCIO COMBINADO (Bi-set/Super-set)
-            else if (exercicio.tipo === 'combinada' && exercicio.exerciciosCombinados) {
-              exercicioData = {
-                treino_id: treinoCreated.id,
-                exercicio_1: exercicio.exerciciosCombinados[0]?.nome || 'Exercício 1',
-                exercicio_2: exercicio.exerciciosCombinados[1]?.nome || 'Exercício 2',
-                intervalo_apos_exercicio: isUltimoExercicio ? null : (exercicio.intervaloAposExercicio || 180),
-                ordem: exercicioIndex + 1
-              };
-            } else {
-              console.warn('⚠️ Tipo de exercício não reconhecido:', exercicio.tipo);
-              continue;
-            }
+        // Criar exercícios
+        for (const [exIndex, exercicio] of exerciciosDoTreino.entries()) {
+          console.log('🏗️ Salvando exercício:', {
+            nome: exercicio.nome,
+            tipo: exercicio.tipo,
+            isCombinado: exercicio.tipo === 'combinada',
+            exerciciosCombinados: exercicio.exerciciosCombinados?.map(ex => ex.nome) || null,
+            exercicio_1: exercicio.tipo === 'combinada' ? exercicio.exerciciosCombinados?.[0]?.nome || exercicio.nome : exercicio.nome,
+            exercicio_2: exercicio.tipo === 'combinada' ? exercicio.exerciciosCombinados?.[1]?.nome : null,
+          });
 
-            const { data: exercicioCreated, error: exercicioError } = await supabase
-              .from('exercicios_rotina')
-              .insert([exercicioData])
-              .select('id')
-              .single();
+          const { data: exercicioCreated, error: exercicioError } = await supabase
+            .from('exercicios_rotina')
+            .insert([{
+              treino_id: treinoCreated.id,
+              exercicio_1: exercicio.tipo === 'combinada' ? exercicio.exerciciosCombinados?.[0]?.nome || exercicio.nome : exercicio.nome,
+              exercicio_2: exercicio.tipo === 'combinada' ? exercicio.exerciciosCombinados?.[1]?.nome : null,
+              intervalo_apos_exercicio: exIndex === exerciciosDoTreino.length - 1 ? null : (exercicio.intervaloAposExercicio || 180),
+              ordem: exIndex + 1
+            }])
+            .select('id')
+            .single();
 
-            if (exercicioError) throw exercicioError;
-            console.log(`✅ Exercício criado: ${exercicio.nome}`);
+          if (exercicioError) throw exercicioError;
 
-            // ✅ 6. CRIAR SÉRIES - ESTRUTURA CORRIGIDA COM VALIDAÇÕES
-            if (exercicio.series.length > 0) {
-              console.log(`⚡ Criando ${exercicio.series.length} séries...`);
-              
-              for (const [serieIndex, serie] of exercicio.series.entries()) {
-                
-                // ✅ VALIDAR ESTRUTURA DA SÉRIE
-                if (!serie) {
-                  console.warn('⚠️ Série inválida encontrada, pulando...');
-                  continue;
-                }
-                
-                console.log('🔍 Processando série:', {
-                  serieIndex,
-                  serie,
-                  repeticoes: serie.repeticoes,
-                  tipo: typeof serie.repeticoes,
-                  valor: serie.repeticoes || 12
-                });
-                
-                // ✅ DETERMINAR SE É ÚLTIMA SÉRIE (para intervalo)
-                const isUltimaSerie = serieIndex === exercicio.series.length - 1;
-                
-                let serieData;
-                
-                // ✅ SÉRIE SIMPLES
-                if (exercicio.tipo === 'tradicional') {
-                  console.log('🔍 DEBUG - Criando série simples:', {
-                    serie: serie,
-                    numero: serie.numero,
-                    repeticoes: serie.repeticoes,
-                    carga: serie.carga,
-                    repeticoesComPadrao: serie.repeticoes || 12,
-                    cargaComPadrao: serie.carga || 0
-                  });
-                  
-                  // Garantir valores válidos
-                  const repeticoes = Number(serie.repeticoes) || 12;
-                  const carga = Number(serie.carga) || 0;
-                  const numero = Number(serie.numero) || 1;
-                  
-                  serieData = {
-                    exercicio_id: exercicioCreated.id,
-                    numero_serie: numero,
-                    repeticoes: repeticoes, // ✅ CORRIGIDO: nome correto da coluna
-                    carga: carga, // ✅ CORRIGIDO: nome correto da coluna
-                    tem_dropset: serie.isDropSet || false,
-                    carga_dropset: serie.isDropSet ? (Number(serie.dropsConfig?.[0]?.cargaReduzida) || 0) : null,
-                    intervalo_apos_serie: isUltimaSerie ? null : (Number(serie.intervaloAposSerie) || 120)
-                  };
-                  
-                  console.log('🎯 DEBUG - SerieData criada:', serieData);
-                }
-                // ✅ SÉRIE COMBINADA
-                else if (exercicio.tipo === 'combinada') {
-                  console.log('🔍 DEBUG - Criando série combinada:', {
-                    serie: serie,
-                    numero: serie.numero,
-                    repeticoes: serie.repeticoes,
-                    carga: serie.carga,
-                    repeticoesComPadrao: serie.repeticoes || 12,
-                    cargaComPadrao: serie.carga || 0
-                  });
-                  
-                  // Garantir valores válidos
-                  const repeticoes = Number(serie.repeticoes) || 12;
-                  const carga = Number(serie.carga) || 0;
-                  const numero = Number(serie.numero) || 1;
-                  
-                  serieData = {
-                    exercicio_id: exercicioCreated.id,
-                    numero_serie: numero,
-                    repeticoes: repeticoes, // ✅ CORRIGIDO: nome correto da coluna
-                    carga: carga, // ✅ CORRIGIDO: nome correto da coluna
-                    tem_dropset: false, // Combinadas não têm dropset
-                    carga_dropset: null,
-                    intervalo_apos_serie: isUltimaSerie ? null : (Number(serie.intervaloAposSerie) || 120)
-                  };
-                  
-                  console.log('🎯 DEBUG - SerieData combinada criada:', serieData);
-                }
+          // Criar séries
+          for (const [serieIndex, serie] of (exercicio.series || []).entries()) {
+            if (!serie) continue;
 
-                const { error: serieError } = await supabase
-                  .from('series')
-                  .insert([serieData]);
+            const { error: serieError } = await supabase
+              .from('series')
+              .insert([{
+                exercicio_id: exercicioCreated.id,
+                numero_serie: serie.numero || 1,
+                repeticoes: Number(serie.repeticoes) || 12,
+                carga: Number(serie.carga) || 0,
+                tem_dropset: serie.isDropSet || false,
+                carga_dropset: serie.isDropSet ? Number(serie.dropsConfig?.[0]?.cargaReduzida) || 0 : null,
+                intervalo_apos_serie: serieIndex === exercicio.series.length - 1 ? null : (Number(serie.intervaloAposSerie) || 120)
+              }]);
 
-                if (serieError) {
-                  console.error('❌ Erro ao criar série:', serieError);
-                  throw serieError;
-                }
-                
-                // Log especial para drop sets
-                if (serie.isDropSet) {
-                  console.log(`🔥 Série ${serie.numero} com drop set: ${serie.dropsConfig?.[0]?.cargaReduzida}kg`);
-                }
-              }
-            }
+            if (serieError) throw serieError;
           }
         }
       }
 
-      // ✅ 7. GERAR EXECUÇÕES AUTOMÁTICAS
-      console.log('🎯 Gerando execuções automáticas...');
-      await gerarExecucoesAutomaticas(rotinaCreated.id, treinosCreated, configuracao);
+      // 5. Gerar execuções automáticas se ativo
+      if (statusRotina === 'Ativa') {
+        const configCompleta: ConfiguracaoRotina = {
+          nomeRotina: configuracao.nomeRotina,
+          descricao: configuracao.descricao,
+          alunoId: configuracao.alunoId,
+          treinosPorSemana: configuracao.treinosPorSemana,
+          dificuldade: configuracao.dificuldade,
+          duracaoSemanas: configuracao.duracaoSemanas
+        };
+        await gerarExecucoesAutomaticas(rotinaCreated.id, treinosCreated, configCompleta);
+      }
 
-      console.log('🎉 Rotina completa criada com sucesso!');
-
-      // ✅ 8. LIMPAR SESSIONSTORAGE
-      sessionStorage.removeItem('rotina_configuracao');
-      sessionStorage.removeItem('rotina_treinos');
-      sessionStorage.removeItem('rotina_exercicios');
-      console.log('🧹 SessionStorage limpo');
-
-      // ✅ 9. TOAST DE SUCESSO
-      showToast(
-        `Rotina "${configuracao.nomeRotina}" criada com sucesso!`,
-        'success'
-      );
-
-      // ✅ 10. NAVEGAR APÓS DELAY
+      // 6. Limpar dados e redirecionar
+      RevisaoStorage.limparDados();
+      showToast('Rotina criada com sucesso!', 'success');
+      
       setTimeout(() => {
-        router.replace(`/rotinas/${configuracao.alunoId}`);
-      }, 2000);
+        router.push(`/rotinas/${configuracao.alunoId}`);
+      }, 1000);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Erro ao criar rotina:', error);
-      showToast(
-        `Erro: ${error.message || 'Falha ao criar rotina'}`,
-        'error'
-      );
+      showToast(error instanceof Error ? error.message : 'Erro ao criar rotina', 'error');
     } finally {
       setCreating(false);
     }
   };
 
-  // ✅ TOGGLE EXPANSÃO DE SEÇÕES
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  // ✅ FUNÇÃO PARA GERAR EXECUÇÕES AUTOMÁTICAS
+  const gerarExecucoesAutomaticas = async (rotinaId: string, treinosCreated: { id: string }[], configuracao: ConfiguracaoRotina) => {
+    const totalSessoes = configuracao.treinosPorSemana * configuracao.duracaoSemanas;
+    const sessoes: SessaoExecucao[] = [];
 
-  // ✅ CÁLCULOS E ESTATÍSTICAS - CORRIGIDO COM VERIFICAÇÕES
-  const getEstatisticas = () => {
-    const totalTreinos = rotinaData.treinos?.length || 0;
-    const totalExercicios = rotinaData.treinos?.reduce((total, treino) => {
-      return total + (treino.exercicios?.length || 0);
-    }, 0) || 0;
-    const totalSeries = rotinaData.treinos?.reduce((total, treino) => {
-      return total + (treino.exercicios?.reduce((subTotal, ex) => {
-        return subTotal + (ex.series?.length || 0);
-      }, 0) || 0);
-    }, 0) || 0;
-    const sessõesTotais = (rotinaData.treinosPorSemana || 0) * (rotinaData.duracaoSemanas || 0);
-
-    return {
-      totalTreinos,
-      totalExercicios,
-      totalSeries,
-      sessõesTotais
-    };
-  };
-
-  const estatisticas = getEstatisticas();
-
-  // ✅ OBTER COR DA DIFICULDADE
-  const getCorDificuldade = (dificuldade: string) => {
-    switch (dificuldade) {
-      case 'Baixa': return '#10B981';
-      case 'Média': return '#F59E0B';
-      case 'Alta': return '#EF4444';
-      default: return '#6B7280';
+    for (let i = 1; i <= totalSessoes; i++) {
+      const treinoIndex = (i - 1) % treinosCreated.length;
+      sessoes.push({
+        rotina_id: rotinaId,
+        treino_id: treinosCreated[treinoIndex].id,
+        aluno_id: configuracao.alunoId,
+        sessao_numero: i,
+        status: 'nao_iniciada',
+        data_execucao: null,
+        tempo_total_minutos: null,
+        observacoes: null
+      });
     }
+
+    const { error: sessoesError } = await supabase
+      .from('execucoes_sessao')
+      .insert(sessoes);
+
+    if (sessoesError) throw sessoesError;
+    console.log(`✅ ${totalSessoes} sessões de execução criadas`);
   };
 
-  // ✅ NAVEGAÇÃO
+  // ✅ FUNÇÕES DE NAVEGAÇÃO
   const handlePrevious = () => {
-    router.push('/criar-rotina/exercicios');
+    const { configuracao } = RevisaoStorage.lerDadosCompletos();
+    const alunoId = configuracao?.alunoId;
+    if (alunoId) {
+      router.push(`/criar-rotina/exercicios?alunoId=${alunoId}` as any);
+    } else {
+      router.push('/criar-rotina/exercicios' as any);
+    }
   };
 
   const handleFinalizarRotina = async () => {
-    if (!rotinaData.alunoId) {
-      showToast('ID do aluno não encontrado', 'error');
-      return;
-    }
-
     await criarRotinaCompleta();
   };
 
-  // ✅ RENDERIZAR SEÇÃO EXPANSÍVEL
-  const renderSection = (
-    title: string,
-    icon: string,
-    sectionKey: keyof typeof expandedSections,
-    children: React.ReactNode
-  ) => (
+  // ✅ FUNÇÃO PARA EXPANDIR SEÇÕES
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section as keyof typeof prev]
+    }));
+  };
+
+  // ✅ FUNÇÃO PARA COR DA DIFICULDADE (CONSISTENTE COM CONFIGURAÇÃO)
+  const getCorDificuldade = (dificuldade: string) => {
+    return DifficultyColors[dificuldade as keyof typeof DifficultyColors] || DifficultyColors.default;
+  };
+
+  // ✅ FUNÇÃO PARA RENDERIZAR SEÇÕES
+  const renderSection = (title: string, icon: any, sectionKey: string, content: React.ReactNode, alwaysExpanded = false) => (
     <View style={styles.section}>
       <TouchableOpacity
         style={styles.sectionHeader}
-        onPress={() => toggleSection(sectionKey)}
+        onPress={alwaysExpanded ? undefined : () => toggleSection(sectionKey)}
+        disabled={alwaysExpanded}
       >
         <View style={styles.sectionTitleContainer}>
-          <Ionicons name={icon as any} size={20} color="#007AFF" />
+          <Ionicons name={icon} size={20} color="#007AFF" />
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
-        <Ionicons 
-          name={expandedSections[sectionKey] ? "chevron-up" : "chevron-down"} 
-          size={20} 
-          color="#6B7280" 
-        />
+        {!alwaysExpanded && (
+          <Ionicons 
+            name={expandedSections[sectionKey as keyof typeof expandedSections] ? 'chevron-up' : 'chevron-down'} 
+            size={20} 
+            color="#6B7280" 
+          />
+        )}
       </TouchableOpacity>
-      
-      {expandedSections[sectionKey] && (
+      {(alwaysExpanded || expandedSections[sectionKey as keyof typeof expandedSections]) && (
         <View style={styles.sectionContent}>
-          {children}
+          {content}
         </View>
       )}
     </View>
   );
 
-  // ✅ CUSTOM SWITCH COMPONENT (substitui Switch nativo)
-  const CustomSwitch = ({ value, onValueChange, style }: { value: boolean; onValueChange: (value: boolean) => void; style?: any }) => (
-    <TouchableOpacity
-      style={[
-        styles.customSwitch,
-        value && styles.customSwitchActive,
-        style
-      ]}
-      onPress={() => onValueChange(!value)}
-      activeOpacity={0.8}
-    >
-      <View style={[
-        styles.customSwitchThumb,
-        value && styles.customSwitchThumbActive
-      ]} />
-    </TouchableOpacity>
-  );
-
   return (
     <View style={styles.container}>
-      {/* ✅ HEADER SEM ALUNO ID */}
-      <RotinaProgressHeader
-        title="Revisão Final"
-        subtitle="Confirme todos os dados antes de criar"
+      <RotinaProgressHeader 
+        title="Revisão da Rotina"
+        subtitle="Confirme os detalhes antes de criar"
       />
-
-      {/* ✅ CONTEÚDO PRINCIPAL */}
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Estatísticas resumidas */}
+      
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Card de Estatísticas */}
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>Resumo da Rotina</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{estatisticas.totalTreinos}</Text>
+              <Text style={styles.statNumber}>{rotinaData.treinos.length}</Text>
               <Text style={styles.statLabel}>Treinos</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{estatisticas.totalExercicios}</Text>
+              <Text style={styles.statNumber}>
+                {rotinaData.treinos.reduce((acc, t) => acc + (t.exercicios?.length || 0), 0)}
+              </Text>
               <Text style={styles.statLabel}>Exercícios</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{estatisticas.totalSeries}</Text>
-              <Text style={styles.statLabel}>Séries</Text>
+              <Text style={styles.statNumber}>
+                {rotinaData.treinosPorSemana * rotinaData.duracaoSemanas}
+              </Text>
+              <Text style={styles.statLabel}>Sessões</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{estatisticas.sessõesTotais}</Text>
-              <Text style={styles.statLabel}>Sessões Total</Text>
+              <Text style={styles.statNumber}>{rotinaData.duracaoSemanas}</Text>
+              <Text style={styles.statLabel}>Semanas</Text>
             </View>
           </View>
         </View>
 
-        {/* Seção: Status da Rotina */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleContainer}>
-              <Ionicons name="flag-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Status da Rotina</Text>
+        {/* Seção: Configuração */}
+        {renderSection('Configuração da Rotina', 'settings-outline', 'configuracao', (
+          <View style={styles.configContainer}>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Nome:</Text>
+              <Text style={styles.configValue}>{rotinaData.nomeRotina || 'Sem nome'}</Text>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Descrição:</Text>
+              <Text style={styles.configValue}>{rotinaData.descricao || 'Sem descrição'}</Text>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Treinos por semana:</Text>
+              <Text style={styles.configValue}>{rotinaData.treinosPorSemana}</Text>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Duração:</Text>
+              <Text style={styles.configValue}>{rotinaData.duracaoSemanas} semanas</Text>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Dificuldade:</Text>
+              <View style={[styles.dificuldadeBadge, { backgroundColor: getCorDificuldade(rotinaData.dificuldade) }]}>
+                <Text style={styles.dificuldadeText}>{rotinaData.dificuldade}</Text>
+              </View>
             </View>
           </View>
-          <View style={styles.statusOptionsContainer}>
-            <TouchableOpacity 
-              style={[
-                styles.statusOption,
-                statusRotina === 'pendente' && styles.statusOptionActive
-              ]}
-              onPress={() => setStatusRotina('pendente')}
-            >
-              <View style={styles.statusOptionContent}>
-                <Ionicons 
-                  name={statusRotina === 'pendente' ? 'radio-button-on' : 'radio-button-off'} 
-                  size={20} 
-                  color={statusRotina === 'pendente' ? '#007AFF' : '#9CA3AF'} 
-                />
-                <View style={styles.statusOptionText}>
-                  <Text style={[
-                    styles.statusOptionTitle,
-                    statusRotina === 'pendente' && styles.statusOptionTitleActive
-                  ]}>
-                    Pendente
-                  </Text>
-                  <Text style={styles.statusOptionSubtitle}>
-                    Aguardando confirmação de pagamento
+        ))}
+
+        {/* Seção: Treinos */}
+        {renderSection('Treinos e Exercícios', 'fitness-outline', 'treinos', (
+          <View style={styles.treinosContainer}>
+            {rotinaData.treinos.map((treino, index) => (
+              <View key={treino.id} style={styles.treinoResumo}>
+                <View style={styles.treinoHeaderCondensado}>
+                  <Text style={styles.treinoNome}>{treino.nome}</Text>
+                  <Text style={styles.exerciciosCount}>
+                    {treino.exercicios?.length || 0} exercício(s)
                   </Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[
-                styles.statusOption,
-                statusRotina === 'ativa' && styles.statusOptionActive
-              ]}
-              onPress={() => setStatusRotina('ativa')}
-            >
-              <View style={styles.statusOptionContent}>
-                <Ionicons 
-                  name={statusRotina === 'ativa' ? 'radio-button-on' : 'radio-button-off'} 
-                  size={20} 
-                  color={statusRotina === 'ativa' ? '#007AFF' : '#9CA3AF'} 
-                />
-                <View style={styles.statusOptionText}>
-                  <Text style={[
-                    styles.statusOptionTitle,
-                    statusRotina === 'ativa' && styles.statusOptionTitleActive
-                  ]}>
-                    Ativo
-                  </Text>
-                  <Text style={styles.statusOptionSubtitle}>
-                    Pagamento confirmado, rotina pronta para uso
-                  </Text>
+                
+                <View style={styles.gruposContainer}>
+                  {treino.gruposMusculares.map((grupo, grupoIndex) => (
+                    <View key={`${grupo}-${grupoIndex}`} style={styles.grupoTag}>
+                      <Text style={styles.grupoTagText}>{grupo}</Text>
+                    </View>
+                  ))}
                 </View>
-              </View>
-            </TouchableOpacity>
 
-            {/* Opção de execução pelo aluno - ✅ CUSTOM SWITCH */}
-            {statusRotina === 'ativa' && (
-              <View style={styles.subOptionContainer}>
-                <View style={styles.switchRow}>
-                  <View style={styles.switchInfo}>
-                    <Text style={styles.switchLabel}>Habilitar execução pelo aluno</Text>
-                    <Text style={styles.switchSubtitle}>
-                      O aluno poderá executar os treinos em seu celular
+                {treino.exercicios && treino.exercicios.length > 0 && (
+                  <View style={styles.exerciciosListContainer}>
+                    {treino.exercicios.map((exercicio, exIndex) => (
+                      <View key={exercicio.id} style={styles.exercicioResumoCondensado}>
+                        <Text style={styles.exercicioNomeCondensado}>
+                          {`${exIndex + 1}. ${exercicio.nome}`}
+                        </Text>
+                        <Text style={styles.exercicioMetaCondensado}>
+                          {exercicio.series?.length || 0} série(s)
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        ))}
+
+        {/* Seção: Status da Rotina */}
+        {renderSection('Status da Rotina', 'checkmark-circle-outline', 'status', (
+          <View style={styles.statusContainer}>
+            <View style={styles.statusButtonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.statusButton,
+                  statusRotina === 'Aguardando pagamento' ? styles.statusButtonPendenteActive : styles.statusButtonPendenteInactive
+                ]}
+                onPress={() => setStatusRotina('Aguardando pagamento')}
+              >
+                <Text style={[
+                  styles.statusButtonText,
+                  statusRotina === 'Aguardando pagamento' ? styles.statusButtonTextPendenteActive : styles.statusButtonTextPendenteInactive
+                ]}>
+                  Aguardando Pagamento
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.statusButton,
+                  statusRotina === 'Ativa' ? styles.statusButtonAtivaActive : styles.statusButtonAtivaInactive
+                ]}
+                onPress={() => setStatusRotina('Ativa')}
+              >
+                <Text style={[
+                  styles.statusButtonText,
+                  statusRotina === 'Ativa' ? styles.statusButtonTextAtivaActive : styles.statusButtonTextAtivaInactive
+                ]}>
+                  Ativa
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            {statusRotina === 'Ativa' && (
+              <>
+                <View style={styles.statusRow}>
+                  <View style={styles.statusInfo}>
+                    <Text style={styles.statusLabel}>Permitir execução pelo aluno</Text>
+                    <Text style={styles.statusSubtitle}>
+                      Se habilitado, o aluno poderá executar a rotina pelo app
                     </Text>
                   </View>
                   <CustomSwitch
@@ -672,125 +571,34 @@ function RevisaoRotinaContent() {
                     onValueChange={setPermitirExecucaoAluno}
                   />
                 </View>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Seção: Configuração Básica */}
-        {renderSection('Configuração Básica', 'settings-outline', 'configuracao', (
-          <View style={styles.configContainer}>
-            <View style={styles.configRow}>
-              <Text style={styles.configLabel}>Nome:</Text>
-              <Text style={styles.configValue}>{rotinaData.nomeRotina || 'Nome não definido'}</Text>
-            </View>
-            
-            {rotinaData.descricao && rotinaData.descricao.trim() && rotinaData.descricao.trim() !== '.' && (
-              <View style={styles.configRow}>
-                <Text style={styles.configLabel}>Descrição:</Text>
-                <Text style={styles.configValue}>{rotinaData.descricao.trim()}</Text>
-              </View>
-            )}
-            
-            <View style={styles.configRow}>
-              <Text style={styles.configLabel}>Frequência:</Text>
-              <Text style={styles.configValue}>{`${rotinaData.treinosPorSemana || 3}x por semana`}</Text>
-            </View>
-            
-            <View style={styles.configRow}>
-              <Text style={styles.configLabel}>Dificuldade:</Text>
-              <View style={[styles.dificuldadeBadge, { backgroundColor: getCorDificuldade(rotinaData.dificuldade) }]}>
-                <Text style={styles.dificuldadeText}>{rotinaData.dificuldade || 'Média'}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-
-        {/* Seção: Treinos e Exercícios (Condensada) - ✅ CORRIGIDA */}
-        {renderSection('Treinos e Exercícios', 'fitness-outline', 'treinos', (
-          <View style={styles.treinosContainer}>
-            {Array.isArray(rotinaData.treinos) && rotinaData.treinos.length > 0 ? rotinaData.treinos
-              .filter((treino) => treino && treino.nome) // ✅ Filtrar treinos válidos
-              .map((treino, index) => {
-              
-              return (
-                <View key={treino.id || `treino-${index}`} style={styles.treinoResumo}>
-                  <View style={styles.treinoHeaderCondensado}>
-                    <Text style={styles.treinoNome}>{treino.nome || 'Treino sem nome'}</Text>
-                    <Text style={styles.exerciciosCount}>
-                      {`${treino.exercicios?.length || 0} exercício(s)`}
+                
+                <View style={styles.statusRow}>
+                  <View style={styles.statusInfo}>
+                    <Text style={styles.statusLabel}>Enviar resumo por email</Text>
+                    <Text style={styles.statusSubtitle}>
+                      O aluno receberá um email com todos os detalhes da rotina
                     </Text>
                   </View>
-                  
-                  <View style={styles.gruposContainer}>
-                    {Array.isArray(treino.gruposMusculares) && treino.gruposMusculares.length > 0 && treino.gruposMusculares
-                      .filter((grupo: string) => grupo && typeof grupo === 'string' && grupo.trim() && grupo.trim() !== '.' && grupo.trim() !== '')
-                      .map((grupo: string, grupoIndex: number) => (
-                        <View key={`${String(grupo).trim()}-${grupoIndex}`} style={styles.grupoTag}>
-                          <Text style={styles.grupoTagText}>{String(grupo).trim()}</Text>
-                        </View>
-                      ))}
-                  </View>
-
-                  {/* Lista de exercícios condensada - ✅ CORRIGIDA */}
-                  {Array.isArray(treino.exercicios) && treino.exercicios.length > 0 && (
-                    <View style={styles.exerciciosListContainer}>
-                      {treino.exercicios
-                        .filter((exercicio: any) => exercicio && exercicio.nome) // ✅ Filtrar exercícios válidos
-                        .map((exercicio: any, exIndex: number) => {
-                          return (
-                            <View key={exercicio.id || `ex-${exIndex}`} style={styles.exercicioResumoCondensado}>                            <Text style={styles.exercicioNomeCondensado}>
-                              {`${exIndex + 1}. ${exercicio.nome || 'Exercício sem nome'}`}
-                            </Text>
-                            <Text style={styles.exercicioMetaCondensado}>
-                              {`${exercicio.series?.length || 0} série(s)`}
-                            </Text>
-                            </View>
-                          );
-                        })}
-                    </View>
-                  )}
+                  <CustomSwitch
+                    value={enviarResumoEmail}
+                    onValueChange={setEnviarResumoEmail}
+                  />
                 </View>
-              );
-            }) : (
-              <Text style={styles.exerciciosCount}>Nenhum treino configurado</Text>
+              </>
             )}
           </View>
-        ))}
-
-        {/* Configurações finais - ✅ CUSTOM SWITCH */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleContainer}>
-              <Ionicons name="settings-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Configurações Finais</Text>
-            </View>
-          </View>
-          <View style={styles.finalConfigContainer}>
-            <View style={styles.switchRow}>
-              <View style={styles.switchInfo}>
-                <Text style={styles.switchLabel}>Enviar resumo por email</Text>
-                <Text style={styles.switchSubtitle}>
-                  O aluno receberá um email com todos os detalhes da rotina
-                </Text>
-              </View>
-              <CustomSwitch
-                value={enviarResumoEmail}
-                onValueChange={setEnviarResumoEmail}
-              />
-            </View>
-          </View>
-        </View>
+        ), true)}
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      {/* ✅ BOTÕES PRÓPRIOS */}
+      {/* Botões */}
       <View style={styles.bottomActions}>
         <TouchableOpacity style={styles.previousButton} onPress={handlePrevious}>
           <Ionicons name="arrow-back" size={20} color="#6B7280" />
           <Text style={styles.previousButtonText}>Voltar</Text>
         </TouchableOpacity>
+        
         <TouchableOpacity 
           style={[styles.nextButton, creating && styles.nextButtonDisabled]}
           onPress={handleFinalizarRotina}
@@ -802,14 +610,14 @@ function RevisaoRotinaContent() {
             <>
               <Ionicons name="checkmark-circle" size={20} color="white" />
               <Text style={styles.nextButtonText}>
-                {statusRotina === 'pendente' ? 'Criar como Pendente' : 'Criar como Ativo'}
+                Criar Rotina
               </Text>
             </>
           )}
         </TouchableOpacity>
       </View>
 
-      {/* 🔥 TOAST DE NOTIFICAÇÃO */}
+      {/* Toast */}
       {toastVisible && (
         <View style={[
           styles.toast, 
@@ -945,11 +753,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
   },
+  treinoHeaderCondensado: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   treinoNome: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 8,
+  },
+  exerciciosCount: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   gruposContainer: {
     flexDirection: 'row',
@@ -968,55 +785,28 @@ const styles = StyleSheet.create({
     color: '#1E40AF',
     fontWeight: '500',
   },
-  exerciciosCount: {
-    fontSize: 12,
-    color: '#6B7280',
+  exerciciosListContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
   },
-  finalConfigContainer: {
-    padding: 16,
-  },
-  switchRow: {
+  exercicioResumoCondensado: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 4,
   },
-  switchInfo: {
+  exercicioNomeCondensado: {
+    fontSize: 13,
+    color: '#4B5563',
     flex: 1,
-    marginRight: 16,
+    marginRight: 8,
   },
-  switchLabel: {
-    fontSize: 16,
+  exercicioMetaCondensado: {
+    fontSize: 11,
+    color: '#9CA3AF',
     fontWeight: '500',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  switchSubtitle: {
-    fontSize: 12,
-    color: '#6B7280',
-    lineHeight: 16,
-  },
-  // ✅ CUSTOM SWITCH STYLES
-  customSwitch: {
-    width: 48,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  customSwitchActive: {
-    backgroundColor: '#93C5FD',
-  },
-  customSwitchThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#9CA3AF',
-    alignSelf: 'flex-start',
-  },
-  customSwitchThumbActive: {
-    backgroundColor: '#007AFF',
-    alignSelf: 'flex-end',
   },
   bottomSpacing: {
     height: 20,
@@ -1066,81 +856,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'white',
   },
-  statusOptionsContainer: {
-    padding: 16,
-  },
-  statusOption: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  statusOptionActive: {
-    borderColor: '#007AFF',
-    backgroundColor: '#F0F9FF',
-  },
-  statusOptionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  statusOptionText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  statusOptionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  statusOptionTitleActive: {
-    color: '#007AFF',
-  },
-  statusOptionSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  subOptionContainer: {
-    backgroundColor: '#F8FAFC',
-    marginTop: 8,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
-    paddingLeft: 12,
-  },
-  treinoHeaderCondensado: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  exerciciosListContainer: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  exercicioResumoCondensado: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  exercicioNomeCondensado: {
-    fontSize: 13,
-    color: '#4B5563',
-    flex: 1,
-    marginRight: 8,
-  },
-  exercicioMetaCondensado: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
   toast: {
     position: 'absolute',
     bottom: 100,
@@ -1169,5 +884,95 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     lineHeight: 20,
+  },
+  statusContainer: {
+    gap: 16,
+    padding: 16,
+  },
+  statusButtonsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 16,
+  },
+  statusInfo: {
+    flex: 1,
+  },
+  statusLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  statusSubtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 16,
+  },
+  statusButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  statusButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: 'white',
+  },
+  // Botão "Aguardando Pagamento" - Ativo
+  statusButtonPendenteActive: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
+    flex: 3,
+  },
+  // Botão "Aguardando Pagamento" - Inativo
+  statusButtonPendenteInactive: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#F59E0B',
+    flex: 3,
+  },
+  // Botão "Ativa" - Ativo
+  statusButtonAtivaActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+    flex: 1,
+  },
+  // Botão "Ativa" - Inativo
+  statusButtonAtivaInactive: {
+    backgroundColor: '#E5F3FF',
+    borderColor: '#007AFF',
+    flex: 1,
+  },
+  statusButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  // Texto "Aguardando Pagamento" - Ativo
+  statusButtonTextPendenteActive: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  // Texto "Aguardando Pagamento" - Inativo
+  statusButtonTextPendenteInactive: {
+    color: '#92400E',
+    fontWeight: '600',
+  },
+  // Texto "Ativa" - Ativo
+  statusButtonTextAtivaActive: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  // Texto "Ativa" - Inativo
+  statusButtonTextAtivaInactive: {
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });

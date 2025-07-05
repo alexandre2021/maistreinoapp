@@ -83,8 +83,6 @@ export const AlunoOptionsModal: React.FC<AlunoOptionsModalProps> = ({
       transparent
       animationType="slide"
       onRequestClose={onClose}
-      accessible={false}
-      importantForAccessibility="no"
     >
       <View style={styles.overlay}>
         <View style={styles.container}>

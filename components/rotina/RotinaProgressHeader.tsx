@@ -3,10 +3,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { useModalManager } from '../../hooks/useModalManager';
 import { ExitRotinaModal } from './ExitRotinaModal';
@@ -78,8 +78,6 @@ export const RotinaProgressHeader: React.FC<RotinaProgressHeaderProps> = ({
   const currentStep = getCurrentStep();
   
   console.log('🎯 [RotinaProgressHeader] Step atual:', currentStep, '| Pathname:', pathname);
-
-  const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;
 
   // ✅ VERIFICAR SE TEM DADOS NÃO SALVOS - REMOVIDO (não usado mais)
 
@@ -176,22 +174,7 @@ export const RotinaProgressHeader: React.FC<RotinaProgressHeaderProps> = ({
           <View style={styles.headerSpacer} />
         </View>
 
-        {/* ✅ BARRA DE PROGRESSO LINEAR */}
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarBackground}>
-            <View 
-              style={[
-                styles.progressBarFill,
-                { width: `${progressPercentage}%` }
-              ]} 
-            />
-          </View>
-          <Text style={styles.progressText}>
-            Etapa {currentStep} de {steps.length}
-          </Text>
-        </View>
-
-        {/* ✅ STEPS VISUAIS */}
+        {/* ✅ STEPS VISUAIS (removido barra de progresso e texto redundante) */}
         <View style={styles.stepsContainer}>
           {steps.map((step, index) => renderStep(step, index))}
         </View>
@@ -247,28 +230,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
-  },
-  progressBarContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  progressBarBackground: {
-    height: 4,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#007AFF',
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 8,
-    fontWeight: '500',
   },
   stepsContainer: {
     flexDirection: 'row',

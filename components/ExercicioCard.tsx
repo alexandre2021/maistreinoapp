@@ -15,19 +15,6 @@ export const ExercicioCard: React.FC<ExercicioCardProps> = ({
   onPress,
   onOptionsPress
 }) => {
-  const getDifficultyColor = (dificuldade: string) => {
-    switch (dificuldade) {
-      case 'Baixa':
-        return '#10B981';
-      case 'Média':
-        return '#F59E0B';
-      case 'Alta':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
   const renderImage = () => {
     if (exercicio.imagem_1_url) {
       return (

@@ -24,3 +24,11 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
 };
+
+// Cores de dificuldade para badges (consistente em toda a aplicação)
+export const DifficultyColors = {
+  'Baixa': '#10B981',   // Verde
+  'Média': '#F59E0B',   // Laranja
+  'Alta': '#EF4444',    // Vermelho
+  'default': '#6B7280'  // Cinza para valores desconhecidos
+};

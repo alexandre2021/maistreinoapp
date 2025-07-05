@@ -1,14 +1,14 @@
-// app/criar-rotina/treinos.tsx - VERSÃO COM SESSIONSTORAGE
+// app/criar-rotina/treinos.tsx - STORAGE CENTRALIZADO
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 // Components
@@ -16,6 +16,9 @@ import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHead
 
 // Constants - grupos musculares disponíveis
 import { GRUPOS_MUSCULARES } from '../../constants/exercicios';
+
+// ✅ STORAGE CENTRALIZADO
+import RotinaStorage, { TreinoData } from '../../utils/rotinaStorage';
 
 // ✅ TIPOS LOCAIS (sem Context)
 interface TreinoConfig {
@@ -25,57 +28,12 @@ interface TreinoConfig {
   exercicios: any[]; // Será usado depois
 }
 
-interface RotinaConfig {
-  nomeRotina: string;
-  descricao: string;
-  treinosPorSemana: number;
-  dificuldade: string;
-  duracaoSemanas: number;
-  alunoId: string;
-}
-
-// ✅ FUNÇÕES DE SESSIONSTORAGE
-const STORAGE_KEYS = {
-  CONFIG: 'rotina_configuracao',
-  TREINOS: 'rotina_treinos',
-  EXERCICIOS: 'rotina_exercicios'
-};
-
-const salvarTreinos = (treinos: TreinoConfig[]) => {
-  try {
-    sessionStorage.setItem(STORAGE_KEYS.TREINOS, JSON.stringify(treinos));
-    console.log('✅ Treinos salvos:', treinos.length);
-  } catch (error) {
-    console.error('❌ Erro ao salvar treinos:', error);
-  }
-};
-
-const lerTreinos = (): TreinoConfig[] => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEYS.TREINOS);
-    return saved ? JSON.parse(saved) : [];
-  } catch (error) {
-    console.error('❌ Erro ao ler treinos:', error);
-    return [];
-  }
-};
-
-const lerConfig = (): Partial<RotinaConfig> => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEYS.CONFIG);
-    return saved ? JSON.parse(saved) : {};
-  } catch (error) {
-    console.error('❌ Erro ao ler configuração:', error);
-    return {};
-  }
-};
-
 export default function TreinosRotinaScreen() {
   const router = useRouter();
 
-  // ✅ LER DADOS SALVOS
-  const configSalva = lerConfig();
-  const treinosSalvos = lerTreinos();
+  // ✅ LER DADOS SALVOS DO STORAGE CENTRALIZADO
+  const configSalva = RotinaStorage.getConfig();
+  const treinosSalvos = RotinaStorage.getTreinos();
 
   const [treinos, setTreinos] = useState<TreinoConfig[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,9 +43,9 @@ export default function TreinosRotinaScreen() {
   useEffect(() => {
     if (initialized) return;
 
-    console.log('🚀 INICIALIZANDO TREINOS COM SESSIONSTORAGE');
+    console.log('🚀 INICIALIZANDO TREINOS COM STORAGE CENTRALIZADO');
     
-    const treinosPorSemana = configSalva.treinosPorSemana || 3;
+    const treinosPorSemana = configSalva?.treinosPorSemana || 3;
     const letras = ['A', 'B', 'C', 'D', 'E', 'F'];
 
     let novosTreeinos: TreinoConfig[] = [];
@@ -95,7 +53,13 @@ export default function TreinosRotinaScreen() {
     // ✅ USAR TREINOS SALVOS OU CRIAR NOVOS
     if (treinosSalvos.length === treinosPorSemana) {
       console.log('🔄 CARREGANDO treinos salvos:', treinosSalvos.length);
-      novosTreeinos = treinosSalvos;
+      // Converter TreinoData para TreinoConfig
+      novosTreeinos = treinosSalvos.map(treino => ({
+        id: treino.id,
+        nome: treino.nome,
+        gruposMusculares: treino.gruposMusculares,
+        exercicios: []
+      }));
     } else {
       console.log('🆕 CRIANDO novos treinos para', treinosPorSemana, 'treinos/semana');
       
@@ -117,12 +81,18 @@ export default function TreinosRotinaScreen() {
     
     setTreinos(novosTreeinos);
     setInitialized(true);
-  }, [initialized, configSalva.treinosPorSemana, treinosSalvos]);
+  }, [initialized, configSalva?.treinosPorSemana, treinosSalvos]);
 
   // ✅ SALVAR TREINOS SEMPRE QUE MUDAR
   useEffect(() => {
     if (initialized && treinos.length > 0) {
-      salvarTreinos(treinos);
+      // Converter TreinoConfig para TreinoData
+      const treinosParaSalvar: TreinoData[] = treinos.map(treino => ({
+        id: treino.id,
+        nome: treino.nome,
+        gruposMusculares: treino.gruposMusculares
+      }));
+      RotinaStorage.saveTreinos(treinosParaSalvar);
     }
   }, [treinos, initialized]);
 
@@ -132,11 +102,16 @@ export default function TreinosRotinaScreen() {
       if (treino.id === treinoId) {
         const jaTemGrupo = treino.gruposMusculares.includes(grupoMuscular);
         
+        const novosGrupos = jaTemGrupo 
+          ? treino.gruposMusculares.filter(g => g !== grupoMuscular)
+          : [...treino.gruposMusculares, grupoMuscular];
+
+        // ✅ LIMPAR EXERCÍCIOS QUANDO GRUPOS MUSCULARES SÃO ALTERADOS
+        RotinaStorage.verificarELimparExerciciosInconsistentes(treinoId, novosGrupos);
+        
         return {
           ...treino,
-          gruposMusculares: jaTemGrupo 
-            ? treino.gruposMusculares.filter(g => g !== grupoMuscular)
-            : [...treino.gruposMusculares, grupoMuscular]
+          gruposMusculares: novosGrupos
         };
       }
       return treino;
@@ -145,6 +120,9 @@ export default function TreinosRotinaScreen() {
 
   // LIMPAR TODOS OS GRUPOS DE UM TREINO
   const limparTreino = (treinoId: string) => {
+    // ✅ LIMPAR EXERCÍCIOS QUANDO TODOS OS GRUPOS SÃO REMOVIDOS
+    RotinaStorage.clearExerciciosDoTreino(treinoId);
+    
     setTreinos(prev => prev.map(treino => 
       treino.id === treinoId 
         ? { ...treino, gruposMusculares: [] }
@@ -169,7 +147,7 @@ export default function TreinosRotinaScreen() {
     return treinos.length > 0 && treinos.every(treino => treino.gruposMusculares.length > 0);
   };
 
-  // ✅ SALVAR E AVANÇAR PARA EXERCÍCIOS - VERSÃO SESSIONSTORAGE
+  // ✅ SALVAR E AVANÇAR PARA EXERCÍCIOS - VERSÃO STORAGE CENTRALIZADO
   const handleNext = async () => {
     if (!isFormValid()) {
       Alert.alert(
@@ -184,11 +162,21 @@ export default function TreinosRotinaScreen() {
     try {
       console.log('🚀 Salvando treinos e avançando para exercícios...');
       
-      // ✅ SALVAR NO SESSIONSTORAGE (já está sendo salvo automaticamente)
-      salvarTreinos(treinos);
+      // ✅ SALVAR NO STORAGE CENTRALIZADO (já está sendo salvo automaticamente)
+      const treinosParaSalvar: TreinoData[] = treinos.map(treino => ({
+        id: treino.id,
+        nome: treino.nome,
+        gruposMusculares: treino.gruposMusculares
+      }));
+      RotinaStorage.saveTreinos(treinosParaSalvar);
       
-      // ✅ NAVEGAÇÃO SIMPLES
-      router.push('/criar-rotina/exercicios');
+      // ✅ NAVEGAÇÃO COM ALUNO ID
+      const alunoId = configSalva?.alunoId;
+      if (alunoId) {
+        router.push(`/criar-rotina/exercicios?alunoId=${alunoId}`);
+      } else {
+        router.push('/criar-rotina/exercicios');
+      }
 
     } catch (error) {
       console.error('❌ Erro ao salvar treinos:', error);
@@ -198,13 +186,18 @@ export default function TreinosRotinaScreen() {
     }
   };
 
-  // ✅ VOLTAR PARA CONFIGURAÇÃO - VERSÃO SESSIONSTORAGE
+  // ✅ VOLTAR PARA CONFIGURAÇÃO COM ALUNO ID
   const handlePrevious = () => {
     console.log('🔙 Voltando para configuração...');
     
     // ✅ TREINOS JÁ ESTÃO SALVOS NO SESSIONSTORAGE
-    // Só navegar de volta
-    router.push('/criar-rotina/configuracao');
+    // Navegar de volta com alunoId
+    const alunoId = configSalva?.alunoId;
+    if (alunoId) {
+      router.push(`/criar-rotina/configuracao?alunoId=${alunoId}`);
+    } else {
+      router.push('/criar-rotina/configuracao');
+    }
   };
 
   // RENDERIZAR CARD DE TREINO
@@ -323,7 +316,7 @@ export default function TreinosRotinaScreen() {
   );
 
   // Loading state
-  if (!configSalva.nomeRotina) {
+  if (!configSalva?.nomeRotina) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Carregando configuração...</Text>
@@ -342,8 +335,8 @@ export default function TreinosRotinaScreen() {
       {/* HEADER COM PROGRESSO */}
       <RotinaProgressHeader
         title="Configuração de Treinos"
-        subtitle={`${configSalva.treinosPorSemana} treinos por semana`}
-        alunoId={configSalva.alunoId}
+        subtitle={`${configSalva?.treinosPorSemana} treinos por semana`}
+        alunoId={configSalva?.alunoId}
         showExitButton={true}
       />
 
@@ -356,9 +349,9 @@ export default function TreinosRotinaScreen() {
         <View style={styles.rotinaInfo}>
           <Ionicons name="information-circle" size={20} color="#007AFF" />
           <View style={styles.rotinaInfoText}>
-            <Text style={styles.rotinaInfoTitle}>{configSalva.nomeRotina}</Text>
+            <Text style={styles.rotinaInfoTitle}>{configSalva?.nomeRotina}</Text>
             <Text style={styles.rotinaInfoSubtitle}>
-              {configSalva.dificuldade} • {configSalva.treinosPorSemana}x por semana
+              {configSalva?.dificuldade} • {configSalva?.treinosPorSemana}x por semana
             </Text>
           </View>
         </View>
