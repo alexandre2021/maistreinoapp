@@ -1,5 +1,5 @@
 // components/rotina/RotinaAtivaModal.tsx
-import { AlertCircle } from 'lucide-react-native';
+import { AlertCircle, X } from 'lucide-react-native';
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -7,7 +7,6 @@ interface RotinaAtivaModalProps {
   visible: boolean;
   rotinaNome: string;
   rotinaStatus: string;
-  onViewRotina: () => void;
   onCancel: () => void;
 }
 
@@ -15,7 +14,6 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
   visible,
   rotinaNome,
   rotinaStatus,
-  onViewRotina,
   onCancel
 }) => {
   const getStatusLabel = (status: string) => {
@@ -34,13 +32,13 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
   const getMessage = (status: string) => {
     switch (status) {
       case 'Ativa': 
-        return 'Este aluno já possui uma rotina ativa. Finalize ou cancele a rotina atual antes de criar uma nova.';
+        return 'Este aluno já possui uma rotina ativa. Conclua ou exclua a rotina atual antes de criar uma nova.';
       case 'Aguardando pagamento':
-        return 'Este aluno já possui uma rotina aguardando pagamento. Finalize ou cancele a rotina atual antes de criar uma nova.';
+        return 'Este aluno já possui uma rotina aguardando pagamento. Conclua ou exclua a rotina atual antes de criar uma nova.';
       case 'Pausada':
-        return 'Este aluno já possui uma rotina pausada. Reative ou cancele a rotina atual antes de criar uma nova.';
+        return 'Este aluno já possui uma rotina pausada. Reative ou exclua a rotina atual antes de criar uma nova.';
       default:
-        return 'Este aluno já possui uma rotina em andamento. Finalize ou cancele a rotina atual antes de criar uma nova.';
+        return 'Este aluno já possui uma rotina em andamento. Conclua ou exclua a rotina atual antes de criar uma nova.';
     }
   };
 
@@ -53,6 +51,11 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
+          {/* Botão X no canto superior direito */}
+          <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
+            <X size={24} color="#6B7280" />
+          </TouchableOpacity>
+
           <View style={styles.iconContainer}>
             <AlertCircle size={48} color="#F59E0B" />
           </View>
@@ -70,22 +73,6 @@ export const RotinaAtivaModal: React.FC<RotinaAtivaModalProps> = ({
           <Text style={styles.message}>
             {getMessage(rotinaStatus)}
           </Text>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onCancel}
-            >
-              <Text style={styles.cancelButtonText}>Entendi</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, styles.confirmButton]}
-              onPress={onViewRotina}
-            >
-              <Text style={styles.confirmButtonText}>Ver Rotina</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
     </Modal>
@@ -107,6 +94,14 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignItems: 'center',
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 8,
+    zIndex: 1,
   },
   iconContainer: {
     marginBottom: 16,
@@ -145,37 +140,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-  },
-  cancelButton: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  confirmButton: {
-    backgroundColor: '#007AFF',
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });

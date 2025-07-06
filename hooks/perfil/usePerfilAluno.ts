@@ -1,42 +1,46 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Animated } from 'react-native';
-import {
-  ANOS_EXPERIENCIA_PT,
-  CORES_AVATAR,
-  ESPECIALIZACOES_PT,
-  formatarTelefone,
-  GENEROS,
-  isGeneroValido,
-  isURLValida,
-  VALIDACOES,
-  type AnosExperienciaPT,
-  type EspecializacaoPT,
-  type Genero
-} from '../../../constants/usuarios';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
-export interface PersonalTrainerData {
+// OPÇÃO 1: Path relativo ajustado
+// import { 
+//   GENEROS, 
+//   OBJETIVOS, 
+//   NIVEIS_EXPERIENCIA_ALUNO, 
+//   FREQUENCIAS_TREINO,
+//   CORES_AVATAR,
+//   formatarTelefone 
+// } from '../../../constants/usuarios';
+
+// OPÇÃO 2: Import direto (TESTE ESTA PRIMEIRA)
+import {
+    CORES_AVATAR,
+    formatarTelefone,
+    FREQUENCIAS_TREINO,
+    GENEROS,
+    NIVEIS_EXPERIENCIA_ALUNO,
+    OBJETIVOS
+} from '../../constants/usuarios';
+
+export interface AlunoData {
   id: string;
   nome_completo: string;
   email: string;
   telefone: string;
-  telefone_publico: boolean;
   data_nascimento: string;
-  genero: Genero; // ✅ Tipagem forte
-  cref: string;
-  anos_experiencia: AnosExperienciaPT; // ✅ Tipagem forte
-  especializacoes: EspecializacaoPT[]; // ✅ Tipagem forte
-  bio: string;
-  instagram: string;
-  facebook: string;
-  linkedin: string;
-  website: string;
+  genero: string;
+  peso: number;
+  altura: number;
+  objetivo_principal: string;
+  nivel_experiencia: string;
+  frequencia_desejada: string;
+  par_q_respostas: { [key: string]: boolean };
   avatar_letter: string;
   avatar_color: string;
   avatar_type: 'letter' | 'image';
   avatar_image_url: string | null;
-  codigo_pt: string;
+  created_at: string;
 }
 
 export interface ToastState {
@@ -47,33 +51,73 @@ export interface ToastState {
 
 export const usePerfil = () => {
   // ========= ESTADOS =========
-  const [activeTab, setActiveTab] = useState<'pessoal' | 'profissional' | 'redes' | 'seguranca'>('pessoal');
-  const [userData, setUserData] = useState<PersonalTrainerData | null>(null);
+  const [activeTab, setActiveTab] = useState<'pessoal' | 'objetivos' | 'parq' | 'seguranca'>('pessoal');
+  const [userData, setUserData] = useState<AlunoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGeneroOptions, setShowGeneroOptions] = useState(false);
-  const [showExperienciaOptions, setShowExperienciaOptions] = useState(false);
-  const [editingSection, setEditingSection] = useState<'pessoal' | 'profissional' | 'redes' | null>(null);
-  const [editData, setEditData] = useState<Partial<PersonalTrainerData>>({});
+  const [showObjetivoOptions, setShowObjetivoOptions] = useState(false);
+  const [showNivelOptions, setShowNivelOptions] = useState(false);
+  const [showFrequenciaOptions, setShowFrequenciaOptions] = useState(false);
+  const [editingSection, setEditingSection] = useState<'pessoal' | 'objetivos' | null>(null);
+  const [editData, setEditData] = useState<Partial<AlunoData>>({});
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(2000);
   const [toast, setToast] = useState<ToastState>({ visible: false, message: '', type: 'success' });
   const [toastAnimation] = useState(new Animated.Value(0));
 
-  // ========= CONSTANTES CENTRALIZADAS =========
-  // ✅ Substituindo arrays hardcoded por imports das constantes
-  const avatarColors = CORES_AVATAR;
-  const generoOptions = GENEROS;
-  const experienciaOptions = ANOS_EXPERIENCIA_PT;
-  const especializacoesOptions = ESPECIALIZACOES_PT;
+  // ========= CONSTANTES DO ARQUIVO COMPARTILHADO =========
+  const avatarColors = [...CORES_AVATAR];
+  const generoOptions = [...GENEROS];
+  const objetivoOptions = [...OBJETIVOS];
+  const nivelExperienciaOptions = [...NIVEIS_EXPERIENCIA_ALUNO];
+  const frequenciaTreinoOptions = [...FREQUENCIAS_TREINO];
+
+  // ========= PERGUNTAS PAR-Q =========
+  const perguntasParQ = [
+    'Seu médico já disse que você possui algum problema cardíaco e que só deve realizar atividade física supervisionado por profissionais de saúde?',
+    'Você sente dores no peito quando realiza atividade física?',
+    'No último mês, você sentiu dores no peito mesmo sem praticar atividade física?',
+    'Você perde o equilíbrio devido a tontura ou já perdeu a consciência alguma vez?',
+    'Você possui algum problema ósseo ou articular que poderia piorar com a prática de atividade física?',
+    'Seu médico já prescreveu algum medicamento para pressão arterial ou problema cardíaco?',
+    'Você sabe de alguma outra razão pela qual não deveria praticar atividade física?'
+  ];
 
   // ========= FUNÇÕES UTILITÁRIAS =========
-  // ✅ Usando função centralizada de formatação
-  const formatPhoneNumber = (phone: string) => formatarTelefone(phone);
+  const formatPhoneNumber = (phone: string) => {
+    return formatarTelefone(phone);
+  };
+
+  // Função para converter vírgula em ponto para o banco de dados
+  const formatDecimalForDatabase = (value: string): number | null => {
+    if (!value || value.trim() === '') return null
+    
+    // Substitui vírgula por ponto para o PostgreSQL
+    const normalizedValue = value.replace(',', '.')
+    const parsed = parseFloat(normalizedValue)
+    
+    // Verifica se é um número válido
+    return isNaN(parsed) ? null : parsed
+  }
+
+  // Função para filtrar input de peso (permite números, vírgula e ponto)
+  const handlePesoChange = (value: string) => {
+    // Permite apenas números, vírgula e ponto
+    const filtered = value.replace(/[^0-9.,]/g, '')
+    return filtered
+  }
+
+  // Função para filtrar input de altura (permite números, vírgula e ponto)
+  const handleAlturaChange = (value: string) => {
+    // Permite apenas números, vírgula e ponto  
+    const filtered = value.replace(/[^0-9.,]/g, '')
+    return filtered
+  }
 
   const formatDateBrazilian = (day: number, month: number, year: number) => {
     return `${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}/${year}`;
@@ -119,6 +163,23 @@ export const usePerfil = () => {
     return formatDateBrazilian(parsed.day, parsed.month, parsed.year);
   };
 
+  const formatISOToDateTime = (isoDate: string) => {
+    if (!isoDate) return 'Data não disponível';
+    
+    try {
+      const date = new Date(isoDate);
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
   const getCurrentDate = () => {
     const now = new Date();
     return {
@@ -128,57 +189,8 @@ export const usePerfil = () => {
     };
   };
 
-  // ========= VALIDAÇÕES CENTRALIZADAS =========
-  const validateEditData = (): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-
-    // Validar nome
-    if (editData.nome_completo) {
-      if (editData.nome_completo.length < VALIDACOES.nomeMinLength) {
-        errors.push(`Nome deve ter pelo menos ${VALIDACOES.nomeMinLength} caracteres`);
-      }
-      if (editData.nome_completo.length > VALIDACOES.nomeMaxLength) {
-        errors.push(`Nome deve ter no máximo ${VALIDACOES.nomeMaxLength} caracteres`);
-      }
-    }
-
-    // Validar gênero
-    if (editData.genero && !isGeneroValido(editData.genero)) {
-      errors.push('Gênero selecionado é inválido');
-    }
-
-    // Validar bio
-    if (editData.bio) {
-      if (editData.bio.length < VALIDACOES.bioMinLength) {
-        errors.push(`Bio deve ter pelo menos ${VALIDACOES.bioMinLength} caracteres`);
-      }
-      if (editData.bio.length > VALIDACOES.bioMaxLength) {
-        errors.push(`Bio deve ter no máximo ${VALIDACOES.bioMaxLength} caracteres`);
-      }
-    }
-
-    // Validar URLs das redes sociais
-    if (editData.instagram && !isURLValida(editData.instagram, 'instagram')) {
-      errors.push('URL do Instagram inválida');
-    }
-    if (editData.facebook && !isURLValida(editData.facebook, 'facebook')) {
-      errors.push('URL do Facebook inválida');
-    }
-    if (editData.linkedin && !isURLValida(editData.linkedin, 'linkedin')) {
-      errors.push('URL do LinkedIn inválida');
-    }
-    if (editData.website && !isURLValida(editData.website, 'website')) {
-      errors.push('URL do website inválida');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  };
-
   // ========= FUNÇÕES DE TOAST =========
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setToast({ visible: true, message, type });
     
     Animated.sequence([
@@ -196,7 +208,7 @@ export const usePerfil = () => {
     ]).start(() => {
       setToast({ visible: false, message: '', type: 'success' });
     });
-  };
+  }, [toastAnimation]);
 
   // ========= FUNÇÕES DE UPLOAD (CORRIGIDAS) =========
   const uploadAvatar = async (uri: string) => {
@@ -237,19 +249,6 @@ export const usePerfil = () => {
         } catch (cleanupError) {
           console.warn('⚠️ [usePerfil] Erro no cleanup do avatar anterior:', cleanupError);
         }
-      }
-
-      // Teste de conectividade com Supabase
-      console.log('🔍 [usePerfil] Testando conectividade com Supabase...');
-      const { error: testError } = await supabase
-        .from('personal_trainers')
-        .select('id')
-        .limit(1);
-      
-      if (testError) {
-        console.error('❌ [usePerfil] Erro na conectividade:', testError);
-        showToast('Erro de conectividade com o banco de dados', 'error');
-        return;
       }
 
       // ✅ NOVO: Nome único SEM pasta (direto na raiz)
@@ -308,7 +307,7 @@ export const usePerfil = () => {
       // ✅ TERCEIRO: ATUALIZAR BANCO DE DADOS
       console.log('💾 [usePerfil] Atualizando banco de dados...');
       const { error: updateError } = await supabase
-        .from('personal_trainers')
+        .from('alunos')
         .update({
           avatar_type: 'image',
           avatar_image_url: urlData.publicUrl
@@ -382,7 +381,7 @@ export const usePerfil = () => {
 
       // ✅ SEGUNDO: ATUALIZAR BANCO PARA LETRA
       const { error } = await supabase
-        .from('personal_trainers')
+        .from('alunos')
         .update({ 
           avatar_type: 'letter',
           avatar_image_url: null 
@@ -410,7 +409,7 @@ export const usePerfil = () => {
   };
 
   // ========= FUNÇÕES DE DADOS =========
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -420,8 +419,8 @@ export const usePerfil = () => {
       }
 
       const { data, error } = await supabase
-        .from('personal_trainers')
-        .select('*, codigo_pt')
+        .from('alunos')
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -443,10 +442,10 @@ export const usePerfil = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   // ========= FUNÇÕES DE EDIÇÃO =========
-  const openEditModal = (section: 'pessoal' | 'profissional' | 'redes') => {
+  const openEditModal = (section: 'pessoal' | 'objetivos') => {
     setEditingSection(section);
     
     // Converter data ISO do banco para formato brasileiro para exibição
@@ -454,6 +453,15 @@ export const usePerfil = () => {
     if (editDataCopy?.data_nascimento) {
       editDataCopy.data_nascimento = formatISOToBrazilian(editDataCopy.data_nascimento);
     }
+    
+    // Converter valores decimais do banco para formato brasileiro (vírgula)
+    if (editDataCopy?.peso) {
+      editDataCopy.peso = parseFloat(editDataCopy.peso.toString().replace('.', ',')) as any;
+    }
+    if (editDataCopy?.altura) {
+      editDataCopy.altura = parseFloat(editDataCopy.altura.toString().replace('.', ',')) as any;
+    }
+    
     setEditData(editDataCopy || {});
     
     // Se estamos editando dados pessoais e há uma data de nascimento, configurar o seletor
@@ -481,19 +489,11 @@ export const usePerfil = () => {
     if (!userData || !editingSection) return;
 
     try {
-      // ✅ VALIDAR DADOS ANTES DE SALVAR
-      const validation = validateEditData();
-      if (!validation.isValid) {
-        showToast(validation.errors[0], 'error'); // Mostrar primeiro erro
-        return;
-      }
-
       const updateData: any = {};
       
       if (editingSection === 'pessoal') {
         updateData.nome_completo = editData.nome_completo;
         updateData.telefone = editData.telefone;
-        updateData.telefone_publico = editData.telefone_publico;
         if (editData.data_nascimento) {
           const parsedDate = parseBrazilianDate(editData.data_nascimento);
           if (parsedDate) {
@@ -503,24 +503,22 @@ export const usePerfil = () => {
           }
         }
         updateData.genero = editData.genero;
-      } else if (editingSection === 'profissional') {
-        updateData.cref = editData.cref;
-        updateData.anos_experiencia = editData.anos_experiencia;
-        updateData.especializacoes = editData.especializacoes;
-        updateData.bio = editData.bio;
-      } else if (editingSection === 'redes') {
-        updateData.instagram = editData.instagram;
-        updateData.facebook = editData.facebook;
-        updateData.linkedin = editData.linkedin;
-        updateData.website = editData.website;
+      } else if (editingSection === 'objetivos') {
+        // Converter peso e altura usando a função que trata vírgula brasileira
+        updateData.peso = formatDecimalForDatabase(editData.peso?.toString() || '');
+        updateData.altura = formatDecimalForDatabase(editData.altura?.toString() || '');
+        updateData.objetivo_principal = editData.objetivo_principal;
+        updateData.nivel_experiencia = editData.nivel_experiencia;
+        updateData.frequencia_desejada = editData.frequencia_desejada;
       }
 
       const { error } = await supabase
-        .from('personal_trainers')
+        .from('alunos')
         .update(updateData)
         .eq('id', userData.id);
 
       if (error) {
+        console.error('Erro ao salvar alterações:', error);
         showToast('Erro ao salvar alterações', 'error');
         return;
       }
@@ -529,7 +527,8 @@ export const usePerfil = () => {
       setShowEditModal(false);
       setEditingSection(null);
       showToast('Alterações salvas com sucesso!');
-    } catch  {
+    } catch (err) {
+      console.error('Erro inesperado:', err);
       showToast('Erro inesperado', 'error');
     }
   };
@@ -539,11 +538,12 @@ export const usePerfil = () => {
 
     try {
       const { error } = await supabase
-        .from('personal_trainers')
+        .from('alunos')
         .update({ avatar_color: color })
         .eq('id', userData.id);
 
       if (error) {
+        console.error('Erro ao atualizar cor do avatar:', error);
         showToast('Erro ao atualizar cor do avatar', 'error');
         return;
       }
@@ -551,24 +551,16 @@ export const usePerfil = () => {
       setUserData({ ...userData, avatar_color: color });
       setShowColorPicker(false);
       showToast('Cor do avatar atualizada!');
-    } catch {
+    } catch (err) {
+      console.error('Erro inesperado:', err);
       showToast('Erro inesperado', 'error');
     }
-  };
-
-  const toggleEspecializacao = (spec: EspecializacaoPT) => {
-    const currentSpecs = editData.especializacoes || [];
-    const newSpecs = currentSpecs.includes(spec)
-      ? currentSpecs.filter(s => s !== spec)
-      : [...currentSpecs, spec];
-    setEditData({ ...editData, especializacoes: newSpecs });
   };
 
   // ========= EFFECT =========
   useEffect(() => {
     loadUserData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadUserData]);
 
   return {
     // Estados
@@ -585,8 +577,12 @@ export const usePerfil = () => {
     setShowDatePicker,
     showGeneroOptions,
     setShowGeneroOptions,
-    showExperienciaOptions,
-    setShowExperienciaOptions,
+    showObjetivoOptions,
+    setShowObjetivoOptions,
+    showNivelOptions,
+    setShowNivelOptions,
+    showFrequenciaOptions,
+    setShowFrequenciaOptions,
     editingSection,
     editData,
     setEditData,
@@ -599,18 +595,22 @@ export const usePerfil = () => {
     toast,
     toastAnimation,
 
-    // Constantes centralizadas
+    // Constantes
     avatarColors,
     generoOptions,
-    experienciaOptions,
-    especializacoesOptions,
+    objetivoOptions,
+    nivelExperienciaOptions,
+    frequenciaTreinoOptions,
+    perguntasParQ,
 
     // Funções utilitárias
     formatPhoneNumber,
     formatDateBrazilian,
     formatISOToBrazilian,
+    formatISOToDateTime,
     getCurrentDate,
-    validateEditData, // ✅ Nova função de validação
+    handlePesoChange,
+    handleAlturaChange,
 
     // Funções principais
     showToast,
@@ -620,6 +620,5 @@ export const usePerfil = () => {
     openEditModal,
     saveChanges,
     updateAvatarColor,
-    toggleEspecializacao,
   };
 };

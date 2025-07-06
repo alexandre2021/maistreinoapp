@@ -1,17 +1,17 @@
 // app/(tabs)/alunos.tsx - VERSÃO SIMPLIFICADA COM STATE LOCAL
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 import LoadingScreen from '../../components/LoadingScreen';
@@ -36,6 +36,9 @@ import { Aluno } from '../../types/Aluno';
 
 // Supabase
 import { supabase } from '../../lib/supabase';
+
+// ✅ Cache global para melhorar performance
+import { alunosCache } from '../../lib/cache';
 
 export default function AlunosScreen() {
   useAuth();
@@ -101,87 +104,55 @@ export default function AlunosScreen() {
     deleteAluno
   } = useAlunoOperations();
 
-  // ✅ Funções para controlar os filtros (mesma estrutura dos exercícios)
-  const toggleDropdown = (filterType: string) => {
+  // ✅ FUNÇÕES DOS FILTROS OTIMIZADAS COM useCallback
+  const toggleDropdown = useCallback((filterType: string) => {
     setDropdownStates(prev => ({
       ...prev,
       [filterType]: !prev[filterType as keyof typeof prev]
     }));
-  };
+  }, []);
 
-  const updateFilter = (filterType: string, value: string) => {
+  const updateFilter = useCallback((filterType: string, value: string) => {
     setActiveFilters(prev => ({
       ...prev,
       [filterType]: value
     }));
-  };
+  }, []);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setActiveFilters({
       situacao: 'Todos',
       genero: 'Todos', 
       objetivo: 'Todos'
     });
-  };
+  }, []);
 
-  const getActiveFiltersCount = () => {
+  const getActiveFiltersCount = useCallback(() => {
     return Object.values(activeFilters).filter(value => value !== 'Todos').length;
-  };
+  }, [activeFilters]);
 
-  // ✅ Filtrar alunos com base nos filtros ativos
-  const filteredAlunos = alunos.filter(aluno => {
-    // Filtro por busca
-    const matchesSearch = aluno.nome_completo.toLowerCase().includes(searchText.toLowerCase()) ||
-                         aluno.email.toLowerCase().includes(searchText.toLowerCase());
+  // ✅ FILTRAR ALUNOS OTIMIZADO COM useMemo
+  const filteredAlunos = useMemo(() => {
+    return alunos.filter(aluno => {
+      // Filtro por busca
+      const matchesSearch = aluno.nome_completo.toLowerCase().includes(searchText.toLowerCase()) ||
+                           aluno.email.toLowerCase().includes(searchText.toLowerCase());
 
-    // Filtros por categoria
-    const matchesSituacao = activeFilters.situacao === 'Todos' || 
-                           (activeFilters.situacao === 'Ativo' && aluno.onboarding_completo) ||
-                           (activeFilters.situacao === 'Pendente' && !aluno.onboarding_completo);
-    
-    const matchesGenero = activeFilters.genero === 'Todos' || 
-                         aluno.genero === activeFilters.genero ||
-                         (activeFilters.genero === 'Não informado' && !aluno.genero);
-    
-    const matchesObjetivo = activeFilters.objetivo === 'Todos' || 
-                           aluno.objetivo_principal === activeFilters.objetivo;
-
-    return matchesSearch && matchesSituacao && matchesGenero && matchesObjetivo;
-  });
-
-  // ✅ BUSCAR DADOS DO PT - SIMPLIFICADO
-  const fetchPTData = async () => {
-    try {
-      console.log('🔍 [AlunosScreen] Buscando dados do PT...');
+      // Filtros por categoria
+      const matchesSituacao = activeFilters.situacao === 'Todos' || 
+                             (activeFilters.situacao === 'Ativo' && aluno.onboarding_completo) ||
+                             (activeFilters.situacao === 'Pendente' && !aluno.onboarding_completo);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('❌ Usuário não encontrado');
-        return;
-      }
+      const matchesGenero = activeFilters.genero === 'Todos' || 
+                           aluno.genero === activeFilters.genero ||
+                           (activeFilters.genero === 'Não informado' && !aluno.genero);
+      
+      const matchesObjetivo = activeFilters.objetivo === 'Todos' || 
+                             aluno.objetivo_principal === activeFilters.objetivo;
 
-      const { data: ptData, error } = await supabase
-        .from('personal_trainers')
-        .select('plano, limite_alunos')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error('❌ Erro ao buscar dados do PT:', error);
-        return;
-      }
-
-      if (ptData) {
-        console.log('📊 Dados do PT:', ptData);
-        setPlanData({
-          plano: ptData.plano || 'gratuito',
-          limite_alunos: ptData.limite_alunos || 3
-        });
-      }
-    } catch (error) {
-      console.error('💥 Erro inesperado ao buscar dados do PT:', error);
-    }
-  };
+      return matchesSearch && matchesSituacao && matchesGenero && matchesObjetivo;
+    });
+  }, [alunos, searchText, activeFilters]);
 
   // ✅ FUNÇÕES SIMPLIFICADAS DE VERIFICAÇÃO
   const canAddMoreStudents = () => {
@@ -193,11 +164,9 @@ export default function AlunosScreen() {
     return planData.limite_alunos === -1 ? 'ilimitado' : planData.limite_alunos.toString();
   };
 
-  // Buscar alunos do banco
-  const fetchAlunos = async () => {
+  // ✅ REFRESH OTIMIZADO - FORCE RELOAD
+  const fetchAlunos = async (forceRefresh = false) => {
     try {
-      console.log('🔍 [AlunosScreen] Buscando alunos...');
-      
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
@@ -205,30 +174,50 @@ export default function AlunosScreen() {
         return;
       }
 
-      const { data: userProfile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('id, user_type')
-        .eq('id', user.id)
-        .eq('user_type', 'personal_trainer')
-        .single();
+      // ✅ Se não for force refresh, tentar usar cache
+      if (!forceRefresh) {
+        const cachedData = alunosCache.get(user.id);
+        if (cachedData) {
+          console.log('🚀 [AlunosScreen] Usando cache no refresh...');
+          setAlunos(cachedData.alunos);
+          setPlanData(cachedData.planData);
+          return;
+        }
+      }
+      
+      console.log('🔄 [AlunosScreen] Atualizando dados...');
+      
+      // ✅ Buscar dados em paralelo
+      const [userProfileResult, ptDataResult] = await Promise.all([
+        supabase
+          .from('user_profiles')
+          .select('id, user_type')
+          .eq('id', user.id)
+          .eq('user_type', 'personal_trainer')
+          .single(),
+        supabase
+          .from('personal_trainers')
+          .select('id, nome_completo, plano, limite_alunos')
+          .eq('id', user.id)
+          .single()
+      ]);
 
-      if (profileError || !userProfile) {
-        console.error('❌ [AlunosScreen] User profile não é personal_trainer:', profileError);
-        Alert.alert('Erro', 'Acesso negado. Apenas personal trainers podem listar alunos.');
+      if (userProfileResult.error || !userProfileResult.data) {
+        console.error('❌ [AlunosScreen] User profile não é personal_trainer:', userProfileResult.error);
         return;
       }
 
-      const { data: personalTrainer, error: ptError } = await supabase
-        .from('personal_trainers')
-        .select('id, nome_completo')
-        .eq('id', user.id)
-        .single();
-
-      if (ptError || !personalTrainer) {
-        console.error('❌ [AlunosScreen] Personal trainer não encontrado:', ptError);
-        Alert.alert('Erro', 'Dados do personal trainer não encontrados');
+      if (ptDataResult.error || !ptDataResult.data) {
+        console.error('❌ [AlunosScreen] Personal trainer não encontrado:', ptDataResult.error);
         return;
       }
+
+      // ✅ Atualizar dados do plano
+      const newPlanData = {
+        plano: ptDataResult.data.plano || 'gratuito',
+        limite_alunos: ptDataResult.data.limite_alunos || 3
+      };
+      setPlanData(newPlanData);
 
       const { data: alunosData, error } = await supabase
         .from('alunos')
@@ -247,33 +236,34 @@ export default function AlunosScreen() {
           created_at,
           onboarding_completo
         `)
-        .eq('personal_trainer_id', personalTrainer.id)
+        .eq('personal_trainer_id', ptDataResult.data.id)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ [AlunosScreen] Erro ao buscar alunos:', error);
-        Alert.alert('Erro', 'Não foi possível carregar a lista de alunos');
         return;
       }
 
-      console.log('✅ [AlunosScreen] Alunos encontrados:', alunosData?.length || 0);
-      setAlunos(alunosData || []);
+      const finalAlunos = alunosData || [];
+      console.log('✅ [AlunosScreen] Dados atualizados:', finalAlunos.length, 'alunos');
+      setAlunos(finalAlunos);
+      
+      // ✅ Atualizar cache global
+      alunosCache.set(user.id, {
+        alunos: finalAlunos,
+        planData: newPlanData,
+        ptId: ptDataResult.data.id
+      });
       
     } catch (error) {
       console.error('💥 [AlunosScreen] Erro inesperado:', error);
-      Alert.alert('Erro', 'Erro inesperado ao carregar alunos');
-    } finally {
-      setLoading(false);
     }
   };
 
-  // ✅ RECARREGAR DADOS SIMPLIFICADO
+  // ✅ REFRESH SIMPLIFICADO
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([
-      fetchAlunos(),
-      fetchPTData()
-    ]);
+    await fetchAlunos(true); // Force refresh
     setRefreshing(false);
   };
 
@@ -363,17 +353,111 @@ export default function AlunosScreen() {
     }, 300);
   };
 
-  // ✅ CARREGAR DADOS SIMPLIFICADO
+  // ✅ CARREGAR DADOS COM CACHE GLOBAL OTIMIZADO
   useEffect(() => {
     const carregarDados = async () => {
-      await Promise.all([
-        fetchAlunos(),
-        fetchPTData()
-      ]);
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          console.error('❌ [AlunosScreen] Erro de autenticação:', authError);
+          setLoading(false);
+          return;
+        }
+
+        // ✅ Verificar cache global primeiro
+        const cachedData = alunosCache.get(user.id);
+        if (cachedData) {
+          console.log('� [AlunosScreen] Cache global encontrado!');
+          setAlunos(cachedData.alunos);
+          setPlanData(cachedData.planData);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('🔍 [AlunosScreen] Cache expirado, buscando dados frescos...');
+        
+        // ✅ Buscar dados em paralelo
+        const [userProfileResult, ptDataResult] = await Promise.all([
+          supabase
+            .from('user_profiles')
+            .select('id, user_type')
+            .eq('id', user.id)
+            .eq('user_type', 'personal_trainer')
+            .single(),
+          supabase
+            .from('personal_trainers')
+            .select('id, nome_completo, plano, limite_alunos')
+            .eq('id', user.id)
+            .single()
+        ]);
+
+        if (userProfileResult.error || !userProfileResult.data) {
+          console.error('❌ [AlunosScreen] User profile não é personal_trainer:', userProfileResult.error);
+          setLoading(false);
+          return;
+        }
+
+        if (ptDataResult.error || !ptDataResult.data) {
+          console.error('❌ [AlunosScreen] Personal trainer não encontrado:', ptDataResult.error);
+          setLoading(false);
+          return;
+        }
+
+        // ✅ Atualizar dados do plano
+        const newPlanData = {
+          plano: ptDataResult.data.plano || 'gratuito',
+          limite_alunos: ptDataResult.data.limite_alunos || 3
+        };
+        setPlanData(newPlanData);
+
+        // ✅ Buscar alunos
+        const { data: alunosData, error: alunosError } = await supabase
+          .from('alunos')
+          .select(`
+            id,
+            nome_completo,
+            email,
+            telefone,
+            data_nascimento,
+            genero,
+            objetivo_principal,
+            avatar_letter,
+            avatar_color,
+            avatar_type,
+            avatar_image_url,
+            created_at,
+            onboarding_completo
+          `)
+          .eq('personal_trainer_id', ptDataResult.data.id)
+          .order('created_at', { ascending: false });
+
+        if (alunosError) {
+          console.error('❌ [AlunosScreen] Erro ao buscar alunos:', alunosError);
+          setLoading(false);
+          return;
+        }
+
+        const finalAlunos = alunosData || [];
+        console.log('✅ [AlunosScreen] Dados carregados:', finalAlunos.length, 'alunos');
+        setAlunos(finalAlunos);
+        
+        // ✅ Salvar no cache global
+        alunosCache.set(user.id, {
+          alunos: finalAlunos,
+          planData: newPlanData,
+          ptId: ptDataResult.data.id
+        });
+        
+      } catch (error) {
+        console.error('❌ [AlunosScreen] Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     carregarDados();
-  }, []);
+  }, []); // ✅ Sem dependências externas
 
   // Funções de renderização
   const getStatusInfo = (aluno: Aluno) => {
@@ -538,10 +622,10 @@ export default function AlunosScreen() {
           <View style={styles.emptyContainer}>
             <Ionicons name="people-outline" size={48} color="#9CA3AF" />
             <Text style={styles.emptyTitle}>
-              {alunos.length === 0 ? 'Nenhum aluno cadastrado' : 'Nenhum resultado encontrado'}
+              {filteredAlunos.length === 0 ? 'Nenhum aluno cadastrado' : 'Nenhum resultado encontrado'}
             </Text>
             <Text style={styles.emptySubtitle}>
-              {alunos.length === 0 
+              {filteredAlunos.length === 0 
                 ? 'Convide seus primeiros alunos para começar' 
                 : getActiveFiltersCount() > 0 
                   ? 'Tente ajustar os filtros para encontrar seus alunos'

@@ -1,9 +1,9 @@
 // hooks/useAuth.ts
 // 🛡️ HOOK SUPER SIMPLES PARA PROTEÇÃO DE PÁGINAS
 
-import { router } from 'expo-router'
-import { useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { router } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
 
 /**
  * 🛡️ Hook para proteger páginas que precisam de autenticação
@@ -18,7 +18,12 @@ import { supabase } from '../lib/supabase'
  * }
  */
 export function useAuth() {
+  const hasChecked = useRef(false);
+  
   useEffect(() => {
+    // Evita múltiplas verificações desnecessárias
+    if (hasChecked.current) return;
+    
     const checkAuth = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser()
@@ -29,6 +34,8 @@ export function useAuth() {
         } else {
           console.log('✅ Usuário autenticado:', user.email)
         }
+        
+        hasChecked.current = true;
       } catch (error) {
         console.error('❌ Erro ao verificar autenticação:', error)
         router.replace('/')

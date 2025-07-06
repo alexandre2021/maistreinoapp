@@ -1,5 +1,5 @@
 // components/rotina/AtivarRotinaModal.tsx
-import { CheckCircle2 } from 'lucide-react-native';
+import { CheckCircle } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CustomSwitch } from '../ui/CustomSwitch';
@@ -19,7 +19,7 @@ export const AtivarRotinaModal: React.FC<AtivarRotinaModalProps> = ({
   onCancel,
   loading = false
 }) => {
-  const [permiteExecucao, setPermiteExecucao] = useState(true);
+  const [permiteExecucao, setPermiteExecucao] = useState(false);
   const [enviarEmail, setEnviarEmail] = useState(false);
 
   const handleConfirm = () => {
@@ -36,7 +36,7 @@ export const AtivarRotinaModal: React.FC<AtivarRotinaModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.iconContainer}>
-            <CheckCircle2 size={48} color="#10B981" />
+            <CheckCircle size={48} color="#10B981" />
           </View>
 
           <Text style={styles.title}>Ativar Rotina</Text>
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   confirmButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#10B981',
   },
   confirmButtonText: {
     fontSize: 16,

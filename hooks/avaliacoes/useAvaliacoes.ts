@@ -1,4 +1,4 @@
-// app/avaliacoes/hooks/useAvaliacoes.ts
+// hooks/avaliacoes/useAvaliacoes.ts
 /**
  * 🎯 HOOK CUSTOMIZADO - useAvaliacoes (COM OTIMIZAÇÃO DE IMAGENS)
  * 
@@ -18,8 +18,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import { useImageOptimizer } from '../../../components/media/ImageOptimizer';
-import { supabase } from '../../../lib/supabase';
+import { useImageOptimizer } from '../../components/media/ImageOptimizer';
+import { supabase } from '../../lib/supabase';
 
 export interface AlunoData {
   nomeCompleto: string;

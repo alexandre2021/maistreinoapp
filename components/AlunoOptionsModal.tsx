@@ -59,14 +59,14 @@ export const AlunoOptionsModal: React.FC<AlunoOptionsModalProps> = ({
       label: 'PAR-Q',
       description: 'Questionário de prontidão para atividade física',
       onPress: () => handleOptionPress(onViewParQ),
-      color: '#8B5CF6'
+      color: '#10B981'
     },
     {
       icon: BarChart3,
       label: 'Avaliações',
       description: 'Medidas corporais e evolução física',
       onPress: () => handleOptionPress(onViewAvaliacoes),
-      color: '#10B981'
+      color: '#8B5CF6'
     },
     {
       icon: Dumbbell,

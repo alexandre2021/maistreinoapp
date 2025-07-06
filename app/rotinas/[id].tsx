@@ -1,20 +1,24 @@
 // app/rotinas/[id].tsx - VERSÃO FINAL COM useEffect CORRIGIDO
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
+import AlunoHeaderCard from '../../components/AlunoHeaderCard';
 import { ErrorModal } from '../../components/ErrorModal';
+import { InfoModal } from '../../components/InfoModal';
 import { AtivarRotinaModal } from '../../components/rotina/AtivarRotinaModal';
 import { ConfirmActionModal } from '../../components/rotina/ConfirmActionModal';
 import { RotinaAtivaModal } from '../../components/rotina/RotinaAtivaModal';
+import { RotinaOptionsModal } from '../../components/rotina/RotinaOptionsModal';
+import { useAuth } from '../../hooks/useAuth';
 import { useModalManager } from '../../hooks/useModalManager';
 import { supabase } from '../../lib/supabase';
 
@@ -40,6 +44,9 @@ interface Rotina {
 }
 
 export default function RotinasAlunoScreen() {
+  // ✅ AUTENTICAÇÃO - PROTEGE A PÁGINA
+  useAuth();
+  
   const router = useRouter();
   const { id: alunoId } = useLocalSearchParams<{ id: string }>();
 
@@ -49,6 +56,11 @@ export default function RotinasAlunoScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState<'atual' | 'concluidas'>('atual');
+  const [authReady, setAuthReady] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  
+  // ✅ CONTROLE DE EXECUÇÃO PARA EVITAR LOOPS
+  const isLoadingData = useRef(false);
   
   // ✅ ESTADO PARA ROTINA CONFLITANTE
   const [rotinaConflitante, setRotinaConflitante] = useState<{
@@ -64,114 +76,97 @@ export default function RotinasAlunoScreen() {
     excluirRotina: false,
     pausarRotina: false,
     reativarRotina: false,
-    error: false
+    error: false,
+    rotinaOptions: false,
+    info: false
   });
 
   // ✅ ESTADOS PARA MODAIS
   const [modalData, setModalData] = useState({
     error: { title: '', message: '' },
+    info: { title: '', message: '' },
     rotinaParaAtivar: null as Rotina | null,
     rotinaParaExcluir: null as Rotina | null,
     rotinaParaPausar: null as Rotina | null,
     rotinaParaReativar: null as Rotina | null,
+    rotinaParaOpcoes: null as Rotina | null,
     loading: false
   });
 
-  // ✅ CARREGAR DADOS - VERSÃO CORRIGIDA SEM WARNINGS
+  // ✅ VERIFICAR AUTENTICAÇÃO E PARÂMETROS PRIMEIRO
   useEffect(() => {
-    // ✅ BUSCAR ALUNO - MOVIDA PARA DENTRO DO useEffect
-    const fetchAluno = async () => {
-      if (!alunoId) return;
-
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return;
-
-        const { data: alunoData, error: alunoError } = await supabase
-          .from('alunos')
-          .select('id, nome_completo, email')
-          .eq('id', alunoId)
-          .eq('personal_trainer_id', user.id)
-          .single();
-
-        if (alunoError || !alunoData) {
-          setModalData(prev => ({ 
-            ...prev, 
-            error: { 
-              title: 'Erro', 
-              message: 'Aluno não encontrado' 
-            }
-          }));
-          openModal('error');
-          router.back();
-          return;
-        }
-
-        setAluno(alunoData);
-      } catch (error) {
-        console.error('Erro ao buscar aluno:', error);
+    const checkAuthAndParams = async () => {
+      console.log('� [ROTINAS] Verificando autenticação e parâmetros...');
+      
+      if (!alunoId) {
+        console.log('❌ [ROTINAS] ID do aluno não fornecido na URL');
+        setInitError('ID do aluno não fornecido');
+        setLoading(false);
+        return;
       }
-    };
-
-    // ✅ BUSCAR ROTINAS - MOVIDA PARA DENTRO DO useEffect  
-    const fetchRotinas = async () => {
-      if (!alunoId) return;
-
+      
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return;
-
-        const { data: rotinasData, error: rotinasError } = await supabase
-          .from('rotinas')
-          .select(`
-            id,
-            nome,
-            descricao,
-            treinos_por_semana,
-            dificuldade,
-            duracao_semanas,
-            valor_total,
-            data_inicio,
-            status,
-            permite_execucao_aluno,
-            created_at
-          `)
-          .eq('aluno_id', alunoId)
-          .eq('personal_trainer_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (rotinasError) {
-          console.error('Erro ao buscar rotinas:', rotinasError);
+        
+        if (authError) {
+          console.error('❌ [ROTINAS] Erro de autenticação:', authError);
+          setInitError('Erro de autenticação');
+          setLoading(false);
           return;
         }
-
-        setRotinas(rotinasData || []);
+        
+        if (!user) {
+          console.log('❌ [ROTINAS] Usuário não autenticado');
+          setInitError('Usuário não autenticado');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('✅ [ROTINAS] Autenticação OK, usuário:', user.email);
+        console.log('✅ [ROTINAS] Parâmetros OK, alunoId:', alunoId);
+        setAuthReady(true);
+        
       } catch (error) {
-        console.error('Erro ao buscar rotinas:', error);
-      } finally {
+        console.error('❌ [ROTINAS] Erro ao verificar autenticação:', error);
+        setInitError('Erro interno de autenticação');
         setLoading(false);
       }
     };
+    
+    checkAuthAndParams();
+  }, [alunoId]);
+
+  // ✅ CARREGAR DADOS - APENAS QUANDO AUTENTICAÇÃO ESTIVER PRONTA
+  useEffect(() => {
+    if (!authReady || !alunoId) {
+      console.log('⏳ [ROTINAS] Aguardando autenticação...', { authReady, alunoId });
+      return;
+    }
+    
+    // ✅ PREVENIR EXECUÇÕES CONCORRENTES
+    if (isLoadingData.current) {
+      console.log('⚠️ [ROTINAS] Já carregando dados, ignorando nova execução');
+      return;
+    }
+    
+    console.log('🔄 [ROTINAS] Iniciando carregamento de dados para aluno:', alunoId);
+    isLoadingData.current = true;
 
     const loadData = async () => {
-      await Promise.all([fetchAluno(), fetchRotinas()]);
-    };
-    
-    loadData();
-  }, [alunoId, router, openModal]); // ✅ Todas as dependências incluídas
-
-  // ✅ REFRESH - MANTÉM FUNÇÕES SEPARADAS PARA REUSO
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    
-    // ✅ BUSCAR ALUNO - PARA REFRESH
-    const fetchAluno = async () => {
-      if (!alunoId) return;
-
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return;
+        
+        if (authError || !user) {
+          console.error('❌ [ROTINAS] Erro de autenticação no carregamento:', authError);
+          setInitError('Sessão expirada');
+          setLoading(false);
+          return;
+        }
 
+        console.log('✅ [ROTINAS] Usuário autenticado, carregando dados...');
+        
+        // ✅ BUSCAR ALUNO
+        console.log('👤 [ROTINAS] Buscando dados do aluno...');
         const { data: alunoData, error: alunoError } = await supabase
           .from('alunos')
           .select('id, nome_completo, email')
@@ -179,33 +174,27 @@ export default function RotinasAlunoScreen() {
           .eq('personal_trainer_id', user.id)
           .single();
 
-        if (alunoError || !alunoData) {
-          setModalData(prev => ({ 
-            ...prev, 
-            error: { 
-              title: 'Erro', 
-              message: 'Aluno não encontrado' 
-            }
-          }));
-          openModal('error');
-          router.back();
+        if (alunoError) {
+          console.error('❌ [ROTINAS] Erro ao buscar aluno:', alunoError);
+          // ✅ INLINE ERROR HANDLING - sem dependências externas
+          setInitError('Aluno não encontrado');
+          setLoading(false);
           return;
         }
 
+        if (!alunoData) {
+          console.log('❌ [ROTINAS] Aluno não encontrado');
+          // ✅ INLINE ERROR HANDLING - sem dependências externas
+          setInitError('Aluno não encontrado');
+          setLoading(false);
+          return;
+        }
+
+        console.log('✅ [ROTINAS] Aluno encontrado:', alunoData.nome_completo);
         setAluno(alunoData);
-      } catch (error) {
-        console.error('Erro ao buscar aluno:', error);
-      }
-    };
 
-    // ✅ BUSCAR ROTINAS - PARA REFRESH
-    const fetchRotinas = async () => {
-      if (!alunoId) return;
-
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return;
-
+        // ✅ BUSCAR ROTINAS
+        console.log('📋 [ROTINAS] Buscando rotinas...');
         const { data: rotinasData, error: rotinasError } = await supabase
           .from('rotinas')
           .select(`
@@ -226,24 +215,116 @@ export default function RotinasAlunoScreen() {
           .order('created_at', { ascending: false });
 
         if (rotinasError) {
-          console.error('Erro ao buscar rotinas:', rotinasError);
+          console.error('❌ [ROTINAS] Erro ao buscar rotinas:', rotinasError);
+          // ✅ INLINE ERROR HANDLING - sem dependências externas
+          setInitError('Erro ao carregar rotinas');
+          setLoading(false);
           return;
         }
 
+        console.log('✅ [ROTINAS] Rotinas carregadas:', rotinasData?.length || 0);
         setRotinas(rotinasData || []);
+
       } catch (error) {
-        console.error('Erro ao buscar rotinas:', error);
+        console.error('❌ [ROTINAS] Erro geral ao carregar dados:', error);
+        // ✅ INLINE ERROR HANDLING - sem dependências externas
+        setInitError('Erro ao carregar dados');
+        setLoading(false);
+      } finally {
+        console.log('🏁 [ROTINAS] Finalizando carregamento');
+        setLoading(false);
+        isLoadingData.current = false; // ✅ Libera para próxima execução
       }
     };
+    
+    loadData();
+  }, [authReady, alunoId]); // ✅ APENAS DEPENDÊNCIAS ESTÁVEIS - igual às avaliações
 
-    await Promise.all([fetchAluno(), fetchRotinas()]);
-    setRefreshing(false);
+  // ✅ REFRESH OTIMIZADO - REUTILIZA A LÓGICA DO USEEFFECT
+  const handleRefresh = async () => {
+    if (!alunoId) return;
+    
+    setRefreshing(true);
+    console.log('🔄 [ROTINAS] Refresh iniciado');
+    
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setRefreshing(false);
+        return;
+      }
+
+      // ✅ BUSCAR ALUNO E ROTINAS EM PARALELO
+      const [alunoResponse, rotinasResponse] = await Promise.all([
+        supabase
+          .from('alunos')
+          .select('id, nome_completo, email')
+          .eq('id', alunoId)
+          .eq('personal_trainer_id', user.id)
+          .single(),
+        supabase
+          .from('rotinas')
+          .select(`
+            id,
+            nome,
+            descricao,
+            treinos_por_semana,
+            dificuldade,
+            duracao_semanas,
+            valor_total,
+            data_inicio,
+            status,
+            permite_execucao_aluno,
+            created_at
+          `)
+          .eq('aluno_id', alunoId)
+          .eq('personal_trainer_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      if (alunoResponse.error || !alunoResponse.data) {
+        console.error('❌ [ROTINAS] Erro ao buscar aluno no refresh:', alunoResponse.error);
+        setModalData(prev => ({ 
+          ...prev, 
+          error: { title: 'Erro', message: 'Aluno não encontrado' }
+        }));
+        openModal('error');
+        router.back();
+        return;
+      }
+
+      if (rotinasResponse.error) {
+        console.error('❌ [ROTINAS] Erro ao buscar rotinas no refresh:', rotinasResponse.error);
+        setModalData(prev => ({ 
+          ...prev, 
+          error: { title: 'Erro', message: 'Erro ao carregar rotinas' }
+        }));
+        openModal('error');
+        return;
+      }
+
+      setAluno(alunoResponse.data);
+      setRotinas(rotinasResponse.data || []);
+      console.log('✅ [ROTINAS] Refresh concluído com sucesso');
+      
+    } catch (error) {
+      console.error('❌ [ROTINAS] Erro geral no refresh:', error);
+      setModalData(prev => ({ 
+        ...prev, 
+        error: { title: 'Erro', message: 'Erro ao atualizar dados' }
+      }));
+      openModal('error');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
-  // ✅ FUNÇÃO HELPER PARA ATUALIZAR APENAS ROTINAS
+  // ✅ FUNÇÃO OTIMIZADA PARA RECARREGAR APENAS ROTINAS
   const refetchRotinas = async () => {
     if (!alunoId) return;
-
+    
+    console.log('🔄 [ROTINAS] Recarregando rotinas...');
+    
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) return;
@@ -268,14 +349,24 @@ export default function RotinasAlunoScreen() {
         .order('created_at', { ascending: false });
 
       if (rotinasError) {
-        console.error('Erro ao buscar rotinas:', rotinasError);
+        console.error('❌ [ROTINAS] Erro ao recarregar rotinas:', rotinasError);
         return;
       }
 
       setRotinas(rotinasData || []);
+      console.log('✅ [ROTINAS] Rotinas recarregadas:', rotinasData?.length || 0);
     } catch (error) {
-      console.error('Erro ao buscar rotinas:', error);
+      console.error('❌ [ROTINAS] Erro geral ao recarregar rotinas:', error);
     }
+  };
+
+  // ✅ FUNÇÃO HELPER PARA MOSTRAR MODAL DE INFO
+  const showInfoModal = (title: string, message: string) => {
+    setModalData(prev => ({ 
+      ...prev, 
+      info: { title, message }
+    }));
+    openModal('info');
   };
 
   // ✅ VALIDAR ANTES DE CRIAR NOVA ROTINA - COM MODAL
@@ -286,13 +377,13 @@ export default function RotinasAlunoScreen() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) return;
 
-      // ✅ VERIFICAR SE JÁ TEM ROTINA ATIVA/PAUSADA/PENDENTE
+      // ✅ VERIFICAR SE JÁ TEM ROTINA ATIVA/PAUSADA/AGUARDANDO PAGAMENTO
       const { data: rotinaAtiva, error: checkError } = await supabase
         .from('rotinas')
         .select('id, nome, status')
         .eq('aluno_id', alunoId)
         .eq('personal_trainer_id', user.id)
-        .in('status', ['pendente', 'ativa', 'pausada'])
+        .in('status', ['Aguardando pagamento', 'Ativa', 'Pausada'])
         .limit(1);
 
       if (checkError) {
@@ -328,16 +419,6 @@ export default function RotinasAlunoScreen() {
         }
       }));
       openModal('error');
-    }
-  };
-
-  // ✅ AÇÃO PARA VER ROTINA ATIVA
-  const handleViewRotinaAtiva = () => {
-    closeModal('rotinaAtiva');
-    if (rotinaConflitante) {
-      // TODO: Navegar para detalhes da rotina quando tela estiver pronta
-      console.log('Navegar para rotina:', rotinaConflitante.id);
-      // router.push(`/rotina-detalhes/${rotinaConflitante.id}`);
     }
   };
 
@@ -529,8 +610,40 @@ export default function RotinasAlunoScreen() {
 
   // ✅ HANDLER PARA MOSTRAR OPÇÕES
   const handleMostrarOpcoes = (rotina: Rotina) => {
-    console.log('Mostrar opções para rotina:', rotina.id);
-    // TODO: Abrir modal de opções com ações adicionais
+    console.log('Abrindo opções para rotina:', rotina.nome);
+    setModalData(prev => ({ ...prev, rotinaParaOpcoes: rotina }));
+    openModal('rotinaOptions');
+  };
+
+  // ✅ HANDLERS PARA OPÇÕES DO MODAL
+  const handleIrParaExecucao = () => {
+    const rotina = modalData.rotinaParaOpcoes;
+    if (!rotina) return;
+
+    console.log('Ir para execução:', rotina.nome);
+    closeModal('rotinaOptions');
+    setModalData(prev => ({ ...prev, rotinaParaOpcoes: null }));
+    
+    // TODO: Implementar navegação para tela de execução
+    // router.push(`/execucao/${rotina.id}`);
+    
+    // Mostrar modal de desenvolvimento
+    showInfoModal('Funcionalidade em Desenvolvimento', 'A tela de execução de treinos está sendo desenvolvida e estará disponível em breve.');
+  };
+
+  const handleVerEvolucao = () => {
+    const rotina = modalData.rotinaParaOpcoes;
+    if (!rotina) return;
+
+    console.log('Ver evolução:', rotina.nome);
+    closeModal('rotinaOptions');
+    setModalData(prev => ({ ...prev, rotinaParaOpcoes: null }));
+    
+    // TODO: Implementar navegação para tela de evolução
+    // router.push(`/evolucao/${rotina.id}`);
+    
+    // Mostrar modal de desenvolvimento
+    showInfoModal('Funcionalidade em Desenvolvimento', 'A tela de evolução de treinos está sendo desenvolvida e estará disponível em breve.');
   };
 
   // ✅ FILTRAR ROTINAS POR ABA
@@ -545,10 +658,10 @@ export default function RotinasAlunoScreen() {
   // ✅ HELPER FUNCTIONS
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Aguardando pagamento': return '#F59E0B';
+      case 'Aguardando pagamento': return '#8B5CF6';
       case 'Ativa': return '#10B981';
-      case 'Pausada': return '#6B7280';
-      case 'Concluída': return '#3B82F6';
+      case 'Pausada': return '#F59E0B';
+      case 'Concluída': return '#6B7280';
       default: return '#9CA3AF';
     }
   };
@@ -566,108 +679,102 @@ export default function RotinasAlunoScreen() {
         style={styles.rotinaCard}
         onPress={() => handleRotinaPress(item)}
       >
-        {/* Linha 1: Badge do status */}
-        <View style={styles.statusRow}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>{getStatusLabel(item.status)}</Text>
+        <View style={styles.rotinaContent}>
+          <View style={styles.rotinaMain}>
+            {/* Linha 1: Badge do status */}
+            <View style={styles.statusRow}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                <Text style={styles.statusText}>{getStatusLabel(item.status)}</Text>
+              </View>
+            </View>
+
+            {/* Linha 2: Nome da rotina */}
+            <Text style={styles.rotinaNome}>{item.nome}</Text>
+
+            {/* Linha 3: Frequência, duração e quantidade de sessões */}
+            <Text style={styles.rotinaInfo}>
+              {item.treinos_por_semana}x por semana • {item.duracao_semanas} semanas • {totalSessoes} sessões
+            </Text>
+
+            {/* Descrição se houver */}
+            {item.descricao && (
+              <Text style={styles.descricao} numberOfLines={2}>
+                {item.descricao}
+              </Text>
+            )}
+
+            {/* Botões de ação para status específicos */}
+            {item.status === 'Aguardando pagamento' && (
+              <View style={styles.botoesAcao}>
+                <TouchableOpacity
+                  style={styles.ativarButton}
+                  onPress={() => handleAtivarRotina(item)}
+                >
+                  <Ionicons name="checkmark-circle" size={16} color="white" />
+                  <Text style={styles.ativarButtonText}>Ativar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.excluirButton}
+                  onPress={() => handleExcluirRotina(item)}
+                >
+                  <Ionicons name="trash" size={16} color="white" />
+                  <Text style={styles.excluirButtonText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {item.status === 'Pausada' && (
+              <View style={styles.botoesAcao}>
+                <TouchableOpacity
+                  style={styles.ativarButton}
+                  onPress={() => handleReativarRotina(item)}
+                >
+                  <Ionicons name="play" size={16} color="white" />
+                  <Text style={styles.ativarButtonText}>Ativar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.excluirButton}
+                  onPress={() => handleExcluirRotina(item)}
+                >
+                  <Ionicons name="trash" size={16} color="white" />
+                  <Text style={styles.excluirButtonText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {item.status === 'Ativa' && (
+              <View style={styles.botoesAcao}>
+                <TouchableOpacity
+                  style={styles.pausarButton}
+                  onPress={() => handlePausarRotina(item)}
+                >
+                  <Ionicons name="pause" size={16} color="white" />
+                  <Text style={styles.pausarButtonText}>Pausar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.excluirButton}
+                  onPress={() => handleExcluirRotina(item)}
+                >
+                  <Ionicons name="trash" size={16} color="white" />
+                  <Text style={styles.excluirButtonText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
+
+          {/* Botão de opções sempre alinhado à direita e ao centro verticalmente */}
+          {(item.status === 'Ativa' || item.status === 'Pausada' || item.status === 'Concluída') && (
+            <View style={styles.rotinaOptions}>
+              <TouchableOpacity
+                style={styles.optionsButton}
+                onPress={() => handleMostrarOpcoes(item)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
-
-        {/* Linha 2: Nome da rotina */}
-        <Text style={styles.rotinaNome}>{item.nome}</Text>
-
-        {/* Linha 3: Frequência, duração e quantidade de sessões */}
-        <Text style={styles.rotinaInfo}>
-          {item.treinos_por_semana}x por semana • {item.duracao_semanas} semanas • {totalSessoes} sessões
-        </Text>
-
-        {/* Descrição se houver */}
-        {item.descricao && (
-          <Text style={styles.descricao} numberOfLines={2}>
-            {item.descricao}
-          </Text>
-        )}
-
-        {/* Linha 5: Botões de ação conforme o status */}
-        {item.status === 'Aguardando pagamento' && (
-          <View style={styles.acaoRow}>
-            <View style={styles.botoesAcao}>
-              <TouchableOpacity
-                style={styles.ativarButton}
-                onPress={() => handleAtivarRotina(item)}
-              >
-                <Ionicons name="checkmark-circle" size={16} color="white" />
-                <Text style={styles.ativarButtonText}>Ativar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.excluirButton}
-                onPress={() => handleExcluirRotina(item)}
-              >
-                <Ionicons name="trash" size={16} color="white" />
-                <Text style={styles.excluirButtonText}>Excluir</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {item.status === 'Ativa' && (
-          <View style={styles.acaoRow}>
-            <View style={styles.botoesAcao}>
-              <TouchableOpacity
-                style={styles.pausarButton}
-                onPress={() => handlePausarRotina(item)}
-              >
-                <Ionicons name="pause" size={16} color="white" />
-                <Text style={styles.pausarButtonText}>Pausar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.excluirButton}
-                onPress={() => handleExcluirRotina(item)}
-              >
-                <Ionicons name="trash" size={16} color="white" />
-                <Text style={styles.excluirButtonText}>Excluir</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.optionsButton}
-              onPress={() => handleMostrarOpcoes(item)}
-            >
-              <Ionicons name="ellipsis-vertical" size={16} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {item.status === 'Pausada' && (
-          <View style={styles.acaoRow}>
-            <View style={styles.botoesAcao}>
-              <TouchableOpacity
-                style={styles.ativarButton}
-                onPress={() => handleReativarRotina(item)}
-              >
-                <Ionicons name="play" size={16} color="white" />
-                <Text style={styles.ativarButtonText}>Ativar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.excluirButton}
-                onPress={() => handleExcluirRotina(item)}
-              >
-                <Ionicons name="trash" size={16} color="white" />
-                <Text style={styles.excluirButtonText}>Excluir</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {item.status === 'Concluída' && (
-          <View style={styles.acaoRow}>
-            <TouchableOpacity
-              style={styles.optionsButton}
-              onPress={() => handleMostrarOpcoes(item)}
-            >
-              <Ionicons name="ellipsis-vertical" size={16} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-        )}
       </TouchableOpacity>
     );
   };
@@ -698,16 +805,33 @@ export default function RotinasAlunoScreen() {
     );
   };
 
-  // ✅ LOADING - Só mostra loading se não tiver aluno E loading for true
+  // ✅ LOADING - Incluindo inicialização
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Carregando rotinas...</Text>
+        <Text style={styles.loadingText}>
+          {!authReady ? 'Verificando autenticação...' : 'Carregando rotinas...'}
+        </Text>
       </View>
     );
   }
 
-  // ✅ ERROR STATE
+  // ✅ ERROR STATE - Incluindo erros de inicialização
+  if (initError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{initError}</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.push('/(tabs)/alunos')}
+        >
+          <Text style={styles.backButtonText}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // ✅ ERROR STATE - Aluno não encontrado
   if (!aluno) {
     return (
       <View style={styles.errorContainer}>
@@ -737,35 +861,39 @@ export default function RotinasAlunoScreen() {
 
         <TouchableOpacity style={styles.addButton} onPress={handleNovaRotina}>
           <Ionicons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>Nova</Text>
+          <Text style={styles.addButtonText}>Rotina</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* ✅ INFO DO ALUNO */}
-      <View style={styles.alunoInfo}>
-        <Text style={styles.alunoNome}>{aluno.nome_completo}</Text>
-        <Text style={styles.alunoEmail}>{aluno.email}</Text>
       </View>
 
       {/* ✅ CONTEÚDO */}
       <View style={styles.content}>
-        {/* ✅ MENU DE ABAS */}
-        <View style={styles.tabsContainer}>
+        <AlunoHeaderCard 
+          alunoData={{
+            nomeCompleto: aluno.nome_completo,
+            email: aluno.email
+          }}
+          theme="rotinas"
+        />
+
+        {/* MENU DE ABAS PADRÃO */}
+        <View style={styles.tabsContainerNovo}>
           <TouchableOpacity
-            style={[styles.tab, abaAtiva === 'atual' && styles.tabActive]}
+            style={[styles.tabNovo, abaAtiva === 'atual' && styles.activeTabNovo]}
             onPress={() => setAbaAtiva('atual')}
           >
-            <Text style={[styles.tabText, abaAtiva === 'atual' && styles.tabTextActive]}>
+            <Text style={[styles.tabTextNovo, abaAtiva === 'atual' && styles.activeTabTextNovo]}>
               Atual
             </Text>
+            {abaAtiva === 'atual' && <View style={styles.tabUnderlineNovo} />}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, abaAtiva === 'concluidas' && styles.tabActive]}
+            style={[styles.tabNovo, abaAtiva === 'concluidas' && styles.activeTabNovo]}
             onPress={() => setAbaAtiva('concluidas')}
           >
-            <Text style={[styles.tabText, abaAtiva === 'concluidas' && styles.tabTextActive]}>
+            <Text style={[styles.tabTextNovo, abaAtiva === 'concluidas' && styles.activeTabTextNovo]}>
               Concluídas
             </Text>
+            {abaAtiva === 'concluidas' && <View style={styles.tabUnderlineNovo} />}
           </TouchableOpacity>
         </View>
 
@@ -798,7 +926,6 @@ export default function RotinasAlunoScreen() {
           visible={modals.rotinaAtiva}
           rotinaNome={rotinaConflitante.nome}
           rotinaStatus={rotinaConflitante.status}
-          onViewRotina={handleViewRotinaAtiva}
           onCancel={handleCloseRotinaAtivaModal}
         />
       )}
@@ -840,7 +967,7 @@ export default function RotinasAlunoScreen() {
         <ConfirmActionModal
           visible={modals.pausarRotina}
           title="Pausar Rotina"
-          message="A rotina será pausada e o aluno não poderá mais executá-la até que seja reativada."
+          message="A rotina será pausada e não ficará disponível para execução até que seja reativada."
           itemName={modalData.rotinaParaPausar.nome}
           actionType="warning"
           confirmText="Pausar"
@@ -853,15 +980,15 @@ export default function RotinasAlunoScreen() {
         />
       )}
 
-      {/* ✅ MODAL PARA REATIVAR ROTINA */}
+      {/* ✅ MODAL PARA ATIVAR ROTINA */}
       {modalData.rotinaParaReativar && (
         <ConfirmActionModal
           visible={modals.reativarRotina}
-          title="Reativar Rotina"
-          message="A rotina será reativada e o aluno poderá executá-la novamente."
+          title="Ativar Rotina"
+          message="A rotina será ativada e ficará disponível para execução novamente."
           itemName={modalData.rotinaParaReativar.nome}
-          actionType="warning"
-          confirmText="Reativar"
+          actionType="success"
+          confirmText="Ativar"
           onConfirm={confirmarReativarRotina}
           onCancel={() => {
             closeModal('reativarRotina');
@@ -871,12 +998,34 @@ export default function RotinasAlunoScreen() {
         />
       )}
 
+      {/* ✅ MODAL DE OPÇÕES DA ROTINA */}
+      {modalData.rotinaParaOpcoes && (
+        <RotinaOptionsModal
+          visible={modals.rotinaOptions}
+          rotina={modalData.rotinaParaOpcoes}
+          onClose={() => {
+            closeModal('rotinaOptions');
+            setModalData(prev => ({ ...prev, rotinaParaOpcoes: null }));
+          }}
+          onIrParaExecucao={handleIrParaExecucao}
+          onVerEvolucao={handleVerEvolucao}
+        />
+      )}
+
       {/* ✅ MODAL DE ERRO */}
       <ErrorModal
         visible={modals.error}
         title={modalData.error.title}
         message={modalData.error.message}
         onClose={() => closeModal('error')}
+      />
+
+      {/* ✅ MODAL DE INFO */}
+      <InfoModal
+        visible={modals.info}
+        title={modalData.info.title}
+        message={modalData.info.message}
+        onClose={() => closeModal('info')}
       />
     </View>
   );
@@ -926,24 +1075,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Info do aluno
-  alunoInfo: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  alunoNome: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  alunoEmail: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-
   // Conteúdo
   content: {
     flex: 1,
@@ -973,6 +1104,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
+  },
+  rotinaContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rotinaMain: {
+    flex: 1,
+  },
+  rotinaOptions: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
   },
 
   // Status e badges
@@ -1034,21 +1178,16 @@ const styles = StyleSheet.create({
   },
 
   // Ações
-  acaoRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 8,
-  },
   botoesAcao: {
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
+    marginTop: 12,
   },
   ativarButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#10B981',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -1088,8 +1227,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   optionsButton: {
-    padding: 8,
-    marginLeft: 8,
+    padding: 4,
   },
 
   // Empty state
@@ -1160,6 +1298,40 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: '#007AFF',
     fontWeight: '600',
+  },
+
+  // NOVOS ESTILOS PARA ABAS PADRONIZADAS
+  tabsContainerNovo: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    marginBottom: 16,
+    marginTop: 0,
+  },
+  tabNovo: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    position: 'relative',
+  },
+  activeTabNovo: {},
+  tabTextNovo: {
+    fontSize: 16,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  activeTabTextNovo: {
+    color: '#2563EB',
+    fontWeight: '700',
+  },
+  tabUnderlineNovo: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: -1,
+    height: 2,
+    backgroundColor: '#2563EB',
+    borderRadius: 2,
   },
 
   // Loading

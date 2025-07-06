@@ -14,9 +14,9 @@ import {
 } from 'react-native';
 import AvatarSection from '../../components/AvatarSection';
 import PasswordChangeSection from '../../components/PasswordChangeSection';
+import { usePerfil } from '../../hooks/perfil/usePerfilAluno';
 import { useAuth } from '../../hooks/useAuth';
 import PerfilTabs from './components/PerfilTabs';
-import { usePerfil } from './hooks/usePerfil';
 
 const styles = StyleSheet.create({
   container: {

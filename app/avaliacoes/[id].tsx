@@ -21,7 +21,7 @@ import ImageModals from './components/ImageModals';
 import NovaAvaliacaoModal from './components/NovaAvaliacaoModal';
 
 // ✅ Hook customizado
-import { useAvaliacoes } from './hooks/useAvaliacoes';
+import { useAvaliacoes } from '../../hooks/avaliacoes/useAvaliacoes';
 
 export default function AvaliacoesScreen() {
   const { id } = useLocalSearchParams();

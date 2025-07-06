@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   customSwitchActive: {
-    backgroundColor: '#93C5FD', // Azul claro consistente
+    backgroundColor: '#A7F3D0', // Verde claro consistente
   },
   customSwitchDisabled: {
     opacity: 0.5,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   customSwitchThumbActive: {
-    backgroundColor: '#007AFF', // Azul do sistema
+    backgroundColor: '#10B981', // Verde do sistema
     alignSelf: 'flex-end',
   },
 });

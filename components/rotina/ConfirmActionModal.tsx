@@ -1,5 +1,5 @@
 // components/rotina/ConfirmActionModal.tsx
-import { AlertTriangle, Trash2 } from 'lucide-react-native';
+import { AlertTriangle, CheckCircle, Trash2 } from 'lucide-react-native';
 import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -8,7 +8,7 @@ interface ConfirmActionModalProps {
   title: string;
   message: string;
   itemName?: string;
-  actionType: 'delete' | 'destructive' | 'warning';
+  actionType: 'delete' | 'destructive' | 'warning' | 'success';
   confirmText: string;
   cancelText?: string;
   onConfirm: () => void;
@@ -36,6 +36,8 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
         return <AlertTriangle size={48} color="#F59E0B" />;
       case 'warning':
         return <AlertTriangle size={48} color="#F59E0B" />;
+      case 'success':
+        return <CheckCircle size={48} color="#10B981" />;
       default:
         return <AlertTriangle size={48} color="#F59E0B" />;
     }
@@ -49,6 +51,8 @@ export const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
         return styles.destructiveButton;
       case 'warning':
         return styles.warningButton;
+      case 'success':
+        return styles.successButton;
       default:
         return styles.warningButton;
     }
@@ -173,6 +177,9 @@ const styles = StyleSheet.create({
   },
   warningButton: {
     backgroundColor: '#F59E0B',
+  },
+  successButton: {
+    backgroundColor: '#10B981',
   },
   confirmButtonText: {
     fontSize: 16,

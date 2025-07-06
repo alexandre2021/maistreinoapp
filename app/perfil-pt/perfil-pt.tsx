@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import AvatarSection from '../../components/AvatarSection';
 import PasswordChangeSection from '../../components/PasswordChangeSection';
+import { usePerfil } from '../../hooks/perfil/usePerfilPT';
 import { useAuth } from '../../hooks/useAuth';
 import PerfilTabs from './components/PerfilTabs';
-import { usePerfil } from './hooks/usePerfil';
 // ✅ IMPORT DAS CONSTANTES CENTRALIZADAS
 import { CORES_AVATAR } from '../../constants/usuarios';
 

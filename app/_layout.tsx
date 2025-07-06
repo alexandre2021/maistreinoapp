@@ -2,7 +2,7 @@ import { Session } from '@supabase/supabase-js';
 import { SplashScreen, Stack } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { fixAriaHiddenIssue } from '../utils/fixAriaHidden';
+// import { fixAriaHiddenIssue } from '../utils/fixAriaHidden'; // TEMPORARIAMENTE DESABILITADO
 
 // Impede que a tela de splash seja escondida automaticamente
 SplashScreen.preventAutoHideAsync();
@@ -12,8 +12,8 @@ export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // ✅ APLICA CORREÇÃO PARA ARIA-HIDDEN
-    const cleanupAriaFix = fixAriaHiddenIssue();
+    // ✅ APLICA CORREÇÃO PARA ARIA-HIDDEN - TEMPORARIAMENTE DESABILITADO
+    // const cleanupAriaFix = fixAriaHiddenIssue();
 
     // ✅ CARREGA SESSÃO APENAS UMA VEZ
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,7 +30,7 @@ export default function RootLayout() {
 
     return () => {
       subscription.unsubscribe()
-      cleanupAriaFix()
+      // cleanupAriaFix() // TEMPORARIAMENTE DESABILITADO
     }
   }, []) // ✅ CORREÇÃO: Array vazio - não precisa de dependências
 

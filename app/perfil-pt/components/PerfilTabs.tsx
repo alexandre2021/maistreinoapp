@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { PersonalTrainerData } from '../hooks/usePerfil';
+import { PersonalTrainerData } from '../../../hooks/perfil/usePerfilPT';
 // ✅ IMPORTS DAS CONSTANTES CENTRALIZADAS
 import {
     VALIDACOES,
@@ -424,7 +424,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
         validateEditData,
     } = props;
 
-    const getFieldError = (field: keyof PersonalTrainerData): string | null => {
+    const getFieldError = (field: string): string | null => {
         if (!validateEditData) return null;
 
         const validation = validateEditData();
