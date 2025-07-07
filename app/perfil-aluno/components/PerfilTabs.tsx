@@ -96,6 +96,14 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#1F2937',
     },
+    sectionDescriptionAviso: {
+        color: '#92400E',
+        fontSize: 13,
+        fontWeight: '500',
+        marginTop: 8,
+        marginBottom: 8,
+        lineHeight: 18,
+    },
     editButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -415,6 +423,323 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '600',
     },
+
+    // ======= NOVOS ESTILOS PARA O CARD PADRÃO DE INFORMAÇÕES INICIAIS =======
+    cardInfoInicial: {
+        flexDirection: 'row',
+        backgroundColor: 'white',
+        borderRadius: 14,
+        margin: 16,
+        marginTop: 24,
+        marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: '#FDE68A', // amarelo claro
+        minHeight: 180,
+    },
+    cardLateralBarraAmarela: {
+        width: 7,
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+        backgroundColor: '#F59E0B', // amarelo
+    },
+    cardContentWrapper: {
+        flex: 1,
+        padding: 20,
+        justifyContent: 'center',
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#92400E',
+        marginBottom: 8,
+    },
+    cardAvisoFotografia: {
+        color: '#92400E',
+        fontSize: 13,
+        fontWeight: '500',
+        marginBottom: 18,
+        lineHeight: 18,
+        backgroundColor: '#FEF3C7',
+        borderRadius: 8,
+        padding: 10,
+        marginRight: 8,
+    },
+    cardAvisoFotografiaBox: {
+        backgroundColor: '#FEF3C7',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 18,
+        marginRight: 8,
+    },
+    cardAvisoFotografiaTexto: {
+        color: '#92400E',
+        fontSize: 13,
+        fontWeight: '500',
+        lineHeight: 18,
+    },
+    cardInfoGrid: {
+        gap: 12,
+    },
+    cardInfoItem: {
+        marginBottom: 6,
+    },
+    cardInfoLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#92400E',
+        marginBottom: 2,
+    },
+    cardInfoValue: {
+        fontSize: 16,
+        color: '#92400E',
+        fontWeight: '600',
+        lineHeight: 22,
+    },
+
+    // ======= ESTILOS PARA A ABA OBJETIVOS (ETAPA 2 ONBOARDING) =======
+    tabContentNoBorder: {
+        backgroundColor: 'transparent',
+        margin: 16,
+        padding: 0,
+    },
+    objetivosCard: {
+        flexDirection: 'column',
+        backgroundColor: '#FFFBEB', // amarelo claro
+        borderLeftWidth: 4,
+        borderLeftColor: '#FBBF24', // amarelo
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    objetivosAviso: {
+        color: '#92400E',
+        fontSize: 13,
+        fontWeight: '500',
+        marginBottom: 16,
+        lineHeight: 18,
+    },
+    objetivosInfoGrid: {
+        gap: 12,
+    },
+    objetivosInfoItem: {
+        marginBottom: 8,
+    },
+    objetivosInfoLabel: {
+        fontSize: 13, // Ajustado para o mesmo tamanho da observação
+        fontWeight: '500',
+        color: '#92400E', // Agora igual ao título e observação
+        marginBottom: 2,
+    },
+    objetivosInfoValue: {
+        fontSize: 16,
+        color: '#1F2937', // Mais escuro, igual referência
+        fontWeight: '600',
+        lineHeight: 22,
+    },
+
+    // Adicionar estilos do card igual ao da visão do personal trainer, agora com fundo amarelo claro e borda amarela
+    cardResumoContainer: {
+        marginHorizontal: 16,
+        marginTop: 32,
+        marginBottom: 32,
+        alignItems: 'center',
+    },
+    cardResumoBox: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+        padding: 20,
+        minWidth: 280,
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
+    },
+    cardResumoBoxAmarelo: {
+        backgroundColor: '#FFFBEB',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#FBBF24',
+        padding: 20,
+        minWidth: 280,
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
+    },
+    cardResumoBoxLateral: {
+        flexDirection: 'row',
+        backgroundColor: '#FFFBEB',
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
+        minWidth: 280,
+        maxWidth: 400,
+        marginVertical: 0,
+    },
+    cardResumoBarraLateral: {
+        width: 12,
+        backgroundColor: '#FBBF24',
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+        alignSelf: 'stretch',
+    },
+    cardResumoContent: {
+        flex: 1,
+        padding: 20,
+    },
+    cardResumoTitulo: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#92400E',
+        marginBottom: 10,
+    },
+    cardResumoLinha: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    cardResumoLabel: {
+        fontSize: 14,
+        color: '#92400E',
+        fontWeight: '500',
+        minWidth: 110,
+    },
+    cardResumoValor: {
+        fontSize: 14,
+        color: '#92400E',
+        fontWeight: '400',
+        textAlign: 'right',
+        flex: 1,
+        marginLeft: 8,
+    },
+    cardResumoAviso: {
+        fontSize: 12,
+        color: '#92400E',
+        fontStyle: 'italic',
+        marginTop: 12,
+        lineHeight: 16,
+    },
+
+    // ======= ESTILOS PARA A ABA SEGURANÇA (ETAPA 4 ONBOARDING) =======
+    segurancaCard: {
+        backgroundColor: '#FFFBEB',
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    segurancaTitulo: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#92400E',
+        marginBottom: 12,
+    },
+    segurancaItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+    },
+    segurancaLabel: {
+        fontSize: 14,
+        color: '#92400E',
+        fontWeight: '500',
+    },
+    segurancaValor: {
+        fontSize: 14,
+        color: '#1F2937',
+        fontWeight: '400',
+        textAlign: 'right',
+        flex: 1,
+        marginLeft: 8,
+    },
+    segurancaAviso: {
+        fontSize: 12,
+        color: '#92400E',
+        fontStyle: 'italic',
+        marginTop: 8,
+        lineHeight: 16,
+    },
+
+    // ======= ESTILOS PARA A ABA OBJETIVOS (ETAPA 2 ONBOARDING) =======
+    onboardingCard: {
+        backgroundColor: '#FFF9ED',
+        // Remover borda fina ao redor do card, mantendo só a lateral amarela
+        margin: 20,
+        marginBottom: 0,
+        padding: 20,
+        borderRadius: 16,
+        borderWidth: 0, // Removido
+        borderLeftWidth: 4,
+        borderLeftColor: '#F59E0B',
+        // Sombra igual referência
+        shadowColor: '#F59E42',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    onboardingCardLeftBorderYellow: {}, // Remove qualquer customização, pois já está incluso acima
+    onboardingHeader: {
+        marginBottom: 16,
+    },
+    onboardingTitleYellow: {
+        fontSize: 16, // Mantido conforme solicitado
+        fontWeight: '600',
+        color: '#92400E',
+        marginBottom: 2, // Diminuído para reduzir o espaçamento abaixo do título
+    },
+    onboardingInfoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4, // Reduzido para espaçamento mais compacto
+    },
+    onboardingLabelYellow: {
+        fontSize: 13, // Ajustado para o mesmo tamanho da observação
+        fontWeight: '500',
+        color: '#92400E', // Agora igual ao título e observação
+        marginBottom: 2,
+    },
+    onboardingValueYellow: {
+        fontSize: 16,
+        color: '#92400E', // Alterado para a mesma cor do título e observação
+        fontWeight: '600',
+        lineHeight: 22,
+    },
+    onboardingDescriptionYellow: {
+        color: '#92400E',
+        fontSize: 13,
+        fontWeight: '500',
+        marginTop: 8,
+        lineHeight: 18,
+    },
 });
 
 export default function PerfilTabs(props: PerfilTabsProps) {
@@ -518,33 +843,29 @@ export default function PerfilTabs(props: PerfilTabsProps) {
 
     // ========= RENDERIZAR ABA OBJETIVOS (ETAPA 2 ONBOARDING) =========
     const renderObjetivosTab = () => (
-        <View style={styles.tabContent}>
-            <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Objetivos e Experiência</Text>
-                <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => openEditModal('objetivos')}
-                >
-                    <Edit2 size={16} color="#007AFF" />
-                    <Text style={styles.editButtonText}>Editar</Text>
-                </TouchableOpacity>
+        <View style={[styles.onboardingCard, styles.onboardingCardLeftBorderYellow]}> 
+            <View style={styles.onboardingHeader}>
+                <Text style={styles.onboardingTitleYellow}>Informações Iniciais</Text>
             </View>
-
-            <View style={styles.infoGrid}>
-                <View style={styles.infoItem}>
-                    <Text style={styles.infoLabel}>Objetivo Principal</Text>
-                    <Text style={styles.infoValue}>{userData?.objetivo_principal || 'Não informado'}</Text>
-                </View>
-
-                <View style={styles.infoItem}>
-                    <Text style={styles.infoLabel}>Nível de Experiência</Text>
-                    <Text style={styles.infoValue}>{userData?.nivel_experiencia || 'Não informado'}</Text>
-                </View>
-
-                <View style={styles.infoItem}>
-                    <Text style={styles.infoLabel}>Frequência Desejada</Text>
-                    <Text style={styles.infoValue}>{userData?.frequencia_desejada || 'Não informado'}</Text>
-                </View>
+            <View style={styles.onboardingInfoRow}>
+                <Text style={styles.onboardingLabelYellow}>Data do Cadastro:</Text>
+                <Text style={styles.onboardingValueYellow}>{userData?.created_at ? formatISOToBrazilian(userData.created_at) : '-'}</Text>
+            </View>
+            <View style={styles.onboardingInfoRow}>
+                <Text style={styles.onboardingLabelYellow}>Objetivo:</Text>
+                <Text style={styles.onboardingValueYellow}>{userData?.objetivo_principal || '-'}</Text>
+            </View>
+            <View style={styles.onboardingInfoRow}>
+                <Text style={styles.onboardingLabelYellow}>Experiência:</Text>
+                <Text style={styles.onboardingValueYellow}>{userData?.nivel_experiencia || '-'}</Text>
+            </View>
+            <View style={styles.onboardingInfoRow}>
+                <Text style={styles.onboardingLabelYellow}>Frequência:</Text>
+                <Text style={styles.onboardingValueYellow}>{userData?.frequencia_desejada || '-'}</Text>
+            </View>
+            <View style={{ marginTop: 12 }}>
+                <Text style={[styles.onboardingDescriptionYellow, { fontWeight: '400', fontStyle: 'italic', marginBottom: 0 }]}>Essas informações são uma fotografia inicial do aluno, coletadas no cadastro e não editáveis. Servem como referência histórica para acompanhamento da evolução.</Text>
+                <Text style={[styles.onboardingDescriptionYellow, { fontWeight: '400', fontStyle: 'italic', marginTop: 2 }]}>Na criação de rotinas os objetivos e a frequência serão definidas de acordo com sua evolução e necessidades.</Text>
             </View>
         </View>
     );

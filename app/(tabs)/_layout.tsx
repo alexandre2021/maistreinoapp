@@ -1,5 +1,5 @@
 import { Tabs, router } from 'expo-router'
-import { Activity, ChevronDown, Dumbbell, Home, LogOut, Settings, TrendingUp, User, Users } from 'lucide-react-native'
+import { ChevronDown, Dumbbell, Home, LogOut, Settings, TrendingUp, User, Users } from 'lucide-react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import {
     Animated,
@@ -240,7 +240,7 @@ export default function TabLayout() {
   const alunoTabs = (
     <Tabs screenOptions={{ ...screenOptions, tabBarActiveTintColor: '#3B82F6', tabBarInactiveTintColor: '#6B7280' }}>
       <Tabs.Screen name="index-aluno" options={{ title: 'Início', tabBarLabel: 'Início', headerTitle: 'Início', tabBarIcon: ({ color, size }) => <Home size={size} color={color} /> }} />
-      <Tabs.Screen name="meus-treinos" options={{ title: 'Meus Treinos', tabBarLabel: 'Treinos', tabBarIcon: ({ color, size }) => <Activity size={size} color={color} /> }} />
+      <Tabs.Screen name="meus-treinos" options={{ title: 'Meus Treinos', tabBarLabel: 'Treinos', tabBarIcon: ({ color, size }) => <Dumbbell size={size} color={color} /> }} />
       <Tabs.Screen name="progresso" options={{ title: 'Progresso', tabBarLabel: 'Progresso', tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} /> }} />
       <Tabs.Screen name="index-pt" options={{ href: null }} /><Tabs.Screen name="exercicios" options={{ href: null }} /><Tabs.Screen name="alunos" options={{ href: null }} />
     </Tabs>

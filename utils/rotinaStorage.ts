@@ -4,6 +4,7 @@
 export interface RotinaConfig {
   nomeRotina: string;
   descricao: string;
+  objetivo: string;  // ✅ ADICIONADO: Campo objetivo obrigatório
   treinosPorSemana: number;
   dificuldade: 'Baixa' | 'Média' | 'Alta';
   duracaoSemanas: number;
@@ -170,10 +171,10 @@ class RotinaStorage {
     this.clearExercicios();
   }
 
-  // Métodos de validação
+  // Métodos de validação - ✅ ATUALIZADA PARA INCLUIR OBJETIVO
   static isConfigValid(): boolean {
     const config = this.getConfig();
-    return !!(config && config.nomeRotina && config.treinosPorSemana);
+    return !!(config && config.nomeRotina && config.objetivo && config.treinosPorSemana);
   }
 
   static hasTreinos(): boolean {

@@ -13,40 +13,30 @@ import {
     View
 } from 'react-native';
 import LoadingScreen from '../../components/LoadingScreen';
-import { supabase } from '../../lib/supabase';
-// ✅ IMPORTAÇÕES DAS CONSTANTES E TIPOS
 import {
-    FREQUENCIAS_TREINO,
-    NIVEIS_EXPERIENCIA_ALUNO,
-    OBJETIVOS,
     type FrequenciaTreino,
     type NivelExperienciaAluno,
     type Objetivo
 } from '../../constants/usuarios';
+import { supabase } from '../../lib/supabase';
 
-// ✅ INTERFACE ATUALIZADA COM TIPOS FORTES
 interface AlunoData {
-    nomeCompleto: string; // Read-only
-    email: string; // Read-only
-    genero: string; // Read-only
-    dataNascimento: string; // Read-only
-    telefone: string; // Read-only
-    contatoEmergenciaNome: string; // Read-only
-    contatoEmergenciaTelefone: string; // Read-only
+    nomeCompleto: string;
+    email: string;
+    genero: string;
+    dataNascimento: string;
+    telefone: string;
+    contatoEmergenciaNome: string;
+    contatoEmergenciaTelefone: string;
     objetivoPrincipal: Objetivo | '';
     nivelExperiencia: NivelExperienciaAluno | '';
     frequenciaTreinoDesejada: FrequenciaTreino | '';
+    dataOnboarding?: string; // Nova prop para exibir a data do onboarding
 }
 
 export default function DetalhesAluno() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState<'aluno' | 'rotina'>('aluno');
-    const [showObjetivoOptions, setShowObjetivoOptions] = useState(false);
-    const [showExperienciaOptions, setShowExperienciaOptions] = useState(false);
-    const [showFrequenciaOptions, setShowFrequenciaOptions] = useState(false);
-
     const [data, setData] = useState<AlunoData>({
         nomeCompleto: '',
         email: '',
@@ -57,16 +47,10 @@ export default function DetalhesAluno() {
         contatoEmergenciaTelefone: '',
         objetivoPrincipal: '',
         nivelExperiencia: '',
-        frequenciaTreinoDesejada: ''
+        frequenciaTreinoDesejada: '',
+        dataOnboarding: '',
     });
 
-    // ✅ USANDO CONSTANTES CENTRALIZADAS
-    const objetivoOptions = OBJETIVOS;
-    const experienciaOptions = NIVEIS_EXPERIENCIA_ALUNO;
-    const frequenciaOptions = FREQUENCIAS_TREINO;
-
-
-    // Carregar dados do aluno
     useEffect(() => {
         const loadAlunoData = async () => {
             if (!id) {
@@ -74,10 +58,7 @@ export default function DetalhesAluno() {
                 router.back();
                 return;
             }
-
             try {
-                console.log('🔍 [DetalhesAluno] Carregando dados do aluno:', id);
-
                 const { data: alunoData, error } = await supabase
                     .from('alunos')
                     .select(`
@@ -90,295 +71,54 @@ export default function DetalhesAluno() {
                         contato_emergencia_telefone,
                         objetivo_principal,
                         nivel_experiencia,
-                        frequencia_desejada
+                        frequencia_desejada,
+                        created_at
                     `)
                     .eq('id', id)
                     .single();
-
                 if (error) {
-                    console.error('❌ [DetalhesAluno] Erro ao carregar aluno:', error);
                     Alert.alert('Erro', 'Não foi possível carregar os dados do aluno');
                     router.back();
                     return;
                 }
-
                 if (!alunoData) {
                     Alert.alert('Erro', 'Aluno não encontrado');
                     router.back();
                     return;
                 }
-
-                console.log('✅ [DetalhesAluno] Dados carregados:', alunoData);
-
-                // Preencher formulário
+                // Formatar datas
+                let formattedNascimento = alunoData.data_nascimento || '';
+                if (alunoData.data_nascimento && alunoData.data_nascimento.includes('-')) {
+                    const [year, month, day] = alunoData.data_nascimento.split('-');
+                    formattedNascimento = `${day}/${month}/${year}`;
+                }
+                let formattedOnboarding = '';
+                if (alunoData.created_at && alunoData.created_at.includes('-')) {
+                    const [year, month, day] = alunoData.created_at.split('T')[0].split('-');
+                    formattedOnboarding = `${day}/${month}/${year}`;
+                }
                 setData({
                     nomeCompleto: alunoData.nome_completo || '',
                     email: alunoData.email || '',
                     genero: alunoData.genero || '',
-                    dataNascimento: alunoData.data_nascimento || '',
+                    dataNascimento: formattedNascimento,
                     telefone: alunoData.telefone || '',
                     contatoEmergenciaNome: alunoData.contato_emergencia_nome || '',
                     contatoEmergenciaTelefone: alunoData.contato_emergencia_telefone || '',
                     objetivoPrincipal: alunoData.objetivo_principal || '',
                     nivelExperiencia: alunoData.nivel_experiencia || '',
-                    frequenciaTreinoDesejada: alunoData.frequencia_desejada || ''
+                    frequenciaTreinoDesejada: alunoData.frequencia_desejada || '',
+                    dataOnboarding: formattedOnboarding,
                 });
-
-                // Se há data de nascimento, converter formato americano para brasileiro
-                if (alunoData.data_nascimento) {
-                    let formattedDate = alunoData.data_nascimento;
-
-                    // Se está no formato americano (YYYY-MM-DD), converter para brasileiro (DD/MM/YYYY)
-                    if (alunoData.data_nascimento.includes('-')) {
-                        const [year, month, day] = alunoData.data_nascimento.split('-');
-                        formattedDate = `${day}/${month}/${year}`;
-                    }
-
-                    // Atualizar dados com data formatada
-                    setData(prev => ({
-                        ...prev,
-                        dataNascimento: formattedDate
-                    }));
-                }
-
-            } catch (error) {
-                console.error('💥 [DetalhesAluno] Erro inesperado:', error);
+            } catch {
                 Alert.alert('Erro', 'Erro inesperado ao carregar dados');
                 router.back();
             } finally {
                 setLoading(false);
             }
         };
-
         loadAlunoData();
     }, [id]);
-
-    const updateData = (field: keyof AlunoData, value: string) => {
-        setData({ ...data, [field]: value });
-    };
-
-    const salvarAlteracoes = async () => {
-        if (!data.objetivoPrincipal || !data.nivelExperiencia || !data.frequenciaTreinoDesejada) {
-            Alert.alert('Erro', 'Objetivo, nível de experiência e frequência são obrigatórios');
-            return;
-        }
-
-        setSaving(true);
-        try {
-            console.log('💾 [DetalhesAluno] Salvando alterações para:', id);
-
-            const updateDataPayload = {
-                objetivo_principal: data.objetivoPrincipal,
-                nivel_experiencia: data.nivelExperiencia,
-                frequencia_desejada: data.frequenciaTreinoDesejada
-            };
-
-            const { error } = await supabase
-                .from('alunos')
-                .update(updateDataPayload)
-                .eq('id', id);
-
-            if (error) {
-                console.error('❌ [DetalhesAluno] Erro ao salvar:', error);
-                Alert.alert('Erro', 'Não foi possível salvar as alterações');
-                return;
-            }
-
-            console.log('✅ [DetalhesAluno] Alterações salvas com sucesso');
-            Alert.alert('Sucesso', 'Alterações salvas com sucesso!', [
-                { text: 'OK', onPress: () => router.back() }
-            ]);
-
-        } catch (error) {
-            console.error('💥 [DetalhesAluno] Erro inesperado:', error);
-            Alert.alert('Erro', 'Erro inesperado ao salvar');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const renderAlunoTab = () => (
-        <View style={styles.content}>
-            <Text style={styles.sectionTitle}>Aluno</Text>
-            <Text style={styles.sectionDescription}>
-                Os dados pessoais podem ser alterados pelo próprio aluno.
-            </Text>
-
-            <Text style={styles.label}>Nome Completo</Text>
-            <TextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={data.nomeCompleto}
-                editable={false}
-                placeholder="Nome não cadastrado"
-            />
-
-            <View style={styles.row}>
-                <View style={styles.halfWidth}>
-                    <Text style={styles.label}>Gênero</Text>
-                    <TextInput
-                        style={[styles.input, styles.inputDisabled]}
-                        value={data.genero}
-                        editable={false}
-                        placeholder="Não informado"
-                    />
-                </View>
-
-                <View style={styles.halfWidth}>
-                    <Text style={styles.label}>Data de Nascimento</Text>
-                    <TextInput
-                        style={[styles.input, styles.inputDisabled]}
-                        value={data.dataNascimento}
-                        editable={false}
-                        placeholder="Não informado"
-                    />
-                </View>
-            </View>
-
-            <Text style={styles.sectionTitle}>Contato</Text>
-
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={data.email}
-                editable={false}
-                placeholder="Email não cadastrado"
-            />
-
-            <Text style={styles.label}>Telefone</Text>
-            <TextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={data.telefone}
-                editable={false}
-                placeholder="Telefone não cadastrado"
-            />
-
-            <Text style={styles.sectionTitle}>Contato de Emergência</Text>
-
-            <Text style={styles.label}>Nome do Contato</Text>
-            <TextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={data.contatoEmergenciaNome}
-                editable={false}
-                placeholder="Contato não cadastrado"
-            />
-
-            <Text style={styles.label}>Telefone de Emergência</Text>
-            <TextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={data.contatoEmergenciaTelefone}
-                editable={false}
-                placeholder="Telefone não cadastrado"
-            />
-        </View>
-    );
-
-    const renderRotinaTab = () => (
-        <View style={styles.content}>
-            <Text style={styles.sectionTitle}>Rotina</Text>
-
-            <Text style={styles.label}>Objetivo Principal *</Text>
-            <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => {
-                    setShowObjetivoOptions(!showObjetivoOptions);
-                    setShowExperienciaOptions(false);
-                    setShowFrequenciaOptions(false);
-                }}
-            >
-                <Text style={[styles.selectText, !data.objetivoPrincipal && styles.placeholderText]}>
-                    {data.objetivoPrincipal || 'Selecione o objetivo principal'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#64748B" />
-            </TouchableOpacity>
-
-            {showObjetivoOptions && (
-                <View style={styles.optionsDropdown}>
-                    <ScrollView style={styles.optionsScroll} nestedScrollEnabled={true}>
-                        {objetivoOptions.map((option) => (
-                            <TouchableOpacity
-                                key={option}
-                                style={styles.dropdownItem}
-                                onPress={() => {
-                                    updateData('objetivoPrincipal', option);
-                                    setShowObjetivoOptions(false);
-                                }}
-                            >
-                                <Text style={styles.dropdownItemText}>{option}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            )}
-
-            <Text style={styles.label}>Nível de Experiência *</Text>
-            <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => {
-                    setShowExperienciaOptions(!showExperienciaOptions);
-                    setShowObjetivoOptions(false);
-                    setShowFrequenciaOptions(false);
-                }}
-            >
-                <Text style={[styles.selectText, !data.nivelExperiencia && styles.placeholderText]}>
-                    {data.nivelExperiencia || 'Selecione o nível de experiência'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#64748B" />
-            </TouchableOpacity>
-
-            {showExperienciaOptions && (
-                <View style={styles.optionsDropdown}>
-                    <ScrollView style={styles.optionsScroll} nestedScrollEnabled={true}>
-                        {experienciaOptions.map((option) => (
-                            <TouchableOpacity
-                                key={option}
-                                style={styles.dropdownItem}
-                                onPress={() => {
-                                    updateData('nivelExperiencia', option);
-                                    setShowExperienciaOptions(false);
-                                }}
-                            >
-                                <Text style={styles.dropdownItemText}>{option}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            )}
-
-            <Text style={styles.label}>Frequência de Treino *</Text>
-            <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => {
-                    setShowFrequenciaOptions(!showFrequenciaOptions);
-                    setShowObjetivoOptions(false);
-                    setShowExperienciaOptions(false);
-                }}
-            >
-                <Text style={[styles.selectText, !data.frequenciaTreinoDesejada && styles.placeholderText]}>
-                    {data.frequenciaTreinoDesejada || 'Selecione a frequência semanal'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#64748B" />
-            </TouchableOpacity>
-
-            {showFrequenciaOptions && (
-                <View style={styles.optionsDropdown}>
-                    <ScrollView style={styles.optionsScroll} nestedScrollEnabled={true}>
-                        {frequenciaOptions.map((option) => (
-                            <TouchableOpacity
-                                key={option}
-                                style={styles.dropdownItem}
-                                onPress={() => {
-                                    updateData('frequenciaTreinoDesejada', option);
-                                    setShowFrequenciaOptions(false);
-                                }}
-                            >
-                                <Text style={styles.dropdownItemText}>{option}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            )}
-        </View>
-    );
 
     if (loading) {
         return <LoadingScreen message="Carregando dados do aluno..." />;
@@ -393,67 +133,91 @@ export default function DetalhesAluno() {
                 >
                     <Ionicons name="arrow-back" size={24} color="#007AFF" />
                 </TouchableOpacity>
-                <Text style={styles.title}>Detalhes do Aluno</Text>
+                <Text style={styles.title}>Detalhes</Text>
                 <View style={styles.placeholder} />
             </View>
-
-            {/* Abas */}
-            <View style={styles.tabsContainer}>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'aluno' && styles.activeTab]}
-                    onPress={() => {
-                        setActiveTab('aluno');
-                        // Fechar todos os dropdowns ao trocar de aba
-                        setShowObjetivoOptions(false);
-                        setShowExperienciaOptions(false);
-                        setShowFrequenciaOptions(false);
-                    }}
-                >
-                    <Text style={[styles.tabText, activeTab === 'aluno' && styles.activeTabText]}>
-                        Aluno
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'rotina' && styles.activeTab]}
-                    onPress={() => {
-                        setActiveTab('rotina');
-                        // Fechar todos os dropdowns ao trocar de aba
-                        setShowObjetivoOptions(false);
-                        setShowExperienciaOptions(false);
-                        setShowFrequenciaOptions(false);
-                    }}
-                >
-                    <Text style={[styles.tabText, activeTab === 'rotina' && styles.activeTabText]}>
-                        Rotina
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {activeTab === 'aluno' ? renderAlunoTab() : renderRotinaTab()}
-            </ScrollView>
-
-            {/* Footer só aparece na aba Rotina */}
-            {activeTab === 'rotina' && (
-                <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={styles.cancelButtonFooter}
-                        onPress={() => router.push('/(tabs)/alunos')}
-                    >
-                        <Text style={styles.cancelButtonFooterText}>Cancelar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-                        onPress={salvarAlteracoes}
-                        disabled={saving}
-                    >
-                        <Text style={styles.saveButtonText}>
-                            {saving ? 'Salvando...' : 'Salvar Alterações'}
-                        </Text>
-                    </TouchableOpacity>
+                {/* CARD DE IDENTIFICAÇÃO DO ALUNO */}
+                <View style={[styles.alunoCard, styles.alunoCardLeftBorderBlue]}>
+                    <Text style={styles.alunoNome}>{data.nomeCompleto || '-'}</Text>
+                    <Text style={styles.alunoEmail}>{data.email || '-'}</Text>
                 </View>
-            )}
+
+                {/* CARD DE INFORMAÇÕES INICIAIS (CADASTRO) */}
+                <View style={[styles.onboardingCard, styles.onboardingCardLeftBorderYellow]}>
+                    <View style={styles.onboardingHeader}>
+                        <Text style={styles.onboardingTitleYellow}>Informações Iniciais</Text>
+                    </View>
+                    <View style={styles.onboardingInfoRow}>
+                        <Text style={styles.onboardingLabelYellow}>Data do Cadastro:</Text>
+                        <Text style={styles.onboardingValueYellow}>{data.dataOnboarding || '-'}</Text>
+                    </View>
+                    <View style={styles.onboardingInfoRow}>
+                        <Text style={styles.onboardingLabelYellow}>Objetivo:</Text>
+                        <Text style={styles.onboardingValueYellow}>{data.objetivoPrincipal || '-'}</Text>
+                    </View>
+                    <View style={styles.onboardingInfoRow}>
+                        <Text style={styles.onboardingLabelYellow}>Experiência:</Text>
+                        <Text style={styles.onboardingValueYellow}>{data.nivelExperiencia || '-'}</Text>
+                    </View>
+                    <View style={styles.onboardingInfoRow}>
+                        <Text style={styles.onboardingLabelYellow}>Frequência:</Text>
+                        <Text style={styles.onboardingValueYellow}>{data.frequenciaTreinoDesejada || '-'}</Text>
+                    </View>
+                    <Text style={styles.onboardingDescriptionYellow}>
+                        Essas informações são uma fotografia inicial do aluno, coletadas no cadastro e não editáveis. Servem como referência histórica para acompanhamento da evolução.
+                    </Text>
+                </View>
+
+                {/* DADOS PESSOAIS */}
+                <Text style={styles.sectionTitle}>Dados Pessoais</Text>
+                <Text style={[styles.sectionDescription, styles.sectionDescriptionRed]}>
+                    Essas informações podem ser editadas pelo próprio aluno.
+                </Text>
+                <View style={styles.row}>
+                    <View style={[styles.halfWidth, { marginRight: 6 }]}> 
+                        <Text style={styles.label}>Gênero</Text>
+                        <TextInput
+                            style={[styles.input, styles.inputDisabled, { marginLeft: 0, marginRight: 0 }]}
+                            value={data.genero}
+                            editable={false}
+                            placeholder="Não informado"
+                        />
+                    </View>
+                    <View style={[styles.halfWidth, { marginLeft: 6 }]}> 
+                        <Text style={styles.label}>Data de Nascimento</Text>
+                        <TextInput
+                            style={[styles.input, styles.inputDisabled, { marginLeft: 0, marginRight: 0 }]}
+                            value={data.dataNascimento}
+                            editable={false}
+                            placeholder="Não informado"
+                        />
+                    </View>
+                </View>
+                <Text style={styles.label}>Telefone</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={data.telefone}
+                    editable={false}
+                    placeholder="Telefone não cadastrado"
+                />
+                {/* CONTATO DE EMERGÊNCIA */}
+                <Text style={styles.sectionTitle}>Contato de Emergência</Text>
+                <Text style={styles.label}>Nome do Contato</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={data.contatoEmergenciaNome}
+                    editable={false}
+                    placeholder="Contato não cadastrado"
+                />
+                <Text style={styles.label}>Telefone de Emergência</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={data.contatoEmergenciaTelefone}
+                    editable={false}
+                    placeholder="Telefone não cadastrado"
+                />
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -462,15 +226,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F9FAFB',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        fontSize: 16,
-        color: '#6B7280',
     },
     header: {
         flexDirection: 'row',
@@ -493,37 +248,121 @@ const styles = StyleSheet.create({
     placeholder: {
         width: 32,
     },
-    tabsContainer: {
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    tab: {
-        flex: 1,
-        paddingVertical: 16,
-        alignItems: 'center',
-        borderBottomWidth: 2,
-        borderBottomColor: 'transparent',
-    },
-    activeTab: {
-        borderBottomColor: '#007AFF',
-    },
-    tabText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#6B7280',
-    },
-    activeTabText: {
-        color: '#007AFF',
-        fontWeight: '600',
-    },
     scrollView: {
         flex: 1,
     },
-    content: {
+    alunoCard: {
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderRadius: 14,
+        marginHorizontal: 20,
+        marginTop: 20,
+        marginBottom: 0,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    alunoCardLeftBorderBlue: {
+        borderLeftWidth: 4,
+        borderLeftColor: '#3B82F6', // azul igual ícone 'Ver Detalhes' na modal
+        borderTopLeftRadius: 14,
+        borderBottomLeftRadius: 14,
+    },
+    alunoNome: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#1F2937',
+        marginBottom: 2,
+    },
+    alunoEmail: {
+        fontSize: 15,
+        color: '#64748B',
+        fontWeight: '400',
+    },
+    onboardingCard: {
+        backgroundColor: '#FFF9ED',
+        borderWidth: 1,
+        borderColor: '#F59E42',
+        borderRadius: 16,
         padding: 20,
-        paddingBottom: 40,
+        margin: 20,
+        marginBottom: 0,
+        shadowColor: '#F59E42',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    onboardingCardLeftBorderBlue: {
+        borderLeftWidth: 4,
+        borderLeftColor: '#2563EB', // azul padrão do app
+        borderTopLeftRadius: 16,
+        borderBottomLeftRadius: 16,
+    },
+    onboardingCardLeftBorderYellow: {
+        borderLeftWidth: 4,
+        borderLeftColor: '#F59E0B', // amarelo igual avaliações
+        borderTopLeftRadius: 16,
+        borderBottomLeftRadius: 16,
+    },
+    onboardingHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    onboardingTitle: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#F59E42',
+    },
+    onboardingTitleYellow: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#92400E', // igual avaliações
+    },
+    onboardingInfoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    onboardingLabel: {
+        fontSize: 15,
+        color: '#A16207',
+        fontWeight: '500',
+    },
+    onboardingLabelYellow: {
+        fontSize: 15,
+        color: '#92400E', // igual avaliações
+        fontWeight: '500',
+    },
+    onboardingValue: {
+        fontSize: 15,
+        color: '#1F2937',
+        fontWeight: '600',
+    },
+    onboardingValueYellow: {
+        fontSize: 15,
+        color: '#92400E', // igual avaliações
+        fontWeight: '600',
+    },
+    onboardingDescription: {
+        marginTop: 12,
+        fontSize: 13,
+        color: '#A16207',
+        fontStyle: 'italic',
+        lineHeight: 18,
+    },
+    onboardingDescriptionYellow: {
+        marginTop: 12,
+        fontSize: 13,
+        color: '#92400E', // igual avaliações
+        fontStyle: 'italic',
+        lineHeight: 18,
     },
     sectionTitle: {
         fontSize: 18,
@@ -531,13 +370,18 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         marginBottom: 8,
         marginTop: 20,
+        marginLeft: 20,
     },
     sectionDescription: {
         fontSize: 14,
-        color: '#EF4444',
+        color: '#6B7280',
         marginBottom: 16,
-        lineHeight: 20,
-        fontStyle: 'italic',
+        marginLeft: 20,
+        marginRight: 20,
+    },
+    sectionDescriptionRed: {
+        color: '#EF4444', // vermelho de destaque
+        fontWeight: '600',
     },
     label: {
         fontSize: 16,
@@ -545,6 +389,7 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         marginBottom: 8,
         marginTop: 16,
+        marginLeft: 20,
     },
     input: {
         borderWidth: 1,
@@ -553,91 +398,18 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         fontSize: 16,
         backgroundColor: 'white',
+        marginHorizontal: 20,
     },
     inputDisabled: {
         backgroundColor: '#F9FAFB',
         color: '#6B7280',
     },
-    selectButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: '#CBD5E1',
-        padding: 16,
-        borderRadius: 12,
-        backgroundColor: 'white',
-    },
-    selectText: {
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    placeholderText: {
-        color: '#9CA3AF',
-    },
-    optionsDropdown: {
-        borderWidth: 1,
-        borderColor: '#CBD5E1',
-        borderRadius: 12,
-        backgroundColor: 'white',
-        marginTop: 4,
-        overflow: 'hidden',
-        maxHeight: 200,
-        zIndex: 1000,
-    },
-    optionsScroll: {
-        maxHeight: 160,
-    },
-    dropdownItem: {
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
-    },
-    dropdownItemText: {
-        fontSize: 16,
-        color: '#1F2937',
-    },
     row: {
         flexDirection: 'row',
         gap: 12,
+        marginHorizontal: 20,
     },
     halfWidth: {
         flex: 1,
-    },
-    footer: {
-        flexDirection: 'row',
-        padding: 20,
-        backgroundColor: 'white',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        gap: 12,
-    },
-    cancelButtonFooter: {
-        flex: 1,
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#CBD5E1',
-        alignItems: 'center',
-    },
-    cancelButtonFooterText: {
-        fontSize: 16,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    saveButton: {
-        flex: 2,
-        padding: 16,
-        borderRadius: 12,
-        backgroundColor: '#007AFF',
-        alignItems: 'center',
-    },
-    saveButtonDisabled: {
-        backgroundColor: '#9CA3AF',
-    },
-    saveButtonText: {
-        fontSize: 16,
-        color: 'white',
-        fontWeight: '600',
     },
 });

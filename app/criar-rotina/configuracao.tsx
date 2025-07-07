@@ -16,6 +16,9 @@ import {
 
 // Constants
 import { DifficultyColors } from '../../constants/Colors';
+import {
+  OBJETIVOS // ← NOVO: Importar objetivos das constants
+} from '../../constants/usuarios';
 
 // Components
 import { RotinaProgressHeader } from '../../components/rotina/RotinaProgressHeader';
@@ -63,6 +66,12 @@ export default function ConfiguracaoRotinaScreen() {
   const [descricao, setDescricao] = useState(() => {
     return configSalva?.descricao || '';
   });
+  // ✅ NOVO: Estado para objetivo
+  const [objetivo, setObjetivo] = useState(() => {
+    return configSalva?.objetivo || '';
+  });
+  const [showObjetivoOptions, setShowObjetivoOptions] = useState(false);
+  
   const [treinosPorSemana, setTreinosPorSemana] = useState(() => {
     return configSalva?.treinosPorSemana || 3;
   });
@@ -169,7 +178,7 @@ export default function ConfiguracaoRotinaScreen() {
     }
   ];
 
-  // ✅ VALIDAÇÃO MELHORADA - PERMITINDO 1-3 SEMANAS
+  // ✅ VALIDAÇÃO MELHORADA - INCLUINDO OBJETIVO
   const getValidationErrors = () => {
     const errors: string[] = [];
     
@@ -179,6 +188,11 @@ export default function ConfiguracaoRotinaScreen() {
     
     if (nomeRotina.trim().length > 0 && nomeRotina.trim().length < 3) {
       errors.push('Nome deve ter pelo menos 3 caracteres');
+    }
+
+    // ✅ NOVO: Validação do objetivo
+    if (!objetivo) {
+      errors.push('Objetivo é obrigatório');
     }
     
     if (treinosPorSemana < 1 || treinosPorSemana > 6) {
@@ -211,10 +225,11 @@ export default function ConfiguracaoRotinaScreen() {
     try {
       console.log('📝 Salvando configuração no SessionStorage...');
       
-      // ✅ SALVAR NO STORAGE CENTRALIZADO
+      // ✅ SALVAR NO STORAGE CENTRALIZADO - INCLUINDO OBJETIVO
       const configCompleta: RotinaConfig = {
         nomeRotina: nomeRotina.trim(),
         descricao: descricao.trim(),
+        objetivo,  // ✅ NOVO: Incluir objetivo
         treinosPorSemana,
         dificuldade,
         duracaoSemanas,
@@ -302,6 +317,54 @@ export default function ConfiguracaoRotinaScreen() {
             </Text>
             <Text style={styles.characterCount}>
               {(descricao || '').length} de 200
+            </Text>
+          </View>
+        </View>
+
+        {/* ✅ NOVA SEÇÃO: OBJETIVO DA ROTINA */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Objetivo da Rotina <Text style={styles.required}>*</Text>
+          </Text>
+          
+          <TouchableOpacity
+            style={[
+              styles.selectButton,
+              !objetivo && { borderColor: '#CBD5E1' }
+            ]}
+            onPress={() => setShowObjetivoOptions(!showObjetivoOptions)}
+          >
+            <Text style={[
+              styles.selectText, 
+              !objetivo && styles.placeholderText
+            ]}>
+              {objetivo || 'Selecione o objetivo desta rotina'}
+            </Text>
+            <Ionicons name="chevron-down" size={20} color="#64748B" />
+          </TouchableOpacity>
+
+          {showObjetivoOptions && (
+            <View style={styles.optionsDropdown}>
+              <ScrollView>
+                {OBJETIVOS.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setObjetivo(option);
+                      setShowObjetivoOptions(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownItemText}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+          
+          <View style={styles.inputInfo}>
+            <Text style={styles.inputHint}>
+              Define o foco principal desta rotina específica
             </Text>
           </View>
         </View>
@@ -546,6 +609,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     marginLeft: 8,
+  },
+  
+  // ✅ ESTILOS PARA DROPDOWN DE OBJETIVO
+  selectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: 'white',
+  },
+  selectText: {
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  placeholderText: {
+    color: '#9CA3AF',
+  },
+  optionsDropdown: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    backgroundColor: 'white',
+    marginTop: 4,
+    overflow: 'hidden',
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#1F2937',
   },
   
   // DROPDOWN STYLES

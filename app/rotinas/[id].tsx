@@ -3,12 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 import AlunoHeaderCard from '../../components/AlunoHeaderCard';
@@ -624,11 +624,8 @@ export default function RotinasAlunoScreen() {
     closeModal('rotinaOptions');
     setModalData(prev => ({ ...prev, rotinaParaOpcoes: null }));
     
-    // TODO: Implementar navegação para tela de execução
-    // router.push(`/execucao/${rotina.id}`);
-    
-    // Mostrar modal de desenvolvimento
-    showInfoModal('Funcionalidade em Desenvolvimento', 'A tela de execução de treinos está sendo desenvolvida e estará disponível em breve.');
+    // ✅ NAVEGAR PARA SELEÇÃO DE TREINO
+    router.push(`/execucao/selecionar-treino/${rotina.id}` as never);
   };
 
   const handleVerEvolucao = () => {

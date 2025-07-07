@@ -15,12 +15,12 @@ import { supabase } from '../../lib/supabase';
 
 // OPÇÃO 2: Import direto (TESTE ESTA PRIMEIRA)
 import {
-    CORES_AVATAR,
-    formatarTelefone,
-    FREQUENCIAS_TREINO,
-    GENEROS,
-    NIVEIS_EXPERIENCIA_ALUNO,
-    OBJETIVOS
+  CORES_AVATAR,
+  formatarTelefone,
+  FREQUENCIAS_TREINO,
+  GENEROS,
+  NIVEIS_EXPERIENCIA_ALUNO,
+  OBJETIVOS
 } from '../../constants/usuarios';
 
 export interface AlunoData {
@@ -456,10 +456,10 @@ export const usePerfil = () => {
     
     // Converter valores decimais do banco para formato brasileiro (vírgula)
     if (editDataCopy?.peso) {
-      editDataCopy.peso = parseFloat(editDataCopy.peso.toString().replace('.', ',')) as any;
+      editDataCopy.peso = editDataCopy.peso.toString().replace('.', ',') as any;
     }
     if (editDataCopy?.altura) {
-      editDataCopy.altura = parseFloat(editDataCopy.altura.toString().replace('.', ',')) as any;
+      editDataCopy.altura = editDataCopy.altura.toString().replace('.', ',') as any;
     }
     
     setEditData(editDataCopy || {});
@@ -494,6 +494,10 @@ export const usePerfil = () => {
       if (editingSection === 'pessoal') {
         updateData.nome_completo = editData.nome_completo;
         updateData.telefone = editData.telefone;
+        updateData.genero = editData.genero;
+        // Adiciona peso e altura também na edição pessoal
+        updateData.peso = formatDecimalForDatabase(editData.peso?.toString() || '');
+        updateData.altura = formatDecimalForDatabase(editData.altura?.toString() || '');
         if (editData.data_nascimento) {
           const parsedDate = parseBrazilianDate(editData.data_nascimento);
           if (parsedDate) {
@@ -502,7 +506,6 @@ export const usePerfil = () => {
             updateData.data_nascimento = editData.data_nascimento;
           }
         }
-        updateData.genero = editData.genero;
       } else if (editingSection === 'objetivos') {
         // Converter peso e altura usando a função que trata vírgula brasileira
         updateData.peso = formatDecimalForDatabase(editData.peso?.toString() || '');

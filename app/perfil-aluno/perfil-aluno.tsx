@@ -1,16 +1,16 @@
 import { router } from 'expo-router';
-import { ArrowLeft, HelpCircle, Shield, Target, User, X } from 'lucide-react-native';
+import { ArrowLeft, Clipboard, Dumbbell, Shield, User, X } from 'lucide-react-native';
 import React from 'react';
 import {
-    Alert,
-    Animated,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Animated,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import AvatarSection from '../../components/AvatarSection';
 import PasswordChangeSection from '../../components/PasswordChangeSection';
@@ -370,9 +370,9 @@ export default function PerfilAluno() {
             style={[styles.tab, activeTab === 'objetivos' && styles.activeTab]}
             onPress={() => setActiveTab('objetivos')}
           >
-            <Target size={20} color={activeTab === 'objetivos' ? '#007AFF' : '#64748B'} />
+            <Dumbbell size={20} color={activeTab === 'objetivos' ? '#007AFF' : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'objetivos' && styles.activeTabText]}>
-              Objetivos
+              Rotinas
             </Text>
           </TouchableOpacity>
 
@@ -380,7 +380,7 @@ export default function PerfilAluno() {
             style={[styles.tab, activeTab === 'parq' && styles.activeTab]}
             onPress={() => setActiveTab('parq')}
           >
-            <HelpCircle size={20} color={activeTab === 'parq' ? '#007AFF' : '#64748B'} />
+            <Clipboard size={20} color={activeTab === 'parq' ? '#007AFF' : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'parq' && styles.activeTabText]}>
               PAR-Q
             </Text>

@@ -63,6 +63,7 @@ class RevisaoStorage {
 interface RotinaCompleta {
   nomeRotina: string;
   descricao: string;
+  objetivo: string; // ← ADICIONADO
   alunoId: string;
   treinosPorSemana: number;
   dificuldade: string;
@@ -140,6 +141,7 @@ function RevisaoRotinaContent() {
   const [rotinaData, setRotinaData] = useState<RotinaCompleta>({
     nomeRotina: '',
     descricao: '',
+    objetivo: '', // ← ADICIONADO
     alunoId: '',
     treinosPorSemana: 3,
     dificuldade: 'Média',
@@ -178,6 +180,7 @@ function RevisaoRotinaContent() {
         setRotinaData({
           nomeRotina: (configuracao.nomeRotina || '').toString().trim(),
           descricao: (configuracao.descricao || '').toString().trim(),
+          objetivo: (configuracao.objetivo || '').toString().trim(), // ← ADICIONADO
           alunoId: configuracao.alunoId || alunoId || '',
           treinosPorSemana: Number(configuracao.treinosPorSemana) || 3,
           dificuldade: (configuracao.dificuldade || 'Média').toString().trim(),
@@ -225,6 +228,7 @@ function RevisaoRotinaContent() {
         .insert([{
           nome: configuracao.nomeRotina,
           descricao: configuracao.descricao || null,
+          objetivo: configuracao.objetivo, // ← ADICIONADO
           aluno_id: configuracao.alunoId,
           personal_trainer_id: user.id,
           treinos_por_semana: configuracao.treinosPorSemana,
@@ -466,6 +470,10 @@ function RevisaoRotinaContent() {
             <View style={styles.configRow}>
               <Text style={styles.configLabel}>Descrição:</Text>
               <Text style={styles.configValue}>{rotinaData.descricao || 'Sem descrição'}</Text>
+            </View>
+            <View style={styles.configRow}>
+              <Text style={styles.configLabel}>Objetivo:</Text>
+              <Text style={styles.configValue}>{rotinaData.objetivo || 'Não definido'}</Text>
             </View>
             <View style={styles.configRow}>
               <Text style={styles.configLabel}>Treinos por semana:</Text>
