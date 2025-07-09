@@ -1,17 +1,17 @@
 // app/execucao/executar-treino/[sessaoId].tsx
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
-import ExecutorModoAluno from '../../../components/execucao/ExecutorModoAluno';
-import ExecutorModoPT from '../../../components/execucao/ExecutorModoPT';
+import ExecutorModoAluno from '../../../components/executar-rotina/ExecutorModoAluno';
+import ExecutorModoPT from '../../../components/executar-rotina/ExecutorModoPT';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../lib/supabase';
 
@@ -45,6 +45,41 @@ export default function ExecutarTreinoScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [sessaoData, setSessaoData] = useState<SessaoData | null>(null);
   const [modoExecucao, setModoExecucao] = useState<'pt' | 'aluno' | null>(null);
+
+  // Função utilitária para comparar campos relevantes de sessão
+  function shallowCompareSessao(a: any, b: any): boolean {
+    if (!a || !b) return false;
+    return (
+      a.id === b.id &&
+      a.rotina_id === b.rotina_id &&
+      a.treino_id === b.treino_id &&
+      a.aluno_id === b.aluno_id &&
+      a.status === b.status &&
+      a.data_execucao === b.data_execucao &&
+      a.rotinas?.nome === b.rotinas?.nome &&
+      a.rotinas?.permite_execucao_aluno === b.rotinas?.permite_execucao_aluno &&
+      a.treinos?.nome === b.treinos?.nome &&
+      a.alunos?.nome_completo === b.alunos?.nome_completo
+    );
+  }
+
+  // ✅ Memoizar sessaoData para evitar looping no ExecutorModoPT
+  const sessaoDataMemo = useMemo(() => {
+    if (!sessaoData) return null;
+    // Cria um novo objeto apenas com campos primitivos
+    return {
+      id: sessaoData.id,
+      rotina_id: sessaoData.rotina_id,
+      treino_id: sessaoData.treino_id,
+      aluno_id: sessaoData.aluno_id,
+      status: sessaoData.status,
+      data_execucao: sessaoData.data_execucao,
+      // Passe apenas nomes dos objetos aninhados para evitar referência instável
+      rotinas: sessaoData.rotinas ? { nome: sessaoData.rotinas.nome, permite_execucao_aluno: sessaoData.rotinas.permite_execucao_aluno } : undefined,
+      treinos: sessaoData.treinos ? { nome: sessaoData.treinos.nome } : undefined,
+      alunos: sessaoData.alunos ? { nome_completo: sessaoData.alunos.nome_completo } : undefined,
+    };
+  }, [sessaoData]);
 
   // ✅ FUNÇÃO PARA DETERMINAR MODO (MOVIDA PARA FORA DO useEffect)
   const determinarModoExecucao = useCallback(async (userId: string, sessao: SessaoData): Promise<'pt' | 'aluno'> => {
@@ -176,7 +211,8 @@ export default function ExecutarTreinoScreen() {
         }
       };
 
-      setSessaoData(sessaoCompleta);
+      // Só atualiza o estado se realmente mudou (comparação rasa dos campos relevantes)
+      setSessaoData(prev => shallowCompareSessao(prev, sessaoCompleta) ? prev : sessaoCompleta);
 
       // Determinar tipo de usuário e modo de execução
       const modo = await determinarModoExecucao(user.id, sessaoCompleta);
@@ -266,18 +302,18 @@ export default function ExecutarTreinoScreen() {
       {modoExecucao === 'pt' ? (
         <ExecutorModoPT
           sessaoId={sessaoId!}
-          sessaoData={sessaoData}
-          userProfile={userProfile}
+          sessaoData={sessaoDataMemo as SessaoData}
+          userProfile={userProfile!}
           onSessaoFinalizada={() => {
             // Navegar de volta após finalização
-            router.push(`/rotinas/${sessaoData.aluno_id}` as never);
+            router.push(`/rotinas/${sessaoData?.aluno_id}` as never);
           }}
         />
       ) : (
         <ExecutorModoAluno
           sessaoId={sessaoId!}
-          sessaoData={sessaoData}
-          userProfile={userProfile}
+          sessaoData={sessaoDataMemo as SessaoData}
+          userProfile={userProfile!}
           onSessaoFinalizada={() => {
             // Navegar de volta após finalização
             router.push('/(tabs)/index-aluno' as never);

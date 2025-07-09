@@ -1,15 +1,17 @@
 import {
-  BarChart3,
-  Play,
-  X
+    CheckCircle2,
+    Pause,
+    Play,
+    Trash2,
+    X
 } from 'lucide-react-native';
 import React from 'react';
 import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 interface RotinaOptionsModalProps {
@@ -20,24 +22,28 @@ interface RotinaOptionsModalProps {
     status: string;
   } | null;
   onClose: () => void;
-  onIrParaExecucao: () => void;
-  onVerEvolucao: () => void;
+  onTreinar: () => void;
+  onAtivar: () => void;
+  onPausar: () => void;
+  onExcluir: () => void;
 }
 
 export function RotinaOptionsModal({
   visible,
   rotina,
   onClose,
-  onIrParaExecucao,
-  onVerEvolucao
+  onTreinar,
+  onAtivar,
+  onPausar,
+  onExcluir
 }: RotinaOptionsModalProps) {
   if (!rotina) return null;
 
   const isActive = rotina.status === 'Ativa';
   const isPaused = rotina.status === 'Pausada';
-  const isCompleted = rotina.status === 'Concluída';
+  const isAguardando = rotina.status === 'Aguardando pagamento';
+  // const isCompleted = rotina.status === 'Concluída';
 
-  // Configurar opções baseadas no status da rotina
   const options: {
     icon: any;
     label: string;
@@ -46,27 +52,60 @@ export function RotinaOptionsModal({
     color: string;
   }[] = [];
 
-  // Ir para Execução - Só para rotinas ativas
-  if (isActive) {
+  if (isAguardando) {
+    options.push({
+      icon: CheckCircle2,
+      label: 'Ativar',
+      description: 'Ativar rotina para liberar treinos',
+      onPress: onAtivar,
+      color: '#2563EB',
+    });
+    options.push({
+      icon: Trash2,
+      label: 'Excluir',
+      description: 'Remover esta rotina',
+      onPress: onExcluir,
+      color: '#EF4444',
+    });
+  } else if (isActive) {
     options.push({
       icon: Play,
-      label: 'Ir para Execução',
+      label: 'Treinar',
       description: 'Iniciar treino e acompanhar progresso',
-      onPress: onIrParaExecucao,
-      color: '#10B981'
+      onPress: onTreinar,
+      color: '#10B981',
     });
-  }
-
-  // Ver Evolução - Para rotinas ativas, pausadas e concluídas
-  if (isActive || isPaused || isCompleted) {
     options.push({
-      icon: BarChart3,
-      label: 'Ver Evolução',
-      description: 'Relatórios e histórico de treinos',
-      onPress: onVerEvolucao,
-      color: '#3B82F6'
+      icon: Pause,
+      label: 'Pausar',
+      description: 'Pausar esta rotina',
+      onPress: onPausar,
+      color: '#F59E0B',
+    });
+    options.push({
+      icon: Trash2,
+      label: 'Excluir',
+      description: 'Remover esta rotina',
+      onPress: onExcluir,
+      color: '#EF4444',
+    });
+  } else if (isPaused) {
+    options.push({
+      icon: CheckCircle2,
+      label: 'Ativar',
+      description: 'Reativar esta rotina',
+      onPress: onAtivar,
+      color: '#2563EB',
+    });
+    options.push({
+      icon: Trash2,
+      label: 'Excluir',
+      description: 'Remover esta rotina',
+      onPress: onExcluir,
+      color: '#EF4444',
     });
   }
+  // Se for concluída, não mostra opções
 
   return (
     <Modal
@@ -88,21 +127,25 @@ export function RotinaOptionsModal({
           </View>
 
           <View style={styles.content}>
-            {options.map((option, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.optionItem}
-                onPress={option.onPress}
-              >
-                <View style={[styles.optionIcon, { backgroundColor: `${option.color}15` }]}>
-                  <option.icon size={24} color={option.color} />
-                </View>
-                <View style={styles.optionContent}>
-                  <Text style={styles.optionLabel}>{option.label}</Text>
-                  <Text style={styles.optionDescription}>{option.description}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {options.length === 0 ? (
+              <Text style={{ color: '#6B7280', textAlign: 'center', marginTop: 16 }}>Nenhuma ação disponível para esta rotina.</Text>
+            ) : (
+              options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.optionItem}
+                  onPress={option.onPress}
+                >
+                  <View style={[styles.optionIcon, { backgroundColor: `${option.color}15` }]}> 
+                    <option.icon size={24} color={option.color} />
+                  </View>
+                  <View style={styles.optionContent}>
+                    <Text style={styles.optionLabel}>{option.label}</Text>
+                    <Text style={styles.optionDescription}>{option.description}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         </View>
       </View>

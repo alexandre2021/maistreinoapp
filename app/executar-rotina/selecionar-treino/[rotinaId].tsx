@@ -3,13 +3,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 import { useAuth } from '../../../hooks/useAuth';
@@ -56,50 +56,64 @@ export default function SelecionarTreinoScreen() {
   const [ultimaSessao, setUltimaSessao] = useState<UltimaSessao | null>(null);
   const [treinoSugerido, setTreinoSugerido] = useState<string>('');
 
-  // ✅ BUSCAR ÚLTIMA SESSÃO
+  // Função auxiliar para calcular dias desde uma data
+  function calcularDiasDesde(dataStr: string) {
+    const data = new Date(dataStr);
+    const hoje = new Date();
+    return Math.floor((hoje.getTime() - data.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  // ✅ BUSCAR ÚLTIMA SESSÃO - CONSULTA SIMPLES SEM JOINS
   const buscarUltimaSessao = useCallback(async (alunoId: string) => {
     try {
+      // Consulta simples
       const { data: ultimaExecucao, error } = await supabase
         .from('execucoes_sessao')
-        .select(`
-          data_execucao,
-          treinos!inner (
-            nome
-          )
-        `)
+        .select('data_execucao, treino_id')
         .eq('aluno_id', alunoId)
         .eq('status', 'concluida')
         .order('data_execucao', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error || !ultimaExecucao) {
-        console.log('Nenhuma sessão anterior encontrada');
+        console.log('Nenhuma sessão encontrada');
         setUltimaSessao(null);
         return null;
       }
 
-      // Calcular dias desde a última execução
-      const dataExecucao = new Date(ultimaExecucao.data_execucao);
-      const hoje = new Date();
-      const diffTime = Math.abs(hoje.getTime() - dataExecucao.getTime());
-      const diasDesdeExecucao = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      // Busca separada do nome do treino
+      const { data: treino } = await supabase
+        .from('treinos')
+        .select('nome')
+        .eq('id', ultimaExecucao.treino_id)
+        .single();
 
       const ultimaSessaoData: UltimaSessao = {
-        treino_nome: (ultimaExecucao.treinos as any)?.nome || 'Treino desconhecido',
+        treino_nome: treino?.nome || `Treino ${ultimaExecucao.treino_id}`,
         data_execucao: ultimaExecucao.data_execucao,
-        dias_desde_execucao: diasDesdeExecucao
+        dias_desde_execucao: calcularDiasDesde(ultimaExecucao.data_execucao)
       };
-
       setUltimaSessao(ultimaSessaoData);
       return ultimaSessaoData.treino_nome;
-
     } catch (error) {
-      console.error('Erro ao buscar última sessão:', error);
+      console.error('Erro ao buscar sessão:', error);
       setUltimaSessao(null);
       return null;
     }
   }, []);
+
+  // Função auxiliar para buscar próximo número de sessão
+  const getProximoNumeroSessao = async (alunoId: string) => {
+    const { data: ultimaSessao } = await supabase
+      .from('execucoes_sessao')
+      .select('sessao_numero')
+      .eq('aluno_id', alunoId)
+      .order('sessao_numero', { ascending: false })
+      .limit(1)
+      .single();
+    return ultimaSessao ? ultimaSessao.sessao_numero + 1 : 1;
+  };
 
   // ✅ CALCULAR TREINO SUGERIDO
   const calcularTreinoSugerido = useCallback((ultimoTreino: string | null, treinosLista: Treino[]) => {
@@ -218,39 +232,24 @@ export default function SelecionarTreinoScreen() {
     return `${diaSemana}, ${dia}/${mes} (${dias} ${dias === 1 ? 'dia' : 'dias'})`;
   };
 
-  // ✅ SELECIONAR TREINO E INICIAR EXECUÇÃO - CORRIGIDO
+  // ✅ SELECIONAR TREINO E INICIAR EXECUÇÃO - AJUSTADO PARA DATE E SESSÃO
   const iniciarTreino = async (treino: Treino) => {
     try {
       if (!rotina || !aluno) return;
 
-      // ✅ CALCULAR PRÓXIMO NÚMERO DA SESSÃO
-      const { data: ultimaSessao, error: ultimaSessaoError } = await supabase
-        .from('execucoes_sessao')
-        .select('sessao_numero')
-        .eq('aluno_id', rotina.aluno_id)
-        .order('sessao_numero', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Usar data no formato YYYY-MM-DD (compatível com tipo 'date' do banco)
+      const hoje = new Date().toISOString().split('T')[0];
+      const proximoNumero = await getProximoNumeroSessao(rotina.aluno_id);
 
-      if (ultimaSessaoError) {
-        console.error('Erro ao buscar última sessão:', ultimaSessaoError);
-        Alert.alert('Erro', 'Não foi possível verificar sessões anteriores');
-        return;
-      }
-
-      const proximoNumero = ultimaSessao ? (ultimaSessao.sessao_numero + 1) : 1;
-      console.log('Próximo número da sessão:', proximoNumero);
-
-      // ✅ CRIAR NOVA SESSÃO DE EXECUÇÃO COM sessao_numero
       const { data: novaSessao, error: sessaoError } = await supabase
         .from('execucoes_sessao')
         .insert([{
           rotina_id: rotinaId,
           treino_id: treino.id,
           aluno_id: rotina.aluno_id,
-          sessao_numero: proximoNumero, // ✅ CAMPO OBRIGATÓRIO ADICIONADO
+          sessao_numero: proximoNumero,
           status: 'em_andamento',
-          data_execucao: new Date().toISOString(),
+          data_execucao: hoje, // Formatado como 'date'
           tempo_total_minutos: null,
           observacoes: null
         }])
@@ -264,9 +263,7 @@ export default function SelecionarTreinoScreen() {
       }
 
       console.log('Sessão criada com sucesso:', novaSessao.id);
-
-      // Navegar para tela de execução
-      router.push(`/execucao/executar-treino/${novaSessao.id}` as never);
+      router.push(`/executar-rotina/executar-treino/${novaSessao.id}` as never);
 
     } catch (error) {
       console.error('Erro ao iniciar treino:', error);
