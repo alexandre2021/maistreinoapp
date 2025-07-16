@@ -6,7 +6,6 @@ export interface Aluno {
   telefone: string | null;
   data_nascimento: string | null;
   genero: string | null;
-  objetivo_principal: string | null;
   avatar_letter: string;
   avatar_color: string;
   avatar_type: 'letter' | 'image';

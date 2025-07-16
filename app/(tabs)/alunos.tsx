@@ -1,17 +1,17 @@
-// app/(tabs)/alunos.tsx - VERSÃO SIMPLIFICADA COM STATE LOCAL
+// app/(tabs)/alunos.tsx - VERSÃO ATUALIZADA COM HEADER CUSTOMIZADO
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 import LoadingScreen from '../../components/LoadingScreen';
@@ -59,27 +59,23 @@ export default function AlunosScreen() {
   // ✅ Estados para filtros (usando mesma estrutura do exercícios)
   const [activeFilters, setActiveFilters] = useState({
     situacao: 'Todos',
-    genero: 'Todos',
-    objetivo: 'Todos'
+    genero: 'Todos'
   });
 
   const [dropdownStates, setDropdownStates] = useState({
     situacao: false,
-    genero: false,
-    objetivo: false
+    genero: false
   });
 
-  // ✅ Opções dos filtros para alunos
+  // ✅ Opções dos filtros para alunos (removido objetivo)
   const filterOptions = {
     situacao: ['Todos', 'Ativo', 'Pendente'],
-    genero: ['Todos', 'Masculino', 'Feminino', 'Não informado'],
-    objetivo: ['Todos', 'Perda de peso', 'Ganho de massa', 'Condicionamento', 'Reabilitação', 'Performance']
+    genero: ['Todos', 'Masculino', 'Feminino', 'Não informado']
   };
 
   const filterLabels = {
     situacao: 'Situação',
-    genero: 'Gênero', 
-    objetivo: 'Objetivo'
+    genero: 'Gênero'
   };
   
   const {
@@ -122,8 +118,7 @@ export default function AlunosScreen() {
   const clearAllFilters = useCallback(() => {
     setActiveFilters({
       situacao: 'Todos',
-      genero: 'Todos', 
-      objetivo: 'Todos'
+      genero: 'Todos'
     });
   }, []);
 
@@ -146,11 +141,8 @@ export default function AlunosScreen() {
       const matchesGenero = activeFilters.genero === 'Todos' || 
                            aluno.genero === activeFilters.genero ||
                            (activeFilters.genero === 'Não informado' && !aluno.genero);
-      
-      const matchesObjetivo = activeFilters.objetivo === 'Todos' || 
-                             aluno.objetivo_principal === activeFilters.objetivo;
 
-      return matchesSearch && matchesSituacao && matchesGenero && matchesObjetivo;
+      return matchesSearch && matchesSituacao && matchesGenero;
     });
   }, [alunos, searchText, activeFilters]);
 
@@ -228,7 +220,6 @@ export default function AlunosScreen() {
           telefone,
           data_nascimento,
           genero,
-          objetivo_principal,
           avatar_letter,
           avatar_color,
           avatar_type,
@@ -368,7 +359,7 @@ export default function AlunosScreen() {
         // ✅ Verificar cache global primeiro
         const cachedData = alunosCache.get(user.id);
         if (cachedData) {
-          console.log('� [AlunosScreen] Cache global encontrado!');
+          console.log('🚀 [AlunosScreen] Cache global encontrado!');
           setAlunos(cachedData.alunos);
           setPlanData(cachedData.planData);
           setLoading(false);
@@ -421,7 +412,6 @@ export default function AlunosScreen() {
             telefone,
             data_nascimento,
             genero,
-            objetivo_principal,
             avatar_letter,
             avatar_color,
             avatar_type,
@@ -467,7 +457,7 @@ export default function AlunosScreen() {
       return { 
         color: '#F59E0B', 
         text: 'Pendente',
-        subtitle: 'Finalize o cadastro'
+        subtitle: null
       };
     }
   };
@@ -505,17 +495,21 @@ export default function AlunosScreen() {
           <View style={styles.avatarContainer}>
             {renderAvatar(item)}
           </View>
-          
           <View style={styles.alunoDetails}>
+            {/* Badge de status acima do nome */}
+            <View style={{ marginBottom: 4 }}>
+              <View style={[styles.statusBadge, { backgroundColor: statusInfo.color, alignSelf: 'flex-start', marginBottom: 2 }]}> 
+                <Text style={styles.statusText}>{statusInfo.text}</Text>
+              </View>
+              {statusInfo.subtitle && (
+                <Text style={{ fontSize: 10, color: '#F59E0B', marginBottom: 2 }}>{statusInfo.subtitle}</Text>
+              )}
+            </View>
             <Text style={styles.alunoNome}>{item.nome_completo}</Text>
             <Text style={styles.alunoEmail}>{item.email}</Text>
           </View>
         </View>
-        
         <View style={styles.alunoStatus}>
-          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
-            <Text style={styles.statusText}>{statusInfo.text}</Text>
-          </View>
           <TouchableOpacity
             onPress={() => handleAlunoOptionsPress(item)}
             style={styles.optionsButton}
@@ -531,172 +525,174 @@ export default function AlunosScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Ionicons name="people-outline" size={80} color="#D1D5DB" />
-      <Text style={styles.emptyTitle}>Sua jornada começa aqui!</Text>
-      <Text style={styles.emptySubtitle}>
-        Você ainda não possui alunos cadastrados.
+      {/* TEXTO ATUALIZADO */}
+      <Text style={styles.emptyTitle}>
+        Sua lista de alunos está vazia
       </Text>
+      <Text style={styles.emptySubtitle}>
+        Clique no botão abaixo para enviar um convite e começar a montar seu time.
+      </Text>
+      {/* BOTÃO ATUALIZADO */}
       <TouchableOpacity
         style={styles.primaryButton}
         onPress={handleNovoAluno}
         activeOpacity={0.8}
       >
-        <Ionicons name="person-add" size={20} color="white" />
-        <Text style={styles.primaryButtonText}>Convidar Primeiro Aluno</Text>
+        <Ionicons name="person-add-outline" size={20} color="white" />
+        <Text style={styles.primaryButtonText}>Convidar Novo Aluno</Text>
       </TouchableOpacity>
       <Text style={styles.emptyHint}>
-        Dica: Você pode convidar alunos por email ou compartilhar um link personalizado
+        Lembre-se: o aluno convidado só aparecerá aqui após completar o cadastro.
       </Text>
     </View>
   );
 
+  // ✅ RENDERIZAÇÃO PRINCIPAL ATUALIZADA
   const renderContent = () => {
     if (loading) {
       return <LoadingScreen message="Carregando alunos..." />;
     }
 
-    if (alunos.length === 0) {
-      return renderEmptyState();
-    }
-
+    // Conteúdo principal sem o customHeader
     return (
-      <View style={styles.container}>
-        {/* ✅ Barra de busca e filtros */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchWrapper}>
-            <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar alunos..."
-              value={searchText}
-              onChangeText={setSearchText}
-              placeholderTextColor="#9CA3AF"
-            />
-            {searchText.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchText('')}
-                style={styles.clearButton}
-              >
-                <Ionicons name="close-circle" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            )}
-          </View>
-          
-          {/* ✅ Botão de filtro */}
-          <TouchableOpacity
-            style={[
-              styles.filterToggle,
-              showFilters && styles.filterToggleActive,
-              getActiveFiltersCount() > 0 && styles.filterToggleWithActive
-            ]}
-            onPress={() => setShowFilters(!showFilters)}
-          >
-            <Ionicons 
-              name="filter" 
-              size={20} 
-              color={getActiveFiltersCount() > 0 ? "#FFFFFF" : "#6B7280"} 
-            />
-            {getActiveFiltersCount() > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{getActiveFiltersCount()}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* ✅ Seção de filtros reutilizada - CONDICIONAL */}
-        {showFilters && (
-          <FiltersSection 
-            activeFilters={activeFilters}
-            dropdownStates={dropdownStates}
-            filterOptions={filterOptions}
-            filterLabels={filterLabels}
-            toggleDropdown={toggleDropdown}
-            updateFilter={updateFilter}
-            clearAllFilters={clearAllFilters}
-            getActiveFiltersCount={getActiveFiltersCount}
-          />
-        )}
-
-        {/* Conteúdo principal */}
-        {filteredAlunos.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>
-              {filteredAlunos.length === 0 ? 'Nenhum aluno cadastrado' : 'Nenhum resultado encontrado'}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {filteredAlunos.length === 0 
-                ? 'Convide seus primeiros alunos para começar' 
-                : getActiveFiltersCount() > 0 
-                  ? 'Tente ajustar os filtros para encontrar seus alunos'
-                  : 'Nenhum aluno corresponde à sua busca'
-              }
-            </Text>
-            {getActiveFiltersCount() > 0 && (
-              <TouchableOpacity 
-                style={styles.clearFiltersButtonEmpty}
-                onPress={clearAllFilters}
-              >
-                <Text style={styles.clearFiltersButtonEmptyText}>Limpar filtros</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+      <View style={styles.wrapper}>
+        {alunos.length === 0 ? (
+          renderEmptyState()
         ) : (
-          <>
-            <View style={styles.headerRow}>
-              <View style={styles.countContainer}>
-                <Text style={styles.alunosCount}>
-                  {filteredAlunos.length} {filteredAlunos.length === 1 ? 'aluno' : 'alunos'}
-                </Text>
-                {/* ✅ USAR DADOS LOCAIS DO STATE */}
-                <Text style={styles.limiteText}>
-                  ({alunos.length}/{getStudentLimitText()} {planData.plano})
-                </Text>
-                <TouchableOpacity 
-                  onPress={() => openModal('statusInfo')}
-                  style={styles.infoIcon}
-                >
-                  <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
-                </TouchableOpacity>
+          <View style={styles.container}>
+            {/* ✅ Barra de busca e filtros */}
+            <View style={styles.searchContainer}>
+              <View style={styles.searchWrapper}>
+                <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Buscar alunos..."
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  placeholderTextColor="#9CA3AF"
+                  textAlignVertical="center"
+                />
+                {searchText.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setSearchText('')}
+                    style={styles.clearButton}
+                  >
+                    <Ionicons name="close-circle" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                )}
               </View>
-              
+              {/* ✅ Botão de filtro */}
               <TouchableOpacity
                 style={[
-                  styles.addButton,
-                  !canAddMoreStudents() && styles.addButtonDisabled
+                  styles.filterToggle,
+                  showFilters && styles.filterToggleActive,
+                  getActiveFiltersCount() > 0 && styles.filterToggleWithActive
                 ]}
-                onPress={canAddMoreStudents() ? handleNovoAluno : handleShowPlanos} // ✅ CORRIGIDO: Abre PlanosModal direto
-                activeOpacity={0.8}
+                onPress={() => setShowFilters(!showFilters)}
               >
                 <Ionicons 
-                  name={canAddMoreStudents() ? "add" : "lock-closed"} 
+                  name="filter" 
                   size={20} 
-                  color="white" 
+                  color={getActiveFiltersCount() > 0 ? "#FFFFFF" : "#6B7280"} 
                 />
-                <Text style={styles.addButtonText}>
-                  {canAddMoreStudents() ? 'Aluno' : 'Limite'}
-                </Text>
+                {getActiveFiltersCount() > 0 && (
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>{getActiveFiltersCount()}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={filteredAlunos}
-              renderItem={renderAluno}
-              keyExtractor={(item) => item.id}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-              }
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContainer}
-            />
-          </>
+            {/* ✅ Seção de filtros reutilizada - CONDICIONAL */}
+            {showFilters && (
+              <FiltersSection 
+                activeFilters={activeFilters}
+                dropdownStates={dropdownStates}
+                filterOptions={filterOptions}
+                filterLabels={filterLabels}
+                toggleDropdown={toggleDropdown}
+                updateFilter={updateFilter}
+                clearAllFilters={clearAllFilters}
+                getActiveFiltersCount={getActiveFiltersCount}
+              />
+            )}
+
+            {/* Conteúdo principal */}
+            {filteredAlunos.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="people-outline" size={48} color="#9CA3AF" />
+                <Text style={styles.emptyTitle}>
+                  {filteredAlunos.length === 0 ? 'Nenhum aluno cadastrado' : 'Nenhum resultado encontrado'}
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  {filteredAlunos.length === 0 
+                    ? 'Convide seus primeiros alunos para começar' 
+                    : getActiveFiltersCount() > 0 
+                      ? 'Tente ajustar os filtros para encontrar seus alunos'
+                      : 'Nenhum aluno corresponde à sua busca'
+                  }
+                </Text>
+                {getActiveFiltersCount() > 0 && (
+                  <TouchableOpacity 
+                    style={styles.clearFiltersButtonEmpty}
+                    onPress={clearAllFilters}
+                  >
+                    <Text style={styles.clearFiltersButtonEmptyText}>Limpar filtros</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <>
+                <View style={styles.headerRow}>
+                  <View style={styles.countContainer}>
+                    <Text style={styles.alunosCount}>
+                      {filteredAlunos.length} {filteredAlunos.length === 1 ? 'aluno' : 'alunos'}
+                    </Text>
+                    {/* ✅ MUDANÇA 1: Contador simplificado sem "gratuito" */}
+                    <Text style={[styles.alunosCount, styles.limiteText]}>
+                      ({alunos.length}/{getStudentLimitText()})
+                    </Text>
+                    {/* ✅ MUDANÇA 2: Ícone de info REMOVIDO daqui */}
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.addButton,
+                      !canAddMoreStudents() && styles.addButtonDisabled
+                    ]}
+                    onPress={canAddMoreStudents() ? handleNovoAluno : handleShowPlanos}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons 
+                      name={canAddMoreStudents() ? "add" : "lock-closed"} 
+                      size={20} 
+                      color="white" 
+                    />
+                    <Text style={styles.addButtonText}>
+                      {canAddMoreStudents() ? 'Aluno' : 'Limite'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={filteredAlunos}
+                  renderItem={renderAluno}
+                  keyExtractor={(item) => item.id}
+                  refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                  }
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.listContainer}
+                />
+              </>
+            )}
+          </View>
         )}
       </View>
     );
   };
 
+  // ✅ RETURN PRINCIPAL ATUALIZADO
   return (
-    <View style={styles.wrapper}>
+    <>
       {renderContent()}
       
       {/* Modals */}
@@ -724,30 +720,67 @@ export default function AlunosScreen() {
         onConfirm={handleConfirmarExclusao}
       />
 
-      {/* ✅ CORRIGIDO: Agora UpgradeModal não tem onUpgrade que vai para planos */}
       <UpgradeModal
         visible={modals.upgrade}
         onClose={() => closeModal('upgrade')}
         onUpgrade={() => {
-          // ✅ Implementar lógica de pagamento direto
           console.log('Iniciando processo de pagamento...');
           closeModal('upgrade');
         }}
       />
 
-      {/* ✅ CORRIGIDO: PlanosModal agora é o primeiro no fluxo */}
       <PlanosModal
         visible={modals.planos}
         onClose={() => closeModal('planos')}
         onSelectPlan={handleSelectPlan}
         planoAtual={planData.plano}
       />
-    </View>
+    </>
   );
 }
 
-// Estilos
+// ✅ ESTILOS ATUALIZADOS
 const styles = StyleSheet.create({
+  // ✅ NOVO: Header customizado
+  customHeader: {
+    backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  headerInfoIcon: {
+    padding: 4,
+  },
+
+  filterToggleActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  filterToggleWithActive: {
+    backgroundColor: '#3B82F6',
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   wrapper: {
     flex: 1,
     backgroundColor: '#F9FAFB',
@@ -776,11 +809,24 @@ const styles = StyleSheet.create({
   searchWrapper: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center', // já existe, reforçado
     backgroundColor: 'white',
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    height: 48, // Altura igual ao botão de filtro
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  filterToggle: {
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'white',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -798,37 +844,6 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
   },
-  filterToggle: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  filterToggleActive: {
-    backgroundColor: '#EFF6FF',
-  },
-  filterToggleWithActive: {
-    backgroundColor: '#3B82F6',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   filterBadgeText: {
     color: '#FFFFFF',
     fontSize: 12,
@@ -845,23 +860,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  infoIcon: {
-    padding: 4,
-  },
   alunosCount: {
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
   },
+  // ✅ ATUALIZADO: Contador simplificado e bold
   limiteText: {
     fontSize: 14,
     color: '#6B7280',
-    fontWeight: '500',
+    fontWeight: '600', // ✅ Mais bold para consistência
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -974,7 +987,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 12,
@@ -991,6 +1004,7 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     lineHeight: 20,
+    marginTop: 16,
   },
   emptyContainer: {
     flex: 1,
@@ -999,7 +1013,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   clearFiltersButtonEmpty: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 10,

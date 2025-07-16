@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { InfoModal } from '../../components/InfoModal';
+import LoadingScreen from '../../components/LoadingScreen';
 import { AtivarRotinaModal } from '../../components/rotina/AtivarRotinaModal';
 import { ConfirmActionModal } from '../../components/rotina/ConfirmActionModal';
 import { RotinaOptionsModal } from '../../components/rotina/RotinaOptionsModal';
@@ -41,6 +42,9 @@ export default function RotinasAlunoScreen() {
   const [rotinas, setRotinas] = useState<Rotina[]>([]); // Added
   // 👇 NOVO ESTADO PARA ABA ATIVA
   const [abaAtiva, setAbaAtiva] = useState<'atual' | 'concluidas'>('atual');
+  const [alunoNome, setAlunoNome] = useState<string>('');
+  const [alunoEmail, setAlunoEmail] = useState<string>('');
+  const [nomePersonal, setNomePersonal] = useState<string>('');
 
   // ✅ CONTROLE DE EXECUÇÃO PARA EVITAR LOOPS
   const isLoadingData = useRef(false);
@@ -150,7 +154,7 @@ export default function RotinasAlunoScreen() {
           .eq('personal_trainer_id', user.id)
           .single();
 
-        if (alunoError) {
+        if (alunoError || !alunoData) {
           console.error('❌ [ROTINAS] Erro ao buscar aluno:', alunoError);
           // ✅ INLINE ERROR HANDLING - sem dependências externas
           setInitError('Aluno não encontrado');
@@ -158,13 +162,9 @@ export default function RotinasAlunoScreen() {
           return;
         }
 
-        if (!alunoData) {
-          console.log('❌ [ROTINAS] Aluno não encontrado');
-          // ✅ INLINE ERROR HANDLING - sem dependências externas
-          setInitError('Aluno não encontrado');
-          setLoading(false);
-          return;
-        }
+        setAlunoNome(alunoData.nome_completo || '');
+        setAlunoEmail(alunoData.email || '');
+        setNomePersonal(user.user_metadata?.full_name || user.email || '');
 
         console.log('✅ [ROTINAS] Aluno encontrado:', alunoData.nome_completo);
         
@@ -423,10 +423,6 @@ export default function RotinasAlunoScreen() {
         {item.objetivo && (
           <Text style={styles.objetivoDestaque} numberOfLines={2}>{item.objetivo}</Text>
         )}
-        {/* Linha 4: Descrição (se existir) */}
-        {item.descricao && (
-          <Text style={styles.objetivo} numberOfLines={2}>{item.descricao}</Text>
-        )}
         {/* Linha 5: Metadados */}
         <Text style={styles.metadados}>
           {item.treinos_por_semana}x/sem • {item.duracao_semanas} semanas • {totalSessoes} sessões
@@ -445,201 +441,205 @@ export default function RotinasAlunoScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.headerBackButton} 
-          onPress={router.back}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Minhas Rotinas</Text>
-        <TouchableOpacity 
-          style={styles.addButton} 
-          onPress={handleAdicionarRotina}
-        >
-          <Ionicons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>Rotina</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Abas para filtrar rotinas */}
-      <View style={styles.tabsContainerNovo}>
-        <TouchableOpacity
-          style={[styles.tabNovo, abaAtiva === 'atual' && styles.activeTabNovo]}
-          onPress={() => setAbaAtiva('atual')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.tabTextNovo, abaAtiva === 'atual' && styles.activeTabTextNovo]}>Atual</Text>
-          {abaAtiva === 'atual' && <View style={styles.tabUnderlineNovo} />}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabNovo, abaAtiva === 'concluidas' && styles.activeTabNovo]}
-          onPress={() => setAbaAtiva('concluidas')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.tabTextNovo, abaAtiva === 'concluidas' && styles.activeTabTextNovo]}>Concluídas</Text>
-          {abaAtiva === 'concluidas' && <View style={styles.tabUnderlineNovo} />}
-        </TouchableOpacity>
-      </View>
-
-      {/* Conteúdo Principal */}
-      <View style={styles.content}>
-        {/* Contador de Rotinas (apenas na aba Atual e com base no filtro) */}
-        {abaAtiva === 'atual' && (() => {
-          const rotinasAtuais = rotinas.filter(r => r.status !== 'Concluída');
-          if (rotinasAtuais.length > 0) {
-            return (
-              <Text style={styles.contador}>
-                {rotinasAtuais.length} {rotinasAtuais.length === 1 ? 'rotina' : 'rotinas'} encontradas
-              </Text>
-            );
-          }
-          return null;
-        })()}
-
-        {/* Lista de Rotinas - FlatList otimizada para desempenho */}
-        <View style={styles.listContainer}>
-          {/* Filtragem das rotinas conforme aba ativa */}
-          {(() => {
-            const rotinasFiltradas =
-              abaAtiva === 'atual'
-                ? rotinas.filter(r => r.status !== 'Concluída')
-                : rotinas.filter(r => r.status === 'Concluída');
-            if (rotinasFiltradas.length === 0) {
-              return (
-                <View style={styles.emptyState}>
-                  <Ionicons name="list" size={48} color="#D1D5DB" />
-                  <Text style={styles.emptyTitle}>Nenhuma rotina {abaAtiva === 'atual' ? 'atual' : 'concluída'} encontrada</Text>
-                  {abaAtiva === 'atual' && (
-                    <>
-                      <Text style={styles.emptySubtitle}>
-                        Parece que você ainda não tem rotinas. Toque no botão acima para criar uma nova rotina.
-                      </Text>
-                      <TouchableOpacity 
-                        style={styles.primaryButton} 
-                        onPress={() => router.push(`/criar-rotina?alunoId=${alunoId}` as never)}
-                      >
-                        <Ionicons name="add" size={20} color="white" />
-                        <Text style={styles.primaryButtonText}>Rotina</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </View>
-              );
-            }
-            return rotinasFiltradas.map(item => renderRotina({ item }));
-          })()}
-        </View>
-
-        {/* Loading e Error States - agora dentro do retorno principal */}
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Carregando rotinas...</Text>
-          </View>
-        )}
-        {initError && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{initError}</Text>
+      {/* Mostrar apenas o LoadingScreen durante o loading */}
+      {loading ? (
+        <LoadingScreen message="Carregando rotinas..." />
+      ) : (
+        <>
+          {/* Header */}
+          <View style={styles.header}>
             <TouchableOpacity 
-              style={styles.backButton} 
-              onPress={() => setInitError(null)}
+              style={styles.headerBackButton} 
+              onPress={router.back}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.backButtonText}>Voltar</Text>
+              <Ionicons name="arrow-back" size={28} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Rotinas</Text>
+            <TouchableOpacity 
+              style={styles.addButton} 
+              onPress={handleAdicionarRotina}
+            >
+              <Ionicons name="add" size={20} color="white" />
+              <Text style={styles.addButtonText}>Rotina</Text>
             </TouchableOpacity>
           </View>
-        )}
-      </View>
 
-      {/* Modais - agora dentro do retorno principal */}
-      {modals.pausarRotina && modalData.rotinaParaPausar && (
-        <ConfirmActionModal
-          visible={modals.pausarRotina}
-          title="Pausar Rotina"
-          message="Tem certeza que deseja pausar esta rotina?"
-          confirmText="Pausar"
-          cancelText="Cancelar"
-          loading={modalData.loading}
-          onConfirm={confirmarPausarRotina}
-          onCancel={() => closeModal('pausarRotina')}
-          actionType="warning"
-        />
-      )}
-      {modals.reativarRotina && modalData.rotinaParaReativar && (
-        <ConfirmActionModal
-          visible={modals.reativarRotina}
-          title="Reativar Rotina"
-          message="Tem certeza que deseja reativar esta rotina?"
-          confirmText="Reativar"
-          cancelText="Cancelar"
-          loading={modalData.loading}
-          onConfirm={confirmarReativarRotina}
-          onCancel={() => closeModal('reativarRotina')}
-          actionType="success"
-        />
-      )}
-      {modals.ativarRotina && modalData.rotinaParaAtivar && (
-        <AtivarRotinaModal
-          visible={modals.ativarRotina}
-          rotinaNome={modalData.rotinaParaAtivar.nome}
-          loading={modalData.loading}
-          onConfirm={confirmarAtivarRotina}
-          onCancel={() => closeModal('ativarRotina')}
-        />
-      )}
-      {modals.excluirRotina && modalData.rotinaParaExcluir && (
-        <ConfirmActionModal
-          visible={modals.excluirRotina}
-          title="Excluir Rotina"
-          message="Tem certeza que deseja excluir esta rotina? Esta ação não pode ser desfeita."
-          confirmText="Excluir"
-          cancelText="Cancelar"
-          loading={modalData.loading}
-          onConfirm={confirmarExcluirRotina}
-          onCancel={() => closeModal('excluirRotina')}
-          actionType="delete"
-        />
-      )}
-      {modals.rotinaOptions && modalData.rotinaParaOpcoes && (
-        <RotinaOptionsModal
-          visible={modals.rotinaOptions}
-          rotina={modalData.rotinaParaOpcoes}
-          onClose={() => {
-            closeModal('rotinaOptions');
-            setModalData(prev => ({ ...prev, rotinaParaOpcoes: null }));
-          }}
-          onTreinar={() => {
-            closeModal('rotinaOptions');
-            router.push({
-              pathname: '/executar-rotina/selecionar-treino/[rotinaId]',
-              params: { rotinaId: modalData.rotinaParaOpcoes!.id }
-            });
-          }}
-          onAtivar={() => {
-            closeModal('rotinaOptions');
-            setModalData(prev => ({ ...prev, rotinaParaAtivar: modalData.rotinaParaOpcoes, rotinaParaOpcoes: null }));
-            openModal('ativarRotina');
-          }}
-          onPausar={() => {
-            closeModal('rotinaOptions');
-            setModalData(prev => ({ ...prev, rotinaParaPausar: modalData.rotinaParaOpcoes, rotinaParaOpcoes: null }));
-            openModal('pausarRotina');
-          }}
-          onExcluir={() => {
-            closeModal('rotinaOptions');
-            setModalData(prev => ({ ...prev, rotinaParaExcluir: modalData.rotinaParaOpcoes, rotinaParaOpcoes: null }));
-            openModal('excluirRotina');
-          }}
-        />
-      )}
-      {modals.info && (
-        <InfoModal
-          visible={modals.info}
-          title={modalData.info.title}
-          message={modalData.info.message}
-          onClose={() => closeModal('info')}
-        />
+          {/* Abas para filtrar rotinas */}
+          <View style={styles.tabsContainerNovo}>
+            <TouchableOpacity
+              style={[styles.tabNovo, abaAtiva === 'atual' && styles.activeTabNovo]}
+              onPress={() => setAbaAtiva('atual')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.tabTextNovo, abaAtiva === 'atual' && styles.activeTabTextNovo]}>Atual</Text>
+              {abaAtiva === 'atual' && <View style={styles.tabUnderlineNovo} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabNovo, abaAtiva === 'concluidas' && styles.activeTabNovo]}
+              onPress={() => setAbaAtiva('concluidas')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.tabTextNovo, abaAtiva === 'concluidas' && styles.activeTabTextNovo]}>Concluídas</Text>
+              {abaAtiva === 'concluidas' && <View style={styles.tabUnderlineNovo} />}
+            </TouchableOpacity>
+          </View>
+
+          {/* Conteúdo Principal */}
+          <View style={styles.content}>
+            {/* Contador de Rotinas (apenas na aba Atual e com base no filtro) */}
+            {abaAtiva === 'atual' && (() => {
+              const rotinasAtuais = rotinas.filter(r => r.status !== 'Concluída');
+              if (rotinasAtuais.length > 0) {
+                return (
+                  <Text style={styles.contador}>
+                    {rotinasAtuais.length} {rotinasAtuais.length === 1 ? 'rotina' : 'rotinas'} encontradas
+                  </Text>
+                );
+              }
+              return null;
+            })()}
+
+            {/* Lista de Rotinas - FlatList otimizada para desempenho */}
+            <View style={styles.listContainer}>
+              {/* Filtragem das rotinas conforme aba ativa */}
+              {(() => {
+                const rotinasFiltradas =
+                  abaAtiva === 'atual'
+                    ? rotinas.filter(r => r.status !== 'Concluída')
+                    : rotinas.filter(r => r.status === 'Concluída');
+                if (rotinasFiltradas.length === 0) {
+                  return (
+                    <View style={styles.emptyState}>
+                      <Ionicons name="list" size={48} color="#D1D5DB" />
+                      <Text style={styles.emptyTitle}>Nenhuma rotina {abaAtiva === 'atual' ? 'atual' : 'concluída'} encontrada</Text>
+                      {abaAtiva === 'atual' && (
+                        <>
+                          <View style={{ height: 12 }} /> {/* Espaço entre o texto e o botão */}
+                          <TouchableOpacity 
+                            style={styles.primaryButton} 
+                            onPress={() => router.push(`/criar-rotina?alunoId=${alunoId}` as never)}
+                          >
+                            <Ionicons name="add" size={20} color="white" />
+                            <Text style={styles.primaryButtonText}>Rotina</Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </View>
+                  );
+                }
+                return rotinasFiltradas.map(item => renderRotina({ item }));
+              })()}
+            </View>
+
+            {/* Error States */}
+            {initError && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{initError}</Text>
+                <TouchableOpacity 
+                  style={styles.backButton} 
+                  onPress={() => setInitError(null)}
+                >
+                  <Text style={styles.backButtonText}>Voltar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {/* Modais - agora dentro do retorno principal */}
+          {modals.pausarRotina && modalData.rotinaParaPausar && (
+            <ConfirmActionModal
+              visible={modals.pausarRotina}
+              title="Pausar Rotina"
+              message="Tem certeza que deseja pausar esta rotina?"
+              confirmText="Pausar"
+              cancelText="Cancelar"
+              loading={modalData.loading}
+              onConfirm={confirmarPausarRotina}
+              onCancel={() => closeModal('pausarRotina')}
+              actionType="warning"
+            />
+          )}
+          {modals.reativarRotina && modalData.rotinaParaReativar && (
+            <ConfirmActionModal
+              visible={modals.reativarRotina}
+              title="Reativar Rotina"
+              message="Tem certeza que deseja reativar esta rotina?"
+              confirmText="Reativar"
+              cancelText="Cancelar"
+              loading={modalData.loading}
+              onConfirm={confirmarReativarRotina}
+              onCancel={() => closeModal('reativarRotina')}
+              actionType="success"
+            />
+          )}
+          {modals.ativarRotina && modalData.rotinaParaAtivar && (
+            <AtivarRotinaModal
+              visible={modals.ativarRotina}
+              rotinaNome={modalData.rotinaParaAtivar.nome}
+              rotinaId={modalData.rotinaParaAtivar.id}
+              alunoEmail={alunoEmail}
+              nomeAluno={alunoNome}
+              nomePersonal={nomePersonal}
+              loading={modalData.loading}
+              onConfirm={confirmarAtivarRotina}
+              onCancel={() => closeModal('ativarRotina')}
+            />
+          )}
+          {modals.excluirRotina && modalData.rotinaParaExcluir && (
+            <ConfirmActionModal
+              visible={modals.excluirRotina}
+              title="Excluir Rotina"
+              message="Tem certeza que deseja excluir esta rotina? Esta ação não pode ser desfeita."
+              confirmText="Excluir"
+              cancelText="Cancelar"
+              loading={modalData.loading}
+              onConfirm={confirmarExcluirRotina}
+              onCancel={() => closeModal('excluirRotina')}
+              actionType="delete"
+            />
+          )}
+          {modals.rotinaOptions && modalData.rotinaParaOpcoes && (
+            <RotinaOptionsModal
+              visible={modals.rotinaOptions}
+              rotina={modalData.rotinaParaOpcoes}
+              onClose={() => {
+                closeModal('rotinaOptions');
+                setModalData(prev => ({ ...prev, rotinaParaOpcoes: null }));
+              }}
+              onTreinar={() => {
+                closeModal('rotinaOptions');
+                router.push({
+                  pathname: '/executar-rotina/selecionar-treino/[rotinaId]',
+                  params: { rotinaId: modalData.rotinaParaOpcoes!.id }
+                });
+              }}
+              onAtivar={() => {
+                closeModal('rotinaOptions');
+                setModalData(prev => ({ ...prev, rotinaParaAtivar: modalData.rotinaParaOpcoes, rotinaParaOpcoes: null }));
+                openModal('ativarRotina');
+              }}
+              onPausar={() => {
+                closeModal('rotinaOptions');
+                setModalData(prev => ({ ...prev, rotinaParaPausar: modalData.rotinaParaOpcoes, rotinaParaOpcoes: null }));
+                openModal('pausarRotina');
+              }}
+              onExcluir={() => {
+                closeModal('rotinaOptions');
+                setModalData(prev => ({ ...prev, rotinaParaExcluir: modalData.rotinaParaOpcoes, rotinaParaOpcoes: null }));
+                openModal('excluirRotina');
+              }}
+            />
+          )}
+          {modals.info && (
+            <InfoModal
+              visible={modals.info}
+              title={modalData.info.title}
+              message={modalData.info.message}
+              onClose={() => closeModal('info')}
+            />
+          )}
+        </>
       )}
     </View>
   );
@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -920,9 +920,12 @@ const styles = StyleSheet.create({
   // Empty state
   emptyState: {
     flex: 1,
+    minHeight: 220,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    width: '100%',
+    alignSelf: 'center',
   },
   emptyTitle: {
     fontSize: 20,
@@ -932,17 +935,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  emptySubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-  },
+
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -983,7 +980,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   tabTextActive: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '600',
   },
 
@@ -1008,7 +1005,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabTextNovo: {
-    color: '#2563EB',
+    color: '#A11E0A',
     fontWeight: '700',
   },
   tabUnderlineNovo: {
@@ -1017,20 +1014,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: -1,
     height: 2,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#A11E0A',
     borderRadius: 2,
-  },
-
-  // Loading
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
   },
 
   // Error
@@ -1048,7 +1033,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

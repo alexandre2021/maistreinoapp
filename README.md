@@ -1,10 +1,10 @@
-# 🏋️ MaisTreino
+# 🏋️ titans.fitness
 
 > Aplicativo para Personal Trainers gerenciarem alunos e treinos
 
 ## 📱 Sobre o Projeto
 
-O **MaisTreino** é uma plataforma SaaS que conecta Personal Trainers e alunos através de rotinas de treino personalizadas com execução e acompanhamento em tempo real.
+O **titans.fitness** é uma plataforma SaaS que conecta Personal Trainers e alunos através de rotinas de treino personalizadas com execução e acompanhamento em tempo real.
 
 ### 🎯 Proposta de Valor
 - **Para Personal Trainers:** Ferramenta completa para criar, gerenciar e acompanhar rotinas de treino
@@ -29,7 +29,7 @@ O **MaisTreino** é uma plataforma SaaS que conecta Personal Trainers e alunos a
 ```bash
 # Clonar repositório
 git clone [url-do-repo]
-cd MaisTreinoApp
+cd titans.fitness
 
 # Instalar dependências
 npm install
@@ -135,7 +135,7 @@ Este projeto está sob a licença MIT. Ver `LICENSE` para mais detalhes.
 
 ## 📞 Contato
 
-- **Projeto:** MaisTreino
+- **Projeto:** titans.fitness
 - **Versão:** 0.1.0 (MVP em desenvolvimento)
 - **Status:** Em desenvolvimento ativo
 

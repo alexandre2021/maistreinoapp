@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
   title:{fontSize:18,fontWeight:'600',color:'#1F2937'},
   content:{flex:1,padding:16},
   footer:{padding:16,backgroundColor:'white',borderTopWidth:1,borderColor:'#E5E7EB'},
-  saveButton:{backgroundColor:'#007AFF',padding:14,borderRadius:8,alignItems:'center'},
+  saveButton:{backgroundColor:'#A11E0A',padding:14,borderRadius:8,alignItems:'center'},
   disabled:{backgroundColor:'#9CA3AF'},
   saveText:{color:'#fff',fontSize:16,fontWeight:'600'},
   loadingContainer:{flex:1,justifyContent:'center',alignItems:'center'},

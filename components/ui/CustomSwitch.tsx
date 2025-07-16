@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   customSwitchActive: {
-    backgroundColor: '#A7F3D0', // Verde claro consistente
+    backgroundColor: '#D1D5DB', // Cinza claro quando ativo
   },
   customSwitchDisabled: {
     opacity: 0.5,
@@ -50,11 +50,11 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#F3F4F6', // Cinza mais claro quando inativo
     alignSelf: 'flex-start',
   },
   customSwitchThumbActive: {
-    backgroundColor: '#10B981', // Verde do sistema
+    backgroundColor: '#6B7280', // Cinza médio quando ativo
     alignSelf: 'flex-end',
   },
 });

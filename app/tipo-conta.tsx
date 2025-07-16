@@ -29,7 +29,7 @@ export default function TipoConta() {
           onPress={() => selecionarTipo('personal_trainer')}
         >
           <View style={styles.iconContainer}>
-            <UserCheck size={28} color="#007AFF" />
+            <UserCheck size={28} color="#A11E0A" />
           </View>
           <Text style={styles.optionTitle}>Sou Personal Trainer</Text>
           <Text style={styles.optionSubtitle}>Gerencie seus alunos e treinos</Text>
@@ -40,7 +40,7 @@ export default function TipoConta() {
           onPress={() => selecionarTipo('aluno')}
         >
           <View style={styles.iconContainer}>
-            <Activity size={28} color="#007AFF" />
+            <Activity size={28} color="#A11E0A" />
           </View>
           <Text style={styles.optionTitle}>Sou Aluno</Text>
           <Text style={styles.optionSubtitle}>Acesse seus treinos personalizados</Text>

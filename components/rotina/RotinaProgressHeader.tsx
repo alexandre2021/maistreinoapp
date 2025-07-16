@@ -3,10 +3,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useModalManager } from '../../hooks/useModalManager';
 import { ExitRotinaModal } from './ExitRotinaModal';
@@ -254,8 +254,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   stepCircleActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#A11E0A',
+    borderColor: '#A11E0A',
   },
   stepNumber: {
     fontSize: 12,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   stepLabelActive: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '600',
   },
   stepConnector: {

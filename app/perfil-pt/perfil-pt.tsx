@@ -2,14 +2,14 @@ import { router } from 'expo-router';
 import { ArrowLeft, Briefcase, Share2, Shield, User, X } from 'lucide-react-native';
 import React from 'react';
 import {
-    Animated,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import AvatarSection from '../../components/AvatarSection';
 import PasswordChangeSection from '../../components/PasswordChangeSection';
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#007AFF',
+    borderBottomColor: '#A11E0A',
   },
   tabText: {
     fontSize: 12,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeTabText: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '500',
   },
   
@@ -324,7 +324,7 @@ export default function Perfil() {
               style={[styles.tab, activeTab === 'pessoal' && styles.activeTab]}
               onPress={() => setActiveTab('pessoal')}
             >
-              <User size={20} color={activeTab === 'pessoal' ? '#007AFF' : '#64748B'} />
+              <User size={20} color={activeTab === 'pessoal' ? '#A11E0A' : '#64748B'} />
               <Text style={[styles.tabText, activeTab === 'pessoal' && styles.activeTabText]}>
                 Pessoal
               </Text>
@@ -334,7 +334,7 @@ export default function Perfil() {
               style={[styles.tab, activeTab === 'profissional' && styles.activeTab]}
               onPress={() => setActiveTab('profissional')}
             >
-              <Briefcase size={20} color={activeTab === 'profissional' ? '#007AFF' : '#64748B'} />
+              <Briefcase size={20} color={activeTab === 'profissional' ? '#A11E0A' : '#64748B'} />
               <Text style={[styles.tabText, activeTab === 'profissional' && styles.activeTabText]}>
                 Profissional
               </Text>
@@ -344,7 +344,7 @@ export default function Perfil() {
               style={[styles.tab, activeTab === 'redes' && styles.activeTab]}
               onPress={() => setActiveTab('redes')}
             >
-              <Share2 size={20} color={activeTab === 'redes' ? '#007AFF' : '#64748B'} />
+              <Share2 size={20} color={activeTab === 'redes' ? '#A11E0A' : '#64748B'} />
               <Text style={[styles.tabText, activeTab === 'redes' && styles.activeTabText]}>
                 Redes Sociais
               </Text>
@@ -354,7 +354,7 @@ export default function Perfil() {
               style={[styles.tab, activeTab === 'seguranca' && styles.activeTab]}
               onPress={() => setActiveTab('seguranca')}
             >
-              <Shield size={20} color={activeTab === 'seguranca' ? '#007AFF' : '#64748B'} />
+              <Shield size={20} color={activeTab === 'seguranca' ? '#A11E0A' : '#64748B'} />
               <Text style={[styles.tabText, activeTab === 'seguranca' && styles.activeTabText]}>
                 Segurança
               </Text>

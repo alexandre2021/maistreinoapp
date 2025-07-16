@@ -1,14 +1,14 @@
 import { Edit2, Eye, EyeOff, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-    Animated,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Animated,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 
@@ -187,7 +187,7 @@ const PasswordChangeSection: React.FC<PasswordChangeSectionProps> = ({
             onPress={openModal}
             disabled={loading}
           >
-            <Edit2 size={16} color="#007AFF" />
+            <Edit2 size={16} color="#A11E0A" />
             <Text style={styles.editButtonText}>Editar</Text>
           </TouchableOpacity>
         </View>
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '500',
   },
   passwordSection: {
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     alignItems: 'center',
   },
   saveButtonDisabled: {

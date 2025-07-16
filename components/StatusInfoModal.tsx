@@ -22,7 +22,7 @@ export const StatusInfoModal: React.FC<StatusInfoModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>Status dos Alunos</Text>
+            <Text style={styles.title}>Situação dos Alunos</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color="#6B7280" />
             </TouchableOpacity>
@@ -36,7 +36,7 @@ export const StatusInfoModal: React.FC<StatusInfoModalProps> = ({
               <View style={styles.statusContent}>
                 <Text style={styles.statusTitle}>Ativo</Text>
                 <Text style={styles.statusDescription}>
-                  Aluno completou o onboarding inicial e tem acesso completo ao app.
+                  Aluno completou o cadastro e tem acesso completo ao app.
                   Pode visualizar treinos, fazer avaliações e acompanhar progresso.
                 </Text>
               </View>
@@ -49,19 +49,11 @@ export const StatusInfoModal: React.FC<StatusInfoModalProps> = ({
               <View style={styles.statusContent}>
                 <Text style={styles.statusTitle}>Pendente</Text>
                 <Text style={styles.statusDescription}>
-                  Aluno foi cadastrado mas ainda não completou o onboarding.
+                  Aluno ainda não completou o cadastro.
                   Precisa preencher informações básicas como objetivos, 
-                  medidas e preferências de treino.
+                  tempo de experiência e preferências de treino.
                 </Text>
               </View>
-            </View>
-
-            <View style={styles.note}>
-              <Text style={styles.noteText}>
-                💡 <Text style={styles.noteTextBold}>Dica:</Text> Alunos pendentes 
-                recebem notificações para completar o cadastro. Você pode 
-                acompanhar o progresso na tela de detalhes do aluno.
-              </Text>
             </View>
           </View>
         </View>
@@ -125,21 +117,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
-  },
-  note: {
-    backgroundColor: '#F0F9FF',
-    padding: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
-    marginTop: 10,
-  },
-  noteText: {
-    fontSize: 14,
-    color: '#1E40AF',
-    lineHeight: 20,
-  },
-  noteTextBold: {
-    fontWeight: '600',
   },
 });

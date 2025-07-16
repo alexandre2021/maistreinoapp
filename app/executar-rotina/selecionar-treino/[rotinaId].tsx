@@ -1,9 +1,10 @@
-// app/execucao/selecionar-treino/[rotinaId].tsx
+// app/execucao/selecionar-treino/[rotinaId].tsx - VERSÃO MELHORADA
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,10 +13,12 @@ import {
   View
 } from 'react-native';
 
+import { ConfirmActionModal } from '../../../components/rotina/ConfirmActionModal';
+import { MENSAGENS, SESSAO_STATUS } from '../../../constants/exercicio.constants';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../lib/supabase';
 
-// ✅ INTERFACES
+// ✅ INTERFACES EXPANDIDAS
 interface Rotina {
   id: string;
   nome: string;
@@ -29,6 +32,10 @@ interface Treino {
   nome: string;
   grupos_musculares: string;
   ordem: number;
+  sessoes_disponiveis: number;
+  sessoes_concluidas: number;
+  tem_em_andamento: boolean;
+  sessao_em_andamento_id?: string;
 }
 
 interface UltimaSessao {
@@ -42,19 +49,39 @@ interface AlunoData {
   email: string;
 }
 
+interface SessaoEmAndamento {
+  id: string;
+  treino_id: string;
+  treino_nome: string;
+  data_execucao: string;
+  sessao_numero: number;
+}
+
 export default function SelecionarTreinoScreen() {
   // ✅ AUTENTICAÇÃO E NAVEGAÇÃO
   useAuth();
   const router = useRouter();
   const { rotinaId } = useLocalSearchParams<{ rotinaId: string }>();
 
-  // ✅ ESTADOS
+  // ✅ ESTADOS EXISTENTES
   const [loading, setLoading] = useState(true);
   const [rotina, setRotina] = useState<Rotina | null>(null);
   const [aluno, setAluno] = useState<AlunoData | null>(null);
   const [treinos, setTreinos] = useState<Treino[]>([]);
   const [ultimaSessao, setUltimaSessao] = useState<UltimaSessao | null>(null);
   const [treinoSugerido, setTreinoSugerido] = useState<string>('');
+
+  // ✅ NOVOS ESTADOS PARA MODAL
+  const [modalVisible, setModalVisible] = useState(false);
+  const [sessoesEmAndamento, setSessoesEmAndamento] = useState<SessaoEmAndamento[]>([]);
+  const [treinoSelecionado, setTreinoSelecionado] = useState<Treino | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [tipoModal, setTipoModal] = useState<'continuar_ou_nova' | 'escolher_sessao'>('continuar_ou_nova');
+
+  // ✅ ESTADOS PARA TOAST
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   // Função auxiliar para calcular dias desde uma data
   function calcularDiasDesde(dataStr: string) {
@@ -63,26 +90,109 @@ export default function SelecionarTreinoScreen() {
     return Math.floor((hoje.getTime() - data.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  // ✅ BUSCAR ÚLTIMA SESSÃO - CONSULTA SIMPLES SEM JOINS
+  // ✅ BUSCAR SESSÕES EM ANDAMENTO PARA UM TREINO ESPECÍFICO (MÚLTIPLAS)
+  const buscarSessoesEmAndamento = useCallback(async (treinoId: string) => {
+    try {
+      const { data: sessoes, error } = await supabase
+        .from('execucoes_sessao')
+        .select(`
+          id,
+          treino_id,
+          data_execucao,
+          sessao_numero,
+          treinos!inner(nome)
+        `)
+        .eq('rotina_id', rotinaId)
+        .eq('treino_id', treinoId)
+        .eq('status', SESSAO_STATUS.EM_ANDAMENTO)
+        .order('sessao_numero', { ascending: true });
+
+      if (error || !sessoes) {
+        return [];
+      }
+
+      return sessoes.map(sessao => ({
+        id: sessao.id,
+        treino_id: sessao.treino_id,
+        treino_nome: (sessao.treinos as any)?.nome || `Treino ${sessao.treino_id}`,
+        data_execucao: sessao.data_execucao,
+        sessao_numero: sessao.sessao_numero
+      })) as SessaoEmAndamento[];
+    } catch (error) {
+      console.error('Erro ao buscar sessões em andamento:', error);
+      return [];
+    }
+  }, [rotinaId]);
+
+  // ✅ BUSCAR PRÓXIMA SESSÃO DISPONÍVEL PARA UM TREINO
+  const buscarProximaSessaoDisponivel = useCallback(async (treinoId: string) => {
+    try {
+      const { data: sessao, error } = await supabase
+        .from('execucoes_sessao')
+        .select('id, sessao_numero')
+        .eq('rotina_id', rotinaId)
+        .eq('treino_id', treinoId)
+        .eq('status', SESSAO_STATUS.NAO_INICIADA)
+        .order('sessao_numero', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (error || !sessao) {
+        return null;
+      }
+
+      return sessao;
+    } catch (error) {
+      console.error('Erro ao buscar sessão disponível:', error);
+      return null;
+    }
+  }, [rotinaId]);
+
+  // ✅ CONTAR SESSÕES POR TREINO
+  const contarSessoesPorTreino = useCallback(async (treinoId: string) => {
+    try {
+      const { data: sessoes, error } = await supabase
+        .from('execucoes_sessao')
+        .select('status')
+        .eq('rotina_id', rotinaId)
+        .eq('treino_id', treinoId);
+
+      if (error || !sessoes) {
+        return { disponiveis: 0, concluidas: 0, emAndamento: false };
+      }
+
+      const concluidas = sessoes.filter(s => s.status === SESSAO_STATUS.CONCLUIDA).length;
+      const naoIniciadas = sessoes.filter(s => s.status === SESSAO_STATUS.NAO_INICIADA).length;
+      const emAndamento = sessoes.some(s => s.status === SESSAO_STATUS.EM_ANDAMENTO);
+
+      return {
+        disponiveis: naoIniciadas,
+        concluidas: concluidas,
+        emAndamento: emAndamento
+      };
+    } catch (error) {
+      console.error('Erro ao contar sessões:', error);
+      return { disponiveis: 0, concluidas: 0, emAndamento: false };
+    }
+  }, [rotinaId]);
+
+  // ✅ BUSCAR ÚLTIMA SESSÃO - MANTIDA
   const buscarUltimaSessao = useCallback(async (alunoId: string) => {
     try {
-      // Consulta simples
       const { data: ultimaExecucao, error } = await supabase
         .from('execucoes_sessao')
         .select('data_execucao, treino_id')
         .eq('aluno_id', alunoId)
-        .eq('status', 'concluida')
+        .eq('status', SESSAO_STATUS.CONCLUIDA)
         .order('data_execucao', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error || !ultimaExecucao) {
-        console.log('Nenhuma sessão encontrada');
         setUltimaSessao(null);
         return null;
       }
 
-      // Busca separada do nome do treino
       const { data: treino } = await supabase
         .from('treinos')
         .select('nome')
@@ -103,47 +213,43 @@ export default function SelecionarTreinoScreen() {
     }
   }, []);
 
-  // Função auxiliar para buscar próximo número de sessão
-  const getProximoNumeroSessao = async (alunoId: string) => {
-    const { data: ultimaSessao } = await supabase
-      .from('execucoes_sessao')
-      .select('sessao_numero')
-      .eq('aluno_id', alunoId)
-      .order('sessao_numero', { ascending: false })
-      .limit(1)
-      .single();
-    return ultimaSessao ? ultimaSessao.sessao_numero + 1 : 1;
-  };
-
-  // ✅ CALCULAR TREINO SUGERIDO
+  // ✅ CALCULAR TREINO SUGERIDO - MANTIDA
   const calcularTreinoSugerido = useCallback((ultimoTreino: string | null, treinosLista: Treino[]) => {
     if (!treinosLista.length) return '';
 
+    // Filtrar apenas treinos que têm sessões disponíveis
+    const treinosDisponiveis = treinosLista.filter(t => t.sessoes_disponiveis > 0);
+    
+    if (!treinosDisponiveis.length) return '';
+
     if (!ultimoTreino) {
-      // Se nunca executou, sugerir o primeiro treino (ordem 1)
-      const primeiroTreino = treinosLista.find(t => t.ordem === 1);
-      return primeiroTreino?.nome || treinosLista[0]?.nome || '';
+      const primeiroTreino = treinosDisponiveis.find(t => t.ordem === 1);
+      return primeiroTreino?.nome || treinosDisponiveis[0]?.nome || '';
     }
 
-    // Encontrar o treino atual e sugerir o próximo
-    const treinoAtualIndex = treinosLista.findIndex(t => t.nome === ultimoTreino);
+    const treinoAtualIndex = treinosDisponiveis.findIndex(t => t.nome === ultimoTreino);
     
     if (treinoAtualIndex === -1) {
-      // Se não encontrou o treino anterior, sugerir o primeiro
-      return treinosLista[0]?.nome || '';
+      return treinosDisponiveis[0]?.nome || '';
     }
 
-    // Sugerir o próximo treino na sequência (circular)
-    const proximoIndex = (treinoAtualIndex + 1) % treinosLista.length;
-    return treinosLista[proximoIndex]?.nome || '';
+    const proximoIndex = (treinoAtualIndex + 1) % treinosDisponiveis.length;
+    return treinosDisponiveis[proximoIndex]?.nome || '';
   }, []);
 
-  // ✅ CARREGAR DADOS
+  // ✅ FUNÇÃO TOAST
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 4000);
+  };
+
+  // ✅ CARREGAR DADOS COM LÓGICA EXPANDIDA
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Verificar autenticação
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         router.replace('/');
@@ -163,10 +269,9 @@ export default function SelecionarTreinoScreen() {
         router.back();
         return;
       }
-
       setRotina(rotinaData);
 
-      // Buscar dados do aluno separadamente
+      // Buscar dados do aluno
       const { data: alunoData, error: alunoError } = await supabase
         .from('alunos')
         .select('nome_completo, email')
@@ -178,7 +283,6 @@ export default function SelecionarTreinoScreen() {
         router.back();
         return;
       }
-
       setAluno(alunoData);
 
       // Buscar treinos da rotina
@@ -194,14 +298,27 @@ export default function SelecionarTreinoScreen() {
         return;
       }
 
-      const treinosList = treinosData || [];
-      setTreinos(treinosList);
+      // ✅ ENRIQUECER TREINOS COM CONTAGEM DE SESSÕES
+      const treinosEnriquecidos = await Promise.all(
+        (treinosData || []).map(async (treino) => {
+          const contagem = await contarSessoesPorTreino(treino.id);
+          const sessoesEmAndamento = await buscarSessoesEmAndamento(treino.id);
 
-      // Buscar última sessão executada
+          return {
+            ...treino,
+            sessoes_disponiveis: contagem.disponiveis,
+            sessoes_concluidas: contagem.concluidas,
+            tem_em_andamento: contagem.emAndamento,
+            sessao_em_andamento_id: sessoesEmAndamento[0]?.id // Primeira para compatibilidade
+          };
+        })
+      );
+
+      setTreinos(treinosEnriquecidos);
+
+      // Buscar última sessão e calcular sugerido
       const ultimoTreino = await buscarUltimaSessao(rotinaData.aluno_id);
-      
-      // Calcular treino sugerido
-      const sugerido = calcularTreinoSugerido(ultimoTreino, treinosList);
+      const sugerido = calcularTreinoSugerido(ultimoTreino, treinosEnriquecidos);
       setTreinoSugerido(sugerido);
 
     } catch (error) {
@@ -211,7 +328,118 @@ export default function SelecionarTreinoScreen() {
     } finally {
       setLoading(false);
     }
-  }, [rotinaId, buscarUltimaSessao, calcularTreinoSugerido, router]);
+  }, [rotinaId, contarSessoesPorTreino, buscarSessoesEmAndamento, buscarUltimaSessao, calcularTreinoSugerido, router]);
+
+  // ✅ INICIAR TREINO COM LÓGICA INTELIGENTE EXPANDIDA
+  const iniciarTreino = async (treino: Treino) => {
+    try {
+      // 1. Verificar se treino está completo
+      if (treino.sessoes_disponiveis === 0 && !treino.tem_em_andamento) {
+        showToast(`Todas as sessões do ${treino.nome} foram concluídas`, 'error');
+        return;
+      }
+
+      // 2. Buscar todas as sessões em andamento
+      const sessoesAndamento = await buscarSessoesEmAndamento(treino.id);
+      
+      if (sessoesAndamento.length > 0) {
+        // 3a. Se tem sessões em andamento + tem disponíveis → Modal continuar/nova
+        if (treino.sessoes_disponiveis > 0) {
+          setTreinoSelecionado(treino);
+          setSessoesEmAndamento(sessoesAndamento);
+          setTipoModal('continuar_ou_nova');
+          setModalVisible(true);
+          return;
+        }
+        
+        // 3b. Se só tem uma sessão em andamento e zero disponíveis → Ir direto
+        if (sessoesAndamento.length === 1) {
+          router.push(`/executar-rotina/executar-treino/${sessoesAndamento[0].id}` as never);
+          return;
+        }
+        
+        // 3c. Se tem múltiplas sessões em andamento e zero disponíveis → Modal escolher
+        setTreinoSelecionado(treino);
+        setSessoesEmAndamento(sessoesAndamento);
+        setTipoModal('escolher_sessao');
+        setModalVisible(true);
+        return;
+      }
+
+      // 4. Não tem sessões em andamento → Iniciar nova sessão
+      await iniciarNovaSessao(treino);
+
+    } catch (error) {
+      console.error('Erro ao iniciar treino:', error);
+      showToast('Erro inesperado ao iniciar treino', 'error');
+    }
+  };
+
+  // ✅ INICIAR NOVA SESSÃO
+  const iniciarNovaSessao = async (treino: Treino) => {
+    try {
+      if (!rotina) return;
+
+      const sessaoDisponivel = await buscarProximaSessaoDisponivel(treino.id);
+      
+      if (!sessaoDisponivel) {
+        showToast('Nenhuma sessão disponível para este treino', 'error');
+        return;
+      }
+
+      // Atualizar sessão existente ao invés de criar nova
+      const hoje = new Date().toISOString().split('T')[0];
+      
+      const { data: sessaoAtualizada, error: updateError } = await supabase
+        .from('execucoes_sessao')
+        .update({
+          status: SESSAO_STATUS.EM_ANDAMENTO,
+          data_execucao: hoje
+        })
+        .eq('id', sessaoDisponivel.id)
+        .select('id')
+        .single();
+
+      if (updateError || !sessaoAtualizada) {
+        console.error('Erro ao atualizar sessão:', updateError);
+        showToast('Não foi possível iniciar a sessão de treino', 'error');
+        return;
+      }
+
+      console.log('Sessão iniciada com sucesso:', sessaoAtualizada.id);
+      router.push(`/executar-rotina/executar-treino/${sessaoAtualizada.id}` as never);
+
+    } catch (error) {
+      console.error('Erro ao iniciar nova sessão:', error);
+      showToast('Erro inesperado ao iniciar nova sessão', 'error');
+    }
+  };
+
+  // ✅ CONTINUAR SESSÃO EXISTENTE
+  const continuarSessao = () => {
+    if (sessoesEmAndamento.length === 0) return;
+    
+    // Se tem apenas uma sessão, vai direto. Se tem múltiplas, pega a primeira
+    const sessaoParaContinuar = sessoesEmAndamento[0];
+    setModalVisible(false);
+    router.push(`/executar-rotina/executar-treino/${sessaoParaContinuar.id}` as never);
+  };
+
+  // ✅ CONTINUAR SESSÃO ESPECÍFICA (PARA MÚLTIPLAS SESSÕES)
+  const continuarSessaoEspecifica = (sessaoId: string) => {
+    setModalVisible(false);
+    router.push(`/executar-rotina/executar-treino/${sessaoId}` as never);
+  };
+
+  // ✅ NOVA SESSÃO (IGNORAR EM ANDAMENTO)
+  const criarNovaSessao = async () => {
+    if (!treinoSelecionado) return;
+
+    setModalLoading(true);
+    setModalVisible(false);
+    await iniciarNovaSessao(treinoSelecionado);
+    setModalLoading(false);
+  };
 
   // ✅ EFFECT
   useEffect(() => {
@@ -219,7 +447,7 @@ export default function SelecionarTreinoScreen() {
     loadData();
   }, [loadData, rotinaId]);
 
-  // ✅ FORMATAÇÃO DE DATA
+  // ✅ FORMATAÇÃO DE DATA - MANTIDA
   const formatarDataUltimaSessao = (dataISO: string, dias: number) => {
     const data = new Date(dataISO);
     const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -232,46 +460,7 @@ export default function SelecionarTreinoScreen() {
     return `${diaSemana}, ${dia}/${mes} (${dias} ${dias === 1 ? 'dia' : 'dias'})`;
   };
 
-  // ✅ SELECIONAR TREINO E INICIAR EXECUÇÃO - AJUSTADO PARA DATE E SESSÃO
-  const iniciarTreino = async (treino: Treino) => {
-    try {
-      if (!rotina || !aluno) return;
-
-      // Usar data no formato YYYY-MM-DD (compatível com tipo 'date' do banco)
-      const hoje = new Date().toISOString().split('T')[0];
-      const proximoNumero = await getProximoNumeroSessao(rotina.aluno_id);
-
-      const { data: novaSessao, error: sessaoError } = await supabase
-        .from('execucoes_sessao')
-        .insert([{
-          rotina_id: rotinaId,
-          treino_id: treino.id,
-          aluno_id: rotina.aluno_id,
-          sessao_numero: proximoNumero,
-          status: 'em_andamento',
-          data_execucao: hoje, // Formatado como 'date'
-          tempo_total_minutos: null,
-          observacoes: null
-        }])
-        .select('id')
-        .single();
-
-      if (sessaoError || !novaSessao) {
-        console.error('Erro ao criar sessão:', sessaoError);
-        Alert.alert('Erro', 'Não foi possível iniciar a sessão de treino');
-        return;
-      }
-
-      console.log('Sessão criada com sucesso:', novaSessao.id);
-      router.push(`/executar-rotina/executar-treino/${novaSessao.id}` as never);
-
-    } catch (error) {
-      console.error('Erro ao iniciar treino:', error);
-      Alert.alert('Erro', 'Erro inesperado ao iniciar treino');
-    }
-  };
-
-  // ✅ LOADING
+  // ✅ LOADING - MANTIDO
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -297,13 +486,13 @@ export default function SelecionarTreinoScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+      {/* HEADER - MANTIDO */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.headerBackButton}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#A11E0A" />
         </TouchableOpacity>
         
         <View style={styles.headerContent}>
@@ -313,7 +502,7 @@ export default function SelecionarTreinoScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* SEÇÃO DE CONTEXTO */}
+        {/* SEÇÃO DE CONTEXTO - MANTIDA */}
         <View style={styles.contextSection}>
           {ultimaSessao ? (
             <>
@@ -335,15 +524,16 @@ export default function SelecionarTreinoScreen() {
           <Text style={styles.contextValueSuggested}>{treinoSugerido}</Text>
         </View>
 
-        {/* DIVISOR */}
         <View style={styles.divider} />
 
-        {/* SELEÇÃO DE TREINO */}
+        {/* ✅ SELEÇÃO DE TREINO MELHORADA */}
         <View style={styles.selectionSection}>
           <Text style={styles.selectionTitle}>SELECIONAR TREINO</Text>
           
           {treinos.map((treino) => {
             const isSugerido = treino.nome === treinoSugerido;
+            const isCompleto = treino.sessoes_disponiveis === 0 && !treino.tem_em_andamento;
+            const emAndamentoBadge = treino.tem_em_andamento;
             const grupos = treino.grupos_musculares ? treino.grupos_musculares.split(', ') : [];
             
             return (
@@ -351,23 +541,49 @@ export default function SelecionarTreinoScreen() {
                 key={treino.id}
                 style={[
                   styles.treinoCard,
-                  isSugerido && styles.treinoCardSugerido
+                  isSugerido && styles.treinoCardSugerido,
+                  isCompleto && styles.treinoCardCompleto
                 ]}
                 onPress={() => iniciarTreino(treino)}
+                disabled={isCompleto}
               >
                 <View style={styles.treinoInfo}>
                   <View style={styles.treinoHeader}>
                     <Text style={[
                       styles.treinoNome,
-                      isSugerido && styles.treinoNomeSugerido
+                      isSugerido && styles.treinoNomeSugerido,
+                      isCompleto && styles.treinoNomeCompleto
                     ]}>
                       {treino.nome}
                     </Text>
-                    {isSugerido && (
-                      <View style={styles.sugeridoBadge}>
-                        <Text style={styles.sugeridoText}>SUGERIDO</Text>
-                      </View>
-                    )}
+                    
+                    {/* ✅ BADGES DE STATUS */}
+                    <View style={styles.badgesContainer}>
+                      {isSugerido && !isCompleto && (
+                        <View style={styles.sugeridoBadge}>
+                          <Text style={styles.sugeridoText}>SUGERIDO</Text>
+                        </View>
+                      )}
+                      
+                      {emAndamentoBadge && (
+                        <View style={styles.emAndamentoBadge}>
+                          <Text style={styles.emAndamentoText}>EM ANDAMENTO</Text>
+                        </View>
+                      )}
+                      
+                      {isCompleto && (
+                        <View style={styles.completoBadge}>
+                          <Text style={styles.completoText}>COMPLETO</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  
+                  {/* ✅ PROGRESSO DAS SESSÕES */}
+                  <View style={styles.progressoContainer}>
+                    <Text style={styles.progressoTexto}>
+                      {treino.sessoes_concluidas} concluídas • {treino.sessoes_disponiveis} disponíveis
+                    </Text>
                   </View>
                   
                   {grupos.length > 0 && (
@@ -382,25 +598,106 @@ export default function SelecionarTreinoScreen() {
                 </View>
 
                 <View style={styles.treinoAction}>
-                  <Ionicons name="play" size={24} color="#007AFF" />
+                  <Ionicons 
+                    name={isCompleto ? "checkmark-circle" : "play"} 
+                    size={24} 
+                    color={isCompleto ? "#10B981" : "#A11E0A"} 
+                  />
                 </View>
               </TouchableOpacity>
             );
           })}
         </View>
       </ScrollView>
+
+      {/* ✅ MODAL ADAPTADA PARA MÚLTIPLOS CENÁRIOS */}
+      {tipoModal === 'continuar_ou_nova' ? (
+        <ConfirmActionModal
+          visible={modalVisible}
+          title="Sessão em Andamento"
+          message={
+            sessoesEmAndamento.length > 0
+              ? `${MENSAGENS.CONTINUAR_SESSAO}\n\n${sessoesEmAndamento[0].treino_nome} - Sessão ${sessoesEmAndamento[0].sessao_numero}\nIniciada em ${new Date(sessoesEmAndamento[0].data_execucao).toLocaleDateString('pt-BR')}`
+              : MENSAGENS.CONTINUAR_SESSAO
+          }
+          confirmText="Continuar"
+          cancelText="Nova Sessão"
+          loading={modalLoading}
+          onConfirm={continuarSessao}
+          onCancel={criarNovaSessao}
+          actionType="warning"
+        />
+      ) : (
+        // ✅ NOVA MODAL PARA MÚLTIPLAS SESSÕES
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Ionicons name="list" size={24} color="#F59E0B" />
+                <Text style={styles.modalTitle}>Escolher Sessão</Text>
+              </View>
+              
+              <Text style={styles.modalMessage}>
+                Você tem múltiplas sessões em andamento. Escolha qual continuar:
+              </Text>
+              
+              <View style={styles.sessoesList}>
+                {sessoesEmAndamento.map((sessao, index) => (
+                  <TouchableOpacity
+                    key={sessao.id}
+                    style={styles.sessaoItem}
+                    onPress={() => continuarSessaoEspecifica(sessao.id)}
+                  >
+                    <View style={styles.sessaoInfo}>
+                      <Text style={styles.sessaoTitulo}>
+                        Sessão {sessao.sessao_numero}
+                      </Text>
+                      <Text style={styles.sessaoData}>
+                        Iniciada em {new Date(sessao.data_execucao).toLocaleDateString('pt-BR')}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <TouchableOpacity 
+                style={styles.modalButtonSecondary}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonSecondaryText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* ✅ TOAST DE NOTIFICAÇÃO */}
+      {toastVisible && (
+        <View style={[
+          styles.toast, 
+          toastType === 'success' ? styles.toastSuccess : styles.toastError
+        ]}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
-// ✅ STYLES
+// ✅ STYLES EXPANDIDOS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
 
-  // Header
+  // Header - Mantido
   header: {
     backgroundColor: 'white',
     flexDirection: 'row',
@@ -429,12 +726,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Content
+  // Content - Mantido
   content: {
     flex: 1,
   },
 
-  // Context Section
+  // Context Section - Mantido
   contextSection: {
     backgroundColor: 'white',
     padding: 20,
@@ -462,11 +759,11 @@ const styles = StyleSheet.create({
   },
   contextValueSuggested: {
     fontSize: 18,
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '600',
   },
 
-  // Divider
+  // Divider - Mantido
   divider: {
     height: 1,
     backgroundColor: '#E5E7EB',
@@ -474,7 +771,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 
-  // Selection Section
+  // Selection Section - Mantido
   selectionSection: {
     paddingHorizontal: 16,
     paddingBottom: 20,
@@ -487,7 +784,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // Treino Cards
+  // ✅ Treino Cards - Expandidos
   treinoCard: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -505,9 +802,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   treinoCardSugerido: {
-    borderColor: '#007AFF',
+    borderColor: '#A11E0A',
     borderWidth: 2,
     backgroundColor: '#F0F9FF',
+  },
+  treinoCardCompleto: {
+    backgroundColor: '#F9FAFB',
+    borderColor: '#D1D5DB',
+    opacity: 0.7,
   },
   treinoInfo: {
     flex: 1,
@@ -515,29 +817,75 @@ const styles = StyleSheet.create({
   treinoHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
   treinoNome: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
-    marginRight: 12,
+    flex: 1,
   },
   treinoNomeSugerido: {
-    color: '#007AFF',
+    color: '#A11E0A',
+  },
+  treinoNomeCompleto: {
+    color: '#9CA3AF',
+  },
+
+  // ✅ Badges Container
+  badgesContainer: {
+    flexDirection: 'row',
+    gap: 6,
   },
   sugeridoBadge: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: '#A11E0A',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   sugeridoText: {
     color: 'white',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
+  emAndamentoBadge: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  emAndamentoText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  completoBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  completoText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+
+  // ✅ Progresso das Sessões
+  progressoContainer: {
+    marginBottom: 8,
+  },
+  progressoTexto: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+
+  // Grupos - Mantido
   gruposContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -558,7 +906,115 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 
-  // Loading/Error
+  // ✅ Modal Styles para Múltiplas Sessões
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#4B5563',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  sessoesList: {
+    marginBottom: 20,
+    gap: 8,
+  },
+  sessaoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  sessaoInfo: {
+    flex: 1,
+  },
+  sessaoTitulo: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  sessaoData: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  modalButtonSecondary: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: 'white',
+    alignItems: 'center',
+  },
+  modalButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+
+  // ✅ Toast Styles
+  toast: {
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 9999,
+  },
+  toastSuccess: {
+    backgroundColor: 'rgba(0, 122, 255, 1.00)',
+  },
+  toastError: {
+    backgroundColor: '#DC2626',
+  },
+  toastText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  // Loading/Error - Mantido
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -581,7 +1037,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

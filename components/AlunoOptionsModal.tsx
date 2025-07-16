@@ -32,50 +32,53 @@ export const AlunoOptionsModal: React.FC<AlunoOptionsModalProps> = ({
   onViewRotinas,
   onDelete
 }) => {
+
   if (!aluno) return null;
 
-  // ✅ CORREÇÃO: Função para lidar com exclusão
+  // Função para lidar com exclusão
   const handleDelete = () => {
-    // Não fecha a modal imediatamente - deixa o parent controlar
     onDelete();
   };
 
-  // ✅ CORREÇÃO: Função para lidar com outras opções
+  // Função para lidar com outras opções
   const handleOptionPress = (optionHandler: () => void) => {
     optionHandler();
-    // Só fecha para opções que não são delete - o parent já controla isso
   };
 
-  const options = [
-    {
-      icon: User,
-      label: 'Ver Detalhes',
-      description: 'Informações pessoais e dados do aluno',
-      onPress: () => handleOptionPress(onViewDetails),
-      color: '#3B82F6'
-    },
-    {
-      icon: FileText,
-      label: 'PAR-Q',
-      description: 'Questionário de prontidão para atividade física',
-      onPress: () => handleOptionPress(onViewParQ),
-      color: '#10B981'
-    },
-    {
-      icon: BarChart3,
-      label: 'Avaliações',
-      description: 'Medidas corporais e evolução física',
-      onPress: () => handleOptionPress(onViewAvaliacoes),
-      color: '#8B5CF6'
-    },
-    {
-      icon: Dumbbell,
-      label: 'Rotinas',
-      description: 'Rotinas de treino personalizadas',
-      onPress: () => handleOptionPress(onViewRotinas),
-      color: '#F59E0B'
-    }
-  ];
+  // Se o aluno está pendente, só mostra a opção de excluir
+  const isPendente = !aluno.onboarding_completo;
+  const options = isPendente
+    ? []
+    : [
+        {
+          icon: User,
+          label: 'Detalhes',
+          description: 'Informações pessoais e dados do aluno',
+          onPress: () => handleOptionPress(onViewDetails),
+          color: '#3B82F6'
+        },
+        {
+          icon: FileText,
+          label: 'PAR-Q',
+          description: 'Questionário de prontidão para atividade física',
+          onPress: () => handleOptionPress(onViewParQ),
+          color: '#10B981'
+        },
+        {
+          icon: BarChart3,
+          label: 'Avaliações',
+          description: 'Medidas corporais e evolução física',
+          onPress: () => handleOptionPress(onViewAvaliacoes),
+          color: '#8B5CF6'
+        },
+        {
+          icon: Dumbbell,
+          label: 'Rotinas',
+          description: 'Rotinas de treino personalizadas',
+          onPress: () => handleOptionPress(onViewRotinas),
+          color: '#F59E0B'
+        }
+      ];
 
   return (
     <Modal
@@ -124,7 +127,7 @@ export const AlunoOptionsModal: React.FC<AlunoOptionsModalProps> = ({
               </View>
               <View style={styles.optionContent}>
                 <Text style={[styles.optionLabel, styles.deleteLabel]}>
-                  Excluir Aluno
+                  Excluir
                 </Text>
                 <Text style={styles.optionDescription}>
                   Remove permanentemente todos os dados do aluno

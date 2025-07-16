@@ -10,7 +10,7 @@ import {
     View,
 } from 'react-native';
 
-// INTERFACE ATUALIZADA PARA COMPATIBILIDADE
+// ✅ INTERFACE CORRIGIDA
 export interface AlunoData {
     id: string;
     nome_completo: string;
@@ -18,11 +18,9 @@ export interface AlunoData {
     telefone: string;
     data_nascimento: string;
     genero: string;
-    peso: number;
-    altura: number;
-    objetivo_principal: string;
-    nivel_experiencia: string;
-    frequencia_desejada: string;
+    peso: number | null;        // ✅ CORREÇÃO: Permite valor nulo
+    altura: number | null;      // ✅ CORREÇÃO: Permite valor nulo
+    descricao_pessoal: string;
     par_q_respostas: { [key: string]: boolean };
     avatar_letter: string;
     avatar_color: string;
@@ -31,17 +29,15 @@ export interface AlunoData {
     created_at: string;
 }
 
+// PROPS ATUALIZADAS
 interface PerfilTabsProps {
     // Estados
-    activeTab: 'pessoal' | 'objetivos' | 'parq' | 'seguranca';
+    activeTab: 'pessoal' | 'descricao' | 'parq' | 'seguranca';
     userData: AlunoData | null;
     showEditModal: boolean;
     showDatePicker: boolean;
     showGeneroOptions: boolean;
-    showObjetivoOptions: boolean;
-    showNivelOptions: boolean;
-    showFrequenciaOptions: boolean;
-    editingSection: 'pessoal' | 'objetivos' | null;
+    editingSection: 'pessoal' | 'descricao' | null;
     editData: Partial<AlunoData>;
     selectedDay: number;
     selectedMonth: number;
@@ -49,9 +45,6 @@ interface PerfilTabsProps {
 
     // Constantes
     generoOptions: string[];
-    objetivoOptions: string[];
-    nivelExperienciaOptions: string[];
-    frequenciaTreinoOptions: string[];
     perguntasParQ: string[];
 
     // Funções
@@ -61,14 +54,11 @@ interface PerfilTabsProps {
     getCurrentDate: () => { day: number; month: number; year: number };
     handlePesoChange: (value: string) => string;
     handleAlturaChange: (value: string) => string;
-    openEditModal: (section: 'pessoal' | 'objetivos') => void;
+    openEditModal: (section: 'pessoal' | 'descricao') => void;
     saveChanges: () => void;
     setShowEditModal: (show: boolean) => void;
     setShowDatePicker: (show: boolean) => void;
     setShowGeneroOptions: (show: boolean) => void;
-    setShowObjetivoOptions: (show: boolean) => void;
-    setShowNivelOptions: (show: boolean) => void;
-    setShowFrequenciaOptions: (show: boolean) => void;
     setEditData: (data: Partial<AlunoData>) => void;
     setSelectedDay: (day: number) => void;
     setSelectedMonth: (month: number) => void;
@@ -96,14 +86,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#1F2937',
     },
-    sectionDescriptionAviso: {
-        color: '#92400E',
-        fontSize: 13,
-        fontWeight: '500',
-        marginTop: 8,
-        marginBottom: 8,
-        lineHeight: 18,
-    },
     editButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -111,7 +93,7 @@ const styles = StyleSheet.create({
     },
     editButtonText: {
         fontSize: 14,
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '500',
     },
 
@@ -120,10 +102,6 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     infoItem: {
-        width: '100%',
-        marginBottom: 12,
-    },
-    infoItemFull: {
         width: '100%',
         marginBottom: 12,
     },
@@ -172,7 +150,7 @@ const styles = StyleSheet.create({
     parqQuestionNumber: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#007AFF',
+        color: '#A11E0A',
         marginBottom: 8,
     },
     parqQuestionText: {
@@ -274,7 +252,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 8,
-        backgroundColor: '#007AFF',
+        backgroundColor: '#A11E0A',
         alignItems: 'center',
     },
     saveEditText: {
@@ -391,7 +369,7 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     pickerTextSelected: {
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '600',
     },
     datePickerButtons: {
@@ -415,7 +393,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 12,
-        backgroundColor: '#007AFF',
+        backgroundColor: '#A11E0A',
         alignItems: 'center',
     },
     confirmButtonText: {
@@ -423,322 +401,66 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '600',
     },
-
-    // ======= NOVOS ESTILOS PARA O CARD PADRÃO DE INFORMAÇÕES INICIAIS =======
-    cardInfoInicial: {
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        borderRadius: 14,
-        margin: 16,
-        marginTop: 24,
-        marginBottom: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 2,
-        borderWidth: 1,
-        borderColor: '#FDE68A', // amarelo claro
-        minHeight: 180,
+    
+    // NOVOS ESTILOS ADICIONADOS
+    descricaoCard: {
+      backgroundColor: '#FFFBEB',
+      borderLeftWidth: 4,
+      borderLeftColor: '#F59E0B',
+      borderRadius: 12,
+      padding: 20,
+      margin: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.04,
+      shadowRadius: 2,
+      elevation: 1,
     },
-    cardLateralBarraAmarela: {
-        width: 7,
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
-        backgroundColor: '#F59E0B', // amarelo
+    descricaoHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
     },
-    cardContentWrapper: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
+    descricaoTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#92400E',
     },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#92400E',
-        marginBottom: 8,
+    descricaoText: {
+      fontSize: 16,
+      color: '#1F2937',
+      lineHeight: 24,
+      textAlign: 'justify',
     },
-    cardAvisoFotografia: {
-        color: '#92400E',
-        fontSize: 13,
-        fontWeight: '500',
-        marginBottom: 18,
-        lineHeight: 18,
-        backgroundColor: '#FEF3C7',
-        borderRadius: 8,
-        padding: 10,
-        marginRight: 8,
+    descricaoEmpty: {
+      fontSize: 16,
+      color: '#64748B',
+      fontStyle: 'italic',
+      textAlign: 'center',
+      paddingVertical: 20,
     },
-    cardAvisoFotografiaBox: {
-        backgroundColor: '#FEF3C7',
-        borderRadius: 8,
-        padding: 10,
-        marginBottom: 18,
-        marginRight: 8,
+    descricaoAviso: {
+      backgroundColor: '#FEF3C7',
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 16,
     },
-    cardAvisoFotografiaTexto: {
-        color: '#92400E',
-        fontSize: 13,
-        fontWeight: '500',
-        lineHeight: 18,
+    descricaoAvisoText: {
+      fontSize: 13,
+      color: '#92400E',
+      fontWeight: '500',
+      lineHeight: 18,
     },
-    cardInfoGrid: {
-        gap: 12,
-    },
-    cardInfoItem: {
-        marginBottom: 6,
-    },
-    cardInfoLabel: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#92400E',
-        marginBottom: 2,
-    },
-    cardInfoValue: {
-        fontSize: 16,
-        color: '#92400E',
-        fontWeight: '600',
-        lineHeight: 22,
-    },
-
-    // ======= ESTILOS PARA A ABA OBJETIVOS (ETAPA 2 ONBOARDING) =======
-    tabContentNoBorder: {
-        backgroundColor: 'transparent',
-        margin: 16,
-        padding: 0,
-    },
-    objetivosCard: {
-        flexDirection: 'column',
-        backgroundColor: '#FFFBEB', // amarelo claro
-        borderLeftWidth: 4,
-        borderLeftColor: '#FBBF24', // amarelo
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    objetivosAviso: {
-        color: '#92400E',
-        fontSize: 13,
-        fontWeight: '500',
-        marginBottom: 16,
-        lineHeight: 18,
-    },
-    objetivosInfoGrid: {
-        gap: 12,
-    },
-    objetivosInfoItem: {
-        marginBottom: 8,
-    },
-    objetivosInfoLabel: {
-        fontSize: 13, // Ajustado para o mesmo tamanho da observação
-        fontWeight: '500',
-        color: '#92400E', // Agora igual ao título e observação
-        marginBottom: 2,
-    },
-    objetivosInfoValue: {
-        fontSize: 16,
-        color: '#1F2937', // Mais escuro, igual referência
-        fontWeight: '600',
-        lineHeight: 22,
-    },
-
-    // Adicionar estilos do card igual ao da visão do personal trainer, agora com fundo amarelo claro e borda amarela
-    cardResumoContainer: {
-        marginHorizontal: 16,
-        marginTop: 32,
-        marginBottom: 32,
-        alignItems: 'center',
-    },
-    cardResumoBox: {
-        backgroundColor: 'white',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#FDE68A',
-        padding: 20,
-        minWidth: 280,
-        maxWidth: 400,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 2,
-    },
-    cardResumoBoxAmarelo: {
-        backgroundColor: '#FFFBEB',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#FBBF24',
-        padding: 20,
-        minWidth: 280,
-        maxWidth: 400,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 2,
-    },
-    cardResumoBoxLateral: {
-        flexDirection: 'row',
-        backgroundColor: '#FFFBEB',
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 2,
-        minWidth: 280,
-        maxWidth: 400,
-        marginVertical: 0,
-    },
-    cardResumoBarraLateral: {
-        width: 12,
-        backgroundColor: '#FBBF24',
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
-        alignSelf: 'stretch',
-    },
-    cardResumoContent: {
-        flex: 1,
-        padding: 20,
-    },
-    cardResumoTitulo: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#92400E',
-        marginBottom: 10,
-    },
-    cardResumoLinha: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    cardResumoLabel: {
-        fontSize: 14,
-        color: '#92400E',
-        fontWeight: '500',
-        minWidth: 110,
-    },
-    cardResumoValor: {
-        fontSize: 14,
-        color: '#92400E',
-        fontWeight: '400',
-        textAlign: 'right',
-        flex: 1,
-        marginLeft: 8,
-    },
-    cardResumoAviso: {
-        fontSize: 12,
-        color: '#92400E',
-        fontStyle: 'italic',
-        marginTop: 12,
-        lineHeight: 16,
-    },
-
-    // ======= ESTILOS PARA A ABA SEGURANÇA (ETAPA 4 ONBOARDING) =======
-    segurancaCard: {
-        backgroundColor: '#FFFBEB',
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    segurancaTitulo: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#92400E',
-        marginBottom: 12,
-    },
-    segurancaItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
-    },
-    segurancaLabel: {
-        fontSize: 14,
-        color: '#92400E',
-        fontWeight: '500',
-    },
-    segurancaValor: {
-        fontSize: 14,
-        color: '#1F2937',
-        fontWeight: '400',
-        textAlign: 'right',
-        flex: 1,
-        marginLeft: 8,
-    },
-    segurancaAviso: {
-        fontSize: 12,
-        color: '#92400E',
-        fontStyle: 'italic',
-        marginTop: 8,
-        lineHeight: 16,
-    },
-
-    // ======= ESTILOS PARA A ABA OBJETIVOS (ETAPA 2 ONBOARDING) =======
-    onboardingCard: {
-        backgroundColor: '#FFF9ED',
-        // Remover borda fina ao redor do card, mantendo só a lateral amarela
-        margin: 20,
-        marginBottom: 0,
-        padding: 20,
-        borderRadius: 16,
-        borderWidth: 0, // Removido
-        borderLeftWidth: 4,
-        borderLeftColor: '#F59E0B',
-        // Sombra igual referência
-        shadowColor: '#F59E42',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    onboardingCardLeftBorderYellow: {}, // Remove qualquer customização, pois já está incluso acima
-    onboardingHeader: {
-        marginBottom: 16,
-    },
-    onboardingTitleYellow: {
-        fontSize: 16, // Mantido conforme solicitado
-        fontWeight: '600',
-        color: '#92400E',
-        marginBottom: 2, // Diminuído para reduzir o espaçamento abaixo do título
-    },
-    onboardingInfoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 4, // Reduzido para espaçamento mais compacto
-    },
-    onboardingLabelYellow: {
-        fontSize: 13, // Ajustado para o mesmo tamanho da observação
-        fontWeight: '500',
-        color: '#92400E', // Agora igual ao título e observação
-        marginBottom: 2,
-    },
-    onboardingValueYellow: {
-        fontSize: 16,
-        color: '#92400E', // Alterado para a mesma cor do título e observação
-        fontWeight: '600',
-        lineHeight: 22,
-    },
-    onboardingDescriptionYellow: {
-        color: '#92400E',
-        fontSize: 13,
-        fontWeight: '500',
-        marginTop: 8,
-        lineHeight: 18,
+    textArea: {
+      borderWidth: 1,
+      borderColor: '#CBD5E1',
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 16,
+      backgroundColor: 'white',
+      minHeight: 120,
+      textAlignVertical: 'top',
     },
 });
 
@@ -749,18 +471,12 @@ export default function PerfilTabs(props: PerfilTabsProps) {
         showEditModal,
         showDatePicker,
         showGeneroOptions,
-        showObjetivoOptions,
-        showNivelOptions,
-        showFrequenciaOptions,
         editingSection,
         editData,
         selectedDay,
         selectedMonth,
         selectedYear,
         generoOptions,
-        objetivoOptions,
-        nivelExperienciaOptions,
-        frequenciaTreinoOptions,
         perguntasParQ,
         formatISOToBrazilian,
         formatISOToDateTime,
@@ -772,9 +488,6 @@ export default function PerfilTabs(props: PerfilTabsProps) {
         setShowEditModal,
         setShowDatePicker,
         setShowGeneroOptions,
-        setShowObjetivoOptions,
-        setShowNivelOptions,
-        setShowFrequenciaOptions,
         setEditData,
         setSelectedDay,
         setSelectedMonth,
@@ -791,7 +504,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                     style={styles.editButton}
                     onPress={() => openEditModal('pessoal')}
                 >
-                    <Edit2 size={16} color="#007AFF" />
+                    <Edit2 size={16} color="#A11E0A" />
                     <Text style={styles.editButtonText}>Editar</Text>
                 </TouchableOpacity>
             </View>
@@ -821,7 +534,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
 
                 <View style={styles.infoItem}>
                     <Text style={styles.infoLabel}>Telefone</Text>
-                    <Text style={styles.infoValue}>{userData?.telefone || 'Não informado'}</Text>
+                    <Text style={styles.infoValue}>{userData?.telefone ? formatPhoneNumber(userData.telefone) : 'Não informado'}</Text>
                 </View>
 
                 <View style={styles.infoItem}>
@@ -840,34 +553,39 @@ export default function PerfilTabs(props: PerfilTabsProps) {
             </View>
         </View>
     );
-
-    // ========= RENDERIZAR ABA OBJETIVOS (ETAPA 2 ONBOARDING) =========
-    const renderObjetivosTab = () => (
-        <View style={[styles.onboardingCard, styles.onboardingCardLeftBorderYellow]}> 
-            <View style={styles.onboardingHeader}>
-                <Text style={styles.onboardingTitleYellow}>Informações Iniciais</Text>
-            </View>
-            <View style={styles.onboardingInfoRow}>
-                <Text style={styles.onboardingLabelYellow}>Data do Cadastro:</Text>
-                <Text style={styles.onboardingValueYellow}>{userData?.created_at ? formatISOToBrazilian(userData.created_at) : '-'}</Text>
-            </View>
-            <View style={styles.onboardingInfoRow}>
-                <Text style={styles.onboardingLabelYellow}>Objetivo:</Text>
-                <Text style={styles.onboardingValueYellow}>{userData?.objetivo_principal || '-'}</Text>
-            </View>
-            <View style={styles.onboardingInfoRow}>
-                <Text style={styles.onboardingLabelYellow}>Experiência:</Text>
-                <Text style={styles.onboardingValueYellow}>{userData?.nivel_experiencia || '-'}</Text>
-            </View>
-            <View style={styles.onboardingInfoRow}>
-                <Text style={styles.onboardingLabelYellow}>Frequência:</Text>
-                <Text style={styles.onboardingValueYellow}>{userData?.frequencia_desejada || '-'}</Text>
-            </View>
-            <View style={{ marginTop: 12 }}>
-                <Text style={[styles.onboardingDescriptionYellow, { fontWeight: '400', fontStyle: 'italic', marginBottom: 0 }]}>Essas informações são uma fotografia inicial do aluno, coletadas no cadastro e não editáveis. Servem como referência histórica para acompanhamento da evolução.</Text>
-                <Text style={[styles.onboardingDescriptionYellow, { fontWeight: '400', fontStyle: 'italic', marginTop: 2 }]}>Na criação de rotinas os objetivos e a frequência serão definidas de acordo com sua evolução e necessidades.</Text>
-            </View>
+    
+    // NOVA FUNÇÃO PARA RENDERIZAR A DESCRIÇÃO
+    const renderDescricaoTab = () => (
+      <View style={styles.descricaoCard}>
+        <View style={styles.descricaoHeader}>
+          <Text style={styles.descricaoTitle}>Minha Descrição</Text>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => openEditModal('descricao')}
+          >
+            <Edit2 size={16} color="#92400E" />
+            <Text style={[styles.editButtonText, { color: '#92400E' }]}>Editar</Text>
+          </TouchableOpacity>
         </View>
+    
+        {userData?.descricao_pessoal ? (
+          <Text style={styles.descricaoText}>
+            {userData.descricao_pessoal}
+          </Text>
+        ) : (
+          <Text style={styles.descricaoEmpty}>
+            Você ainda não adicionou uma descrição pessoal.
+            {'\n\n'}
+            Conte um pouco sobre sua experiência, objetivos e restrições!
+          </Text>
+        )}
+    
+        <View style={styles.descricaoAviso}>
+          <Text style={styles.descricaoAvisoText}>
+            Esta descrição ajuda seu Personal Trainer a conhecer melhor sua experiência e objetivos.
+          </Text>
+        </View>
+      </View>
     );
 
     // ========= RENDERIZAR ABA PAR-Q (ETAPA 3 ONBOARDING) =========
@@ -931,7 +649,6 @@ export default function PerfilTabs(props: PerfilTabsProps) {
         };
 
         const cancelDate = () => {
-            // Resetar para a data original ou data padrão
             if (editData.data_nascimento) {
                 const parts = editData.data_nascimento.split('/');
                 if (parts.length === 3) {
@@ -1042,7 +759,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                     <View style={styles.editModalContainer}>
                         <View style={styles.editModalHeader}>
                             <Text style={styles.editModalTitle}>
-                                Editar {editingSection === 'pessoal' ? 'Informações Pessoais' : 'Objetivos e Experiência'}
+                                Editar {editingSection === 'pessoal' ? 'Informações Pessoais' : 'Descrição Pessoal'}
                             </Text>
                             <TouchableOpacity onPress={() => setShowEditModal(false)}>
                                 <X size={24} color="#64748B" />
@@ -1076,7 +793,6 @@ export default function PerfilTabs(props: PerfilTabsProps) {
 
                                         {showGeneroOptions && (
                                             <View style={styles.optionsEditDropdown}>
-                                                {/* ✅ CORREÇÃO ADICIONADA */}
                                                 <ScrollView>
                                                     {generoOptions.map((option) => (
                                                         <TouchableOpacity
@@ -1100,7 +816,6 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                                         <TouchableOpacity
                                             style={styles.dateEditInput}
                                             onPress={() => {
-                                                // Configurar data atual do usuário antes de abrir o picker
                                                 if (editData.data_nascimento) {
                                                     const parts = editData.data_nascimento.split('/');
                                                     if (parts.length === 3) {
@@ -1170,108 +885,24 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                                     </View>
                                 </>
                             )}
-
-                            {editingSection === 'objetivos' && (
-                                <>
-                                    <View style={styles.editField}>
-                                        <Text style={styles.editLabel}>Objetivo Principal</Text>
-                                        <TouchableOpacity
-                                            style={styles.selectEditButton}
-                                            onPress={() => setShowObjetivoOptions(!showObjetivoOptions)}
-                                        >
-                                            <Text style={[styles.selectEditText, !editData.objetivo_principal && styles.placeholderEditText]}>
-                                                {editData.objetivo_principal || 'Selecione seu objetivo'}
-                                            </Text>
-                                            <ChevronDown size={20} color="#64748B" />
-                                        </TouchableOpacity>
-
-                                        {showObjetivoOptions && (
-                                            <View style={styles.optionsEditDropdown}>
-                                                {/* ✅ CORREÇÃO ADICIONADA */}
-                                                <ScrollView>
-                                                    {objetivoOptions.map((option) => (
-                                                        <TouchableOpacity
-                                                            key={option}
-                                                            style={styles.dropdownEditItem}
-                                                            onPress={() => {
-                                                                setEditData({ ...editData, objetivo_principal: option });
-                                                                setShowObjetivoOptions(false);
-                                                            }}
-                                                        >
-                                                            <Text style={styles.dropdownEditItemText}>{option}</Text>
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </ScrollView>
-                                            </View>
-                                        )}
-                                    </View>
-
-                                    <View style={styles.editField}>
-                                        <Text style={styles.editLabel}>Nível de Experiência</Text>
-                                        <TouchableOpacity
-                                            style={styles.selectEditButton}
-                                            onPress={() => setShowNivelOptions(!showNivelOptions)}
-                                        >
-                                            <Text style={[styles.selectEditText, !editData.nivel_experiencia && styles.placeholderEditText]}>
-                                                {editData.nivel_experiencia || 'Selecione seu nível'}
-                                            </Text>
-                                            <ChevronDown size={20} color="#64748B" />
-                                        </TouchableOpacity>
-
-                                        {showNivelOptions && (
-                                            <View style={styles.optionsEditDropdown}>
-                                                {/* ✅ CORREÇÃO ADICIONADA */}
-                                                <ScrollView>
-                                                    {nivelExperienciaOptions.map((option) => (
-                                                        <TouchableOpacity
-                                                            key={option}
-                                                            style={styles.dropdownEditItem}
-                                                            onPress={() => {
-                                                                setEditData({ ...editData, nivel_experiencia: option });
-                                                                setShowNivelOptions(false);
-                                                            }}
-                                                        >
-                                                            <Text style={styles.dropdownEditItemText}>{option}</Text>
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </ScrollView>
-                                            </View>
-                                        )}
-                                    </View>
-
-                                    <View style={styles.editField}>
-                                        <Text style={styles.editLabel}>Frequência de Treino Desejada</Text>
-                                        <TouchableOpacity
-                                            style={styles.selectEditButton}
-                                            onPress={() => setShowFrequenciaOptions(!showFrequenciaOptions)}
-                                        >
-                                            <Text style={[styles.selectEditText, !editData.frequencia_desejada && styles.placeholderEditText]}>
-                                                {editData.frequencia_desejada || 'Selecione a frequência'}
-                                            </Text>
-                                            <ChevronDown size={20} color="#64748B" />
-                                        </TouchableOpacity>
-
-                                        {showFrequenciaOptions && (
-                                            <View style={styles.optionsEditDropdown}>
-                                                {/* ✅ CORREÇÃO ADICIONADA */}
-                                                <ScrollView>
-                                                    {frequenciaTreinoOptions.map((option) => (
-                                                        <TouchableOpacity
-                                                            key={option}
-                                                            style={styles.dropdownEditItem}
-                                                            onPress={() => {
-                                                                setEditData({ ...editData, frequencia_desejada: option });
-                                                                setShowFrequenciaOptions(false);
-                                                            }}
-                                                        >
-                                                            <Text style={styles.dropdownEditItemText}>{option}</Text>
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </ScrollView>
-                                            </View>
-                                        )}
-                                    </View>
-                                </>
+                            
+                            {/* NOVA SEÇÃO DE EDIÇÃO PARA 'DESCRICAO' */}
+                            {editingSection === 'descricao' && (
+                              <View style={styles.editField}>
+                                <Text style={styles.editLabel}>Descrição Pessoal</Text>
+                                <Text style={[styles.editLabel, { fontSize: 12, color: '#64748B', marginBottom: 8 }]}>
+                                  Conte sobre sua experiência, objetivos, restrições ou qualquer informação importante.
+                                </Text>
+                                <TextInput
+                                  style={styles.textArea}
+                                  value={editData.descricao_pessoal || ''}
+                                  onChangeText={(text) => setEditData({ ...editData, descricao_pessoal: text })}
+                                  placeholder="Ex: Pratico musculação há 2 anos, quero ganhar massa muscular..."
+                                  multiline={true}
+                                  numberOfLines={6}
+                                  textAlignVertical="top"
+                                />
+                              </View>
                             )}
                         </ScrollView>
 
@@ -1300,8 +931,8 @@ export default function PerfilTabs(props: PerfilTabsProps) {
         switch (activeTab) {
             case 'pessoal':
                 return renderPessoalTab();
-            case 'objetivos':
-                return renderObjetivosTab();
+            case 'descricao':
+                return renderDescricaoTab();
             case 'parq':
                 return renderParQTab();
             default:

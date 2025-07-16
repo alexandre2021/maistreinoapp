@@ -126,8 +126,9 @@ export default function AvaliacoesScreen() {
         <TouchableOpacity 
           style={styles.backButton}
           onPress={() => router.push('/(tabs)/alunos')}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Avaliações</Text>
         <TouchableOpacity 
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,

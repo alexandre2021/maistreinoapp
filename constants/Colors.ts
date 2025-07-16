@@ -32,3 +32,6 @@ export const DifficultyColors = {
   'Alta': '#EF4444',    // Vermelho
   'default': '#6B7280'  // Cinza para valores desconhecidos
 };
+
+// Cor laranja padrão dos botões e destaques
+export const AppOrange = '#a11e0a';

@@ -301,11 +301,15 @@ function RevisaoRotinaContent() {
               .insert([{
                 exercicio_id: exercicioCreated.id,
                 numero_serie: serie.numero || 1,
-                repeticoes: Number(serie.repeticoes) || 12,
-                carga: Number(serie.carga) || 0,
+                repeticoes: exercicio.tipo === 'combinada' ? 0 : (Number(serie.repeticoes) || 12),
+                carga: exercicio.tipo === 'combinada' ? 0 : (Number(serie.carga) || 0),
+                repeticoes_1: exercicio.tipo === 'combinada' ? Number(serie.repeticoes_1) || 12 : null,
+                carga_1: exercicio.tipo === 'combinada' ? Number(serie.carga_1) || 0 : null,
+                repeticoes_2: exercicio.tipo === 'combinada' ? Number(serie.repeticoes_2) || 12 : null,
+                carga_2: exercicio.tipo === 'combinada' ? Number(serie.carga_2) || 0 : null,
                 tem_dropset: serie.isDropSet || false,
                 carga_dropset: serie.isDropSet ? Number(serie.dropsConfig?.[0]?.cargaReduzida) || 0 : null,
-                intervalo_apos_serie: serieIndex === exercicio.series.length - 1 ? null : (Number(serie.intervaloAposSerie) || 120)
+                intervalo_apos_serie: serieIndex === exercicio.series.length - 1 ? null : (Number(serie.intervaloAposSerie) || 90)
               }]);
 
             if (serieError) throw serieError;
@@ -313,18 +317,16 @@ function RevisaoRotinaContent() {
         }
       }
 
-      // 5. Gerar execuções automáticas se ativo
-      if (statusRotina === 'Ativa') {
-        const configCompleta: ConfiguracaoRotina = {
-          nomeRotina: configuracao.nomeRotina,
-          descricao: configuracao.descricao,
-          alunoId: configuracao.alunoId,
-          treinosPorSemana: configuracao.treinosPorSemana,
-          dificuldade: configuracao.dificuldade,
-          duracaoSemanas: configuracao.duracaoSemanas
-        };
-        await gerarExecucoesAutomaticas(rotinaCreated.id, treinosCreated, configCompleta);
-      }
+      // 5. Gerar execuções automáticas SEMPRE
+      const configCompleta: ConfiguracaoRotina = {
+        nomeRotina: configuracao.nomeRotina,
+        descricao: configuracao.descricao,
+        alunoId: configuracao.alunoId,
+        treinosPorSemana: configuracao.treinosPorSemana,
+        dificuldade: configuracao.dificuldade,
+        duracaoSemanas: configuracao.duracaoSemanas
+      };
+      await gerarExecucoesAutomaticas(rotinaCreated.id, treinosCreated, configCompleta);
 
       // 6. Limpar dados e redirecionar
       RevisaoStorage.limparDados();
@@ -406,7 +408,7 @@ function RevisaoRotinaContent() {
         disabled={alwaysExpanded}
       >
         <View style={styles.sectionTitleContainer}>
-          <Ionicons name={icon} size={20} color="#007AFF" />
+          <Ionicons name={icon} size={20} color="#A11E0A" />
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
         {!alwaysExpanded && (
@@ -684,7 +686,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#A11E0A',
     marginBottom: 4,
   },
   statLabel: {
@@ -852,7 +854,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     gap: 8,
     flex: 2,
   },
@@ -947,14 +949,14 @@ const styles = StyleSheet.create({
   },
   // Botão "Ativa" - Ativo
   statusButtonAtivaActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#A11E0A',
+    borderColor: '#A11E0A',
     flex: 1,
   },
   // Botão "Ativa" - Inativo
   statusButtonAtivaInactive: {
     backgroundColor: '#E5F3FF',
-    borderColor: '#007AFF',
+    borderColor: '#A11E0A',
     flex: 1,
   },
   statusButtonText: {
@@ -980,7 +982,7 @@ const styles = StyleSheet.create({
   },
   // Texto "Ativa" - Inativo
   statusButtonTextAtivaInactive: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '600',
   },
 });

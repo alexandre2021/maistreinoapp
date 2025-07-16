@@ -1,11 +1,11 @@
-// components/MaisTreinoLogo.tsx
-// Componente do logo MaisTreino para React Native
+// components/TitansOnlineLogo.tsx
+// Componente do logo titans.fitness para React Native
 
 import { LinearGradient } from 'expo-linear-gradient'
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
-interface MaisTreinoLogoProps {
+interface TitansOnlineLogoProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge'
   variant?: 'horizontal' | 'vertical' | 'icon-only' | 'text-only'
   theme?: 'light' | 'dark'
@@ -18,17 +18,17 @@ const SIZES = {
   xlarge: { icon: 64, text: 36, gap: 16 }
 }
 
-export default function MaisTreinoLogo({
+export default function TitansOnlineLogo({
   size = 'medium',
   variant = 'horizontal',
   theme = 'light'
-}: MaisTreinoLogoProps) {
+}: TitansOnlineLogoProps) {
   const { icon, text, gap } = SIZES[size]
   const isLight = theme === 'light'
 
   const renderIcon = () => (
     <LinearGradient
-      colors={['#007AFF', '#5856D6']}
+      colors={['#A11E0A', '#5856D6']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[
@@ -43,7 +43,7 @@ export default function MaisTreinoLogo({
       <Text style={[styles.letterM, { fontSize: icon * 0.42 }]}>m</Text>
       <Text style={[styles.letterT, { fontSize: icon * 0.42 }]}>T</Text>
     </LinearGradient>
-  )
+  );
 
   const renderText = () => (
     <Text style={[
@@ -80,17 +80,17 @@ export default function MaisTreinoLogo({
 
 // Componente para uso em headers/navegação
 export function LogoHeader({ theme = 'light' }: { theme?: 'light' | 'dark' }) {
-  return <MaisTreinoLogo size="medium" variant="horizontal" theme={theme} />
+  return <TitansOnlineLogo size="medium" variant="horizontal" theme={theme} />
 }
 
 // Componente para splash screen
 export function LogoSplash() {
-  return <MaisTreinoLogo size="xlarge" variant="vertical" />
+  return <TitansOnlineLogo size="xlarge" variant="vertical" />
 }
 
 // Componente para app icon/favicon
 export function LogoIcon({ size = 'medium' }: { size?: 'small' | 'medium' | 'large' | 'xlarge' }) {
-  return <MaisTreinoLogo size={size} variant="icon-only" />
+  return <TitansOnlineLogo size={size} variant="icon-only" />
 }
 
 const styles = StyleSheet.create({
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    shadowColor: '#007AFF',
+    shadowColor: '#A11E0A',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -136,24 +136,24 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   mais: {
-    color: '#007AFF',
+    color: '#A11E0A',
   },
 })
 
 // Exemplo de uso:
 /*
 // No seu arquivo de tela/componente:
-import MaisTreinoLogo, { LogoHeader, LogoIcon } from '../components/MaisTreinoLogo'
+import TitansOnlineLogo, { LogoHeader, LogoIcon } from '../components/TitansOnlineLogo'
 
 // Header da aplicação
 <LogoHeader theme="light" />
 
 // Tela de login
-<MaisTreinoLogo size="large" variant="vertical" />
+<titansFitnessLogo size="large" variant="vertical" />
 
 // Apenas o ícone
 <LogoIcon size="small" />
 
 // Apenas texto
-<MaisTreinoLogo variant="text-only" size="medium" />
+<titansFitnessLogo variant="text-only" size="medium" />
 */

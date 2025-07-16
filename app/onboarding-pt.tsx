@@ -1,25 +1,44 @@
+// Converte dd/mm/aaaa para yyyy-mm-dd (ISO)
+// Função utilitária para garantir formato dd/mm/aaaa
 import { router } from 'expo-router'
 import { Calendar, Check, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import {
-    Alert,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
+import { AppOrange } from '../constants/Colors'
 import {
-    ANOS_EXPERIENCIA_PT,
-    ESPECIALIZACOES_PT,
-    formatarTelefone,
-    GENEROS,
-    VALIDACOES
+  ANOS_EXPERIENCIA_PT,
+  ESPECIALIZACOES_PT,
+  formatarTelefone,
+  GENEROS,
+  VALIDACOES
 } from '../constants/usuarios'
+import { OnboardingPTProvider, useOnboardingPT } from '../context/OnboardingPTContext'
 import { supabase } from '../lib/supabase'
+function dateBRtoISO(dateBR) {
+  if (!dateBR || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateBR)) return dateBR;
+  const [day, month, year] = dateBR.split('/');
+  return `${year}-${month}-${day}`;
+}
+function formatDateBR(dateString) {
+  if (!dateString) return '';
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return dateString;
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 /**
  * VALIDAÇÃO SIMPLIFICADA - SEM TRIGGER!
@@ -37,23 +56,10 @@ import { supabase } from '../lib/supabase'
  * - bio (mínimo 50 caracteres)
  */
 
-interface OnboardingData {
-  nomeCompleto: string
-  genero: string
-  dataNascimento: string
-  telefone: string
-  telefonePublico: boolean
-  cref: string
-  anosExperiencia: string
-  especializacoes: string[]
-  bio: string
-  instagram: string
-  facebook: string
-  linkedin: string
-  website: string
-}
 
-export default function OnboardingPT() {
+function OnboardingPT() {
+  // Usa o contexto centralizado
+  const { data, setData, updateField } = useOnboardingPT()
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
@@ -68,22 +74,6 @@ export default function OnboardingPT() {
     const currentDate = new Date()
     return currentDate.getFullYear() - 25
   })
-  const [data, setData] = useState<OnboardingData>({
-    nomeCompleto: '',
-    genero: '',
-    dataNascimento: '',
-    telefone: '',
-    telefonePublico: false,
-    cref: '',
-    anosExperiencia: '',
-    especializacoes: [],
-    bio: '',
-    instagram: '',
-    facebook: '',
-    linkedin: '',
-    website: ''
-  })
-
   const totalSteps = 3
 
   // Função para gerar avatar letter
@@ -157,7 +147,9 @@ export default function OnboardingPT() {
         setData({
           nomeCompleto: ptData.nome_completo || '',
           genero: ptData.genero || '',
-          dataNascimento: ptData.data_nascimento || '',
+          dataNascimento: ptData.data_nascimento
+            ? formatDateBR(ptData.data_nascimento)
+            : '',
           telefone: ptData.telefone || '',
           telefonePublico: ptData.telefone_publico || false,
           cref: ptData.cref || '',
@@ -167,7 +159,12 @@ export default function OnboardingPT() {
           instagram: ptData.instagram || '',
           facebook: ptData.facebook || '',
           linkedin: ptData.linkedin || '',
-          website: ptData.website || ''
+          website: ptData.website || '',
+          avatar_image_url: ptData.avatar_image_url || null,
+          avatar_letter: ptData.avatar_letter || '',
+          avatar_color: ptData.avatar_color || '#2563EB',
+          avatar_type: ptData.avatar_type || 'letter',
+          onboarding_completo: ptData.onboarding_completo || false,
         })
 
         if (ptData.onboarding_completo) {
@@ -186,17 +183,10 @@ export default function OnboardingPT() {
         await loadExistingData(user.id)
       }
     }
-    
     initializeUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const updateData = (field: keyof OnboardingData, value: any) => {
-    setData({ ...data, [field]: value })
-  }
-
-  const formatDate = (day: number, month: number, year: number) => {
-    return `${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}/${year}`
-  }
 
   const getCurrentDate = () => {
     const now = new Date()
@@ -211,7 +201,7 @@ export default function OnboardingPT() {
     const newSpecs = data.especializacoes.includes(spec)
       ? data.especializacoes.filter(s => s !== spec)
       : [...data.especializacoes, spec]
-    updateData('especializacoes', newSpecs)
+    updateField('especializacoes', newSpecs)
   }
 
   const validateStep = (step: number): {isValid: boolean, errors: {[key: string]: string}} => {
@@ -289,7 +279,7 @@ export default function OnboardingPT() {
       const updateData = {
         nome_completo: data.nomeCompleto,
         genero: data.genero,
-        data_nascimento: data.dataNascimento,
+        data_nascimento: dateBRtoISO(data.dataNascimento),
         telefone: data.telefone,
         telefone_publico: data.telefonePublico,
         cref: data.cref,
@@ -302,7 +292,7 @@ export default function OnboardingPT() {
         website: data.website,
         // Campos de avatar
         avatar_letter: avatarLetter,
-        avatar_color: '#3B82F6', // Cor padrão azul
+        avatar_color: '#2563EB', // Cor azul padrão
         avatar_type: 'letter',
         avatar_image_url: null, // Inicialmente sem imagem
         // DEFINIMOS DIRETAMENTE - sem trigger!
@@ -364,7 +354,7 @@ export default function OnboardingPT() {
           fieldErrors.nomeCompleto && styles.inputError
         ]}
         value={data.nomeCompleto}
-        onChangeText={(value) => updateData('nomeCompleto', value)}
+        onChangeText={(value) => updateField('nomeCompleto', value)}
         placeholder="Digite seu nome completo"
         autoCapitalize="words"
       />
@@ -396,7 +386,7 @@ export default function OnboardingPT() {
               key={option}
               style={styles.dropdownItem}
               onPress={() => {
-                updateData('genero', option)
+                updateField('genero', option)
                 setShowGeneroOptions(false)
               }}
             >
@@ -427,7 +417,7 @@ export default function OnboardingPT() {
       <TextInput
         style={styles.input}
         value={data.telefone}
-        onChangeText={(value) => updateData('telefone', formatarTelefone(value))}
+        onChangeText={(value) => updateField('telefone', formatarTelefone(value))}
         placeholder="(11) 99999-9999"
         keyboardType="phone-pad"
         maxLength={VALIDACOES.telefoneLength}
@@ -435,7 +425,7 @@ export default function OnboardingPT() {
 
       <TouchableOpacity
         style={styles.checkboxContainer}
-        onPress={() => updateData('telefonePublico', !data.telefonePublico)}
+        onPress={() => updateField('telefonePublico', !data.telefonePublico)}
       >
         <View style={[styles.checkbox, data.telefonePublico && styles.checkboxChecked]}>
           {data.telefonePublico && <Check size={16} color="white" />}
@@ -447,7 +437,7 @@ export default function OnboardingPT() {
       <TextInput
         style={styles.input}
         value={data.cref}
-        onChangeText={(value) => updateData('cref', value)}
+        onChangeText={(value) => updateField('cref', value)}
         placeholder="123456"
         keyboardType="numeric"
       />
@@ -482,7 +472,7 @@ export default function OnboardingPT() {
               key={option}
               style={styles.dropdownItem}
               onPress={() => {
-                updateData('anosExperiencia', option)
+                updateField('anosExperiencia', option)
                 setShowExperienciaOptions(false)
               }}
             >
@@ -529,7 +519,7 @@ export default function OnboardingPT() {
           fieldErrors.bio && styles.inputError
         ]}
         value={data.bio}
-        onChangeText={(value) => updateData('bio', value)}
+        onChangeText={(value) => updateField('bio', value)}
         placeholder="Conte um pouco sobre sua experiência como personal trainer..."
         multiline
         numberOfLines={4}
@@ -556,7 +546,7 @@ export default function OnboardingPT() {
       <TextInput
         style={styles.input}
         value={data.instagram}
-        onChangeText={(value) => updateData('instagram', value)}
+        onChangeText={(value) => updateField('instagram', value)}
         placeholder="https://instagram.com/seu.perfil"
         autoCapitalize="none"
       />
@@ -565,7 +555,7 @@ export default function OnboardingPT() {
       <TextInput
         style={styles.input}
         value={data.facebook}
-        onChangeText={(value) => updateData('facebook', value)}
+        onChangeText={(value) => updateField('facebook', value)}
         placeholder="https://facebook.com/seu.perfil"
         autoCapitalize="none"
       />
@@ -574,7 +564,7 @@ export default function OnboardingPT() {
       <TextInput
         style={styles.input}
         value={data.linkedin}
-        onChangeText={(value) => updateData('linkedin', value)}
+        onChangeText={(value) => updateField('linkedin', value)}
         placeholder="https://linkedin.com/in/seu.perfil"
         autoCapitalize="none"
       />
@@ -583,7 +573,7 @@ export default function OnboardingPT() {
       <TextInput
         style={styles.input}
         value={data.website}
-        onChangeText={(value) => updateData('website', value)}
+        onChangeText={(value) => updateField('website', value)}
         placeholder="https://seusite.com.br"
         autoCapitalize="none"
       />
@@ -598,8 +588,7 @@ export default function OnboardingPT() {
             key={index}
             style={[
               styles.progressDot,
-              index < currentStep && styles.progressDotCompleted,
-              index === currentStep - 1 && styles.progressDotCurrent
+              (index < currentStep) && styles.progressDotActive
             ]}
           />
         ))}
@@ -610,8 +599,8 @@ export default function OnboardingPT() {
   const renderDatePicker = () => {
     const currentDate = getCurrentDate()
     const months = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
     ]
 
     const getDaysInMonth = (month: number, year: number) => {
@@ -621,8 +610,8 @@ export default function OnboardingPT() {
     const years = Array.from({ length: 100 }, (_, i) => currentDate.year - i)
 
     const confirmDate = () => {
-      const formattedDate = formatDate(selectedDay, selectedMonth, selectedYear)
-      updateData('dataNascimento', formattedDate)
+      const formattedDate = `${selectedDay.toString().padStart(2, '0')}/${(selectedMonth + 1).toString().padStart(2, '0')}/${selectedYear}`;
+      updateField('dataNascimento', formattedDate)
       setShowDatePicker(false)
     }
 
@@ -633,7 +622,7 @@ export default function OnboardingPT() {
             <Text style={styles.datePickerTitle}>Selecione sua data de nascimento</Text>
             
             <View style={styles.datePickerRow}>
-              <View style={styles.pickerColumn}>
+              <View style={styles.pickerColumnDia}>
                 <Text style={styles.pickerLabel}>Dia</Text>
                 <ScrollView style={styles.picker} showsVerticalScrollIndicator={false}>
                   {Array.from({ length: getDaysInMonth(selectedMonth, selectedYear) }, (_, i) => i + 1).map((day) => (
@@ -693,7 +682,7 @@ export default function OnboardingPT() {
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={styles.confirmButton}
+                style={[styles.confirmButton, { backgroundColor: AppOrange }]}
                 onPress={confirmDate}
               >
                 <Text style={styles.confirmButtonText}>Confirmar</Text>
@@ -709,7 +698,7 @@ export default function OnboardingPT() {
     <SafeAreaView style={styles.container}>
       {renderDatePicker()}
       
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 220 }}>
         <View style={styles.header}>
           <Text style={styles.title}>Configuração do Perfil - Personal Trainer</Text>
           {renderProgressBar()}
@@ -719,29 +708,36 @@ export default function OnboardingPT() {
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}
 
-        <View style={styles.navigationButtons}>
-          {currentStep > 1 && (
-            <TouchableOpacity style={styles.backButton} onPress={prevStep}>
-              <ChevronLeft size={20} color="rgba(0, 122, 255, 1.00)" />
-              <Text style={styles.backButtonText}>Voltar</Text>
-            </TouchableOpacity>
-          )}
-          
-          <TouchableOpacity 
-            style={[
-              styles.nextButton,
-              !validateStep(currentStep).isValid && styles.nextButtonDisabled
-            ]}
-            onPress={nextStep}
-            disabled={loading || !validateStep(currentStep).isValid}
-          >
-            <Text style={styles.nextButtonText}>
-              {loading ? 'Salvando...' : currentStep === totalSteps ? 'Finalizar' : 'Próximo'}
-            </Text>
-            {currentStep < totalSteps && (
-              <ChevronRight size={20} color="white" />
+        <View style={styles.navigationButtonsWrapper}>
+          <View style={styles.navigationButtons}>
+            {currentStep > 1 && (
+              <TouchableOpacity style={styles.backButton} onPress={prevStep}>
+                <ChevronLeft size={20} color={AppOrange} />
+                <Text style={styles.backButtonText}>Voltar</Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[
+                styles.nextButton,
+                !validateStep(currentStep).isValid && styles.nextButtonDisabled
+              ]}
+              onPress={nextStep}
+              disabled={loading || !validateStep(currentStep).isValid}
+            >
+              <Text style={styles.nextButtonText}>
+                {loading ? 'Salvando...' : currentStep === totalSteps ? 'Finalizar' : 'Próximo'}
+              </Text>
+              {currentStep < totalSteps && (
+                <ChevronRight size={20} color="white" />
+              )}
+            </TouchableOpacity>
+          </View>
+          {!validateStep(currentStep).isValid && (
+            <Text style={styles.requiredFieldsHint}>
+              Preencha todos os campos obrigatórios para avançar
+            </Text>
+          )}
+          <View style={styles.androidBottomSpacer} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -760,6 +756,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    minHeight: 700, // Permite espaço para conteúdo e teclado
   },
   header: {
     padding: 24,
@@ -772,10 +769,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1F2937',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 8,
   },
   progressContainer: {
     alignItems: 'center',
+    marginBottom: 8,
   },
   progressBar: {
     flexDirection: 'row',
@@ -783,18 +781,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: '#E2E8F0',
+    marginHorizontal: 4,
   },
-  progressDotCompleted: {
-    backgroundColor: 'rgba(0, 122, 255, 1.00)',
-    width: 24,
-  },
-  progressDotCurrent: {
-    backgroundColor: 'rgba(0, 122, 255, 1.00)',
-    width: 16,
+  progressDotActive: {
+    backgroundColor: AppOrange,
   },
   stepContent: {
     padding: 24,
@@ -802,13 +796,14 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: 'rgba(0, 122, 255, 1.00)',
+    color: AppOrange,
     marginBottom: 8,
   },
   stepSubtitle: {
     fontSize: 14,
     color: '#64748B',
     marginBottom: 24,
+    lineHeight: 20,
   },
   label: {
     fontSize: 16,
@@ -859,8 +854,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: 'rgba(0, 122, 255, 1.00)',
-    borderColor: 'rgba(0, 122, 255, 1.00)',
+    backgroundColor: AppOrange,
+    borderColor: AppOrange,
   },
   checkboxText: {
     fontSize: 14,
@@ -888,8 +883,6 @@ const styles = StyleSheet.create({
   charCountSuccess: {
     color: '#10B981',
   },
-  
-  // Validation Styles
   inputError: {
     borderColor: '#EF4444',
     borderWidth: 1.5,
@@ -899,6 +892,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
+  },
+  requiredFieldsHint: {
+    color: '#EF4444',
+    textAlign: 'center',
+    fontSize: 14,
+    marginTop: -8,
+    marginBottom: 8,
   },
   sublabel: {
     fontSize: 12,
@@ -913,8 +913,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '500',
   },
-  
-  // Especializações - Layout em grid com chips
   especializacoesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -929,8 +927,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   especializacaoChipSelected: {
-    backgroundColor: 'rgba(0, 122, 255, 1.00)',
-    borderColor: 'rgba(0, 122, 255, 1.00)',
+    backgroundColor: AppOrange,
+    borderColor: AppOrange,
   },
   especializacaoChipText: {
     fontSize: 14,
@@ -941,7 +939,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '500',
   },
-  
+  navigationButtonsWrapper: {
+    backgroundColor: '#fafafa',
+  },
+  androidBottomSpacer: {
+    height: 80,
+  },
   navigationButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -954,12 +957,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 1.00)',
+    borderColor: AppOrange,
     gap: 8,
   },
   backButtonText: {
     fontSize: 16,
-    color: 'rgba(0, 122, 255, 1.00)',
+    color: AppOrange,
     fontWeight: '500',
   },
   nextButton: {
@@ -969,7 +972,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
-    backgroundColor: 'rgba(0, 122, 255, 1.00)',
+    backgroundColor: AppOrange,
     gap: 8,
   },
   nextButtonDisabled: {
@@ -1011,6 +1014,10 @@ const styles = StyleSheet.create({
   pickerColumn: {
     flex: 1,
   },
+  pickerColumnDia: {
+    flex: 0.7,
+    minWidth: 48,
+  },
   pickerLabel: {
     fontSize: 14,
     fontWeight: '500',
@@ -1036,6 +1043,7 @@ const styles = StyleSheet.create({
   pickerText: {
     fontSize: 16,
     color: '#64748B',
+    fontWeight: '500',
   },
   pickerTextSelected: {
     color: 'rgba(0, 122, 255, 1.00)',
@@ -1104,3 +1112,12 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
 })
+
+
+export default function OnboardingPTWrapper() {
+  return (
+    <OnboardingPTProvider>
+      <OnboardingPT />
+    </OnboardingPTProvider>
+  )
+}

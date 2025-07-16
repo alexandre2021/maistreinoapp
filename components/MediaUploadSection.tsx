@@ -231,7 +231,7 @@ export const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 <View style={styles.mediaPreview}>
                     {tipo === 'video' ? (
                         <View style={styles.videoPreview}>
-                            <Ionicons name="videocam" size={40} color="#007AFF" />
+                            <Ionicons name="videocam" size={40} color="#A11E0A" />
                             <Text style={styles.videoPreviewText}>Vídeo carregado</Text>
                         </View>
                     ) : (
@@ -245,9 +245,9 @@ export const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                             disabled={uploading[tipo]}
                         >
                             {uploading[tipo] ? (
-                                <LoadingIcon size={16} color="#007AFF" />
+                                <LoadingIcon size={16} color="#A11E0A" />
                             ) : (
-                                <Ionicons name="refresh" size={16} color="#007AFF" />
+                                <Ionicons name="refresh" size={16} color="#A11E0A" />
                             )}
                             <Text style={styles.changeButtonText}>
                                 {uploading[tipo] ? 'Enviando...' : 'Alterar'}
@@ -271,12 +271,12 @@ export const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                 >
                     {uploading[tipo] ? (
                         <>
-                            <LoadingIcon size={24} color="#007AFF" />
+                            <LoadingIcon size={24} color="#A11E0A" />
                             <Text style={styles.uploadButtonText}>Enviando...</Text>
                         </>
                     ) : (
                         <>
-                            <Ionicons name={icon as any} size={24} color="#007AFF" />
+                            <Ionicons name={icon as any} size={24} color="#A11E0A" />
                             <Text style={styles.uploadButtonText}>
                                 Adicionar {tipo === 'video' ? 'Vídeo' : 'Imagem'}
                             </Text>
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     },
     uploadButton: {
         borderWidth: 2,
-        borderColor: '#007AFF',
+        borderColor: '#A11E0A',
         borderStyle: 'dashed',
         borderRadius: 12,
         padding: 24,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     },
     uploadButtonText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '500',
         marginTop: 8
     },
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     },
     videoPreviewText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '500',
         marginTop: 8
     },
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     },
     changeButtonText: {
         fontSize: 14,
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '500'
     },
     removeButton: {

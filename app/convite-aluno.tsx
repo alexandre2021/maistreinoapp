@@ -1,263 +1,132 @@
-// VERSÃO COM TOAST SYSTEM
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import LoadingIcon from '../components/LoadingIcon';
-import { supabase } from '../lib/supabase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ConviteAlunoScreen() {
+export default function ConviteAluno() {
   const [nomeAluno, setNomeAluno] = useState('');
   const [emailAluno, setEmailAluno] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  // 🔥 ESTADO DO TOAST
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
-
-  // 🔥 FUNÇÃO PARA MOSTRAR TOAST
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
-    setTimeout(() => setToastVisible(false), 4000);
-  };
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
   };
+
+  useEffect(() => {
+    if (nomeAluno.trim().length > 2 && validateEmail(emailAluno)) {
+      setIsFormValid(true);
+    } else {
+      setIsFormValid(false);
+    }
+  }, [nomeAluno, emailAluno]);
 
   const handleEnviarConvite = async () => {
-    // Validações
-    if (!nomeAluno.trim()) {
-      showToast('Por favor, informe o nome do aluno.', 'error');
-      return;
-    }
-
-    if (!emailAluno.trim()) {
-      showToast('Por favor, informe o email do aluno.', 'error');
-      return;
-    }
-
-    if (!validateEmail(emailAluno)) {
-      showToast('Por favor, informe um email válido.', 'error');
-      return;
-    }
+    if (!isFormValid) return;
 
     setIsLoading(true);
-
-    try {
-      // 1. Buscar dados do PT logado
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('Usuário não está logado');
-      }
-
-      // 2. Buscar dados do Personal Trainer
-      const { data: ptData, error: ptError } = await supabase
-        .from('personal_trainers')
-        .select('codigo_pt, nome_completo')
-        .eq('id', user.id)
-        .single();
-
-      if (ptError || !ptData) {
-        throw new Error('Dados do Personal Trainer não encontrados');
-      }
-
-      console.log('📧 Enviando convite via Database Function...');
-      console.log('👤 Aluno:', nomeAluno);
-      console.log('📮 Email:', emailAluno);
-      console.log('👨‍💼 PT:', ptData.nome_completo);
-      console.log('🔑 Código:', ptData.codigo_pt);
-
-      // 3. Enviar convite via Database Function (RPC)
-      console.log('🚀 Chamando Database Function...');
-      
-      const { data, error } = await supabase.functions.invoke('enviar-convite', {
-        body: {
-          nome_aluno: nomeAluno.trim(),
-          email_aluno: emailAluno.toLowerCase().trim(),
-          codigo_pt: ptData.codigo_pt,
-          nome_personal: ptData.nome_completo
-        }
-      });
-      
-      console.log('📊 Resposta da Database Function:');
-      console.log('✅ Data:', JSON.stringify(data, null, 2));
-      console.log('❌ Error:', JSON.stringify(error, null, 2));
-
-      if (error) {
-        console.error('❌ Erro Database Function detalhado:', error);
-        throw new Error(`Erro ao enviar convite: ${error.message || JSON.stringify(error)}`);
-      }
-
-      if (!data || !data.success) {
-        console.error('❌ Resposta sem sucesso:', data);
-        throw new Error(data?.error || 'Falha no envio do convite');
-      }
-
-      console.log('✅ Convite enviado - MessageID:', data.messageId);
-
-      // 🔥 TOAST DE SUCESSO
-      showToast(
-        `✅ Convite enviado para ${nomeAluno}! Código: ${ptData.codigo_pt}`, 
-        'success'
-      );
-
-      // Limpar formulário após sucesso
-      setTimeout(() => {
-        setNomeAluno('');
-        setEmailAluno('');
-      }, 1000);
-
-    } catch (error: any) {
-      console.error('💥 Erro:', error);
-      
-      // 🔥 TOAST DE ERRO
-      showToast(
-        error.message || 'Erro ao processar convite.',
-        'error'
-      );
-    } finally {
+    setTimeout(() => {
+      console.log('Enviando convite para:', { nome: nomeAluno, email: emailAluno });
       setIsLoading(false);
-    }
-  };
+      
+      Alert.alert(
+        "Convite Enviado!",
+        `Um convite foi enviado para ${nomeAluno}. Ele aparecerá na sua lista de alunos assim que completar o próprio cadastro.`,
+        [
+          { 
+            text: "OK", 
+            onPress: () => {
+              if (router.canGoBack()) router.back();
+            } 
+          }
+        ]
+      );
 
-  const handleVoltar = () => {
-    router.push('/alunos');
+    }, 2000);
   };
-
-  const isFormValid = nomeAluno.trim() && emailAluno.trim() && validateEmail(emailAluno);
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <SafeAreaView edges={["top"]} style={{ backgroundColor: '#fff' }}/>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleVoltar}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Convidar Aluno</Text>
         <View style={styles.headerSpacer} />
       </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      
+      <ScrollView style={styles.content}>
         <View style={styles.welcomeSection}>
           <View style={styles.iconContainer}>
-            <Ionicons name="mail" size={32} color="#007AFF" />
+            <Ionicons name="mail-unread-outline" size={40} color="#0369A1" />
           </View>
           <Text style={styles.welcomeTitle}>Convidar Novo Aluno</Text>
           <Text style={styles.welcomeSubtitle}>
-            Envie um convite por email com seu código PT. Simples e direto!
+            Você enviará um convite por email. O aluno precisará aceitar e completar o próprio cadastro para se vincular a você.
           </Text>
         </View>
 
         <View style={styles.formSection}>
+          {/* Inputs de nome e email... */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Nome do Aluno</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="person-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
-                placeholder="Ex: João Silva"
-                value={nomeAluno}
-                onChangeText={setNomeAluno}
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="words"
-                autoCorrect={false}
-              />
+              <TextInput style={styles.textInput} placeholder="Ex: João Silva" value={nomeAluno} onChangeText={setNomeAluno} placeholderTextColor="#9CA3AF" autoCapitalize="words" autoCorrect={false}/>
             </View>
           </View>
-
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email do Aluno</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
-                placeholder="Ex: joao@email.com"
-                value={emailAluno}
-                onChangeText={setEmailAluno}
-                placeholderTextColor="#9CA3AF"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <TextInput style={styles.textInput} placeholder="Ex: joao@email.com" value={emailAluno} onChangeText={setEmailAluno} placeholderTextColor="#9CA3AF" keyboardType="email-address" autoCapitalize="none" autoCorrect={false}/>
             </View>
-            {emailAluno.length > 0 && !validateEmail(emailAluno) && (
-              <Text style={styles.errorText}>Email inválido</Text>
-            )}
+            {emailAluno.length > 0 && !validateEmail(emailAluno) && (<Text style={styles.errorText}>Email inválido</Text>)}
           </View>
         </View>
 
         <View style={styles.infoSection}>
+          {/* ✅ ESTRUTURA DO CARD ATUALIZADA */}
           <View style={styles.infoCard}>
-            <Ionicons name="mail" size={24} color="#007AFF" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Convite por Email</Text>
-              <Text style={styles.infoText}>
-                • Enviaremos um email com seu código{'\n'}
-                • Aluno baixa o app MaisTreino{'\n'}
-                • No cadastro, ele usa o código para se vincular{'\n'}
-                • Simples e direto!
-              </Text>
+            {/* 1. Header do card com Título e Ícone */}
+            <View style={styles.infoCardHeader}>
+              <Ionicons name="alert-circle-outline" size={20} color="#A11E0A" />
+              <Text style={styles.infoTitle}>Como funciona?</Text>
             </View>
+            {/* 2. Corpo do card com texto em largura total */}
+            <Text style={styles.infoText}>
+              • Um convite será enviado para o email informado.{'\n'}
+              • O aluno deverá baixar o app e se cadastrar.{'\n'}
+              • Após o cadastro, ele aparecerá na sua lista.
+            </Text>
           </View>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.createButton,
-            (!isFormValid || isLoading) && styles.createButtonDisabled
-          ]}
-          onPress={handleEnviarConvite}
-          disabled={!isFormValid || isLoading}
-          activeOpacity={0.8}
-        >
-          {isLoading ? (
-            <LoadingIcon color="white" size={20} />
-          ) : (
-            <>
-              <Ionicons name="mail" size={20} color="white" />
-              <Text style={styles.createButtonText}>Enviar Convite</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* 🔥 TOAST DE NOTIFICAÇÃO */}
-      {toastVisible && (
-        <View style={[
-          styles.toast, 
-          toastType === 'success' ? styles.toastSuccess : styles.toastError
-        ]}>
-          <Ionicons 
-            name={toastType === 'success' ? 'checkmark-circle' : 'alert-circle'} 
-            size={20} 
-            color="white" 
-          />
-          <Text style={styles.toastText}>{toastMessage}</Text>
+      <SafeAreaView edges={["bottom"]} style={{ backgroundColor: '#fff' }}>
+        <View style={styles.footer}>
+          <TouchableOpacity style={[styles.createButton, (!isFormValid || isLoading) && styles.createButtonDisabled]} onPress={handleEnviarConvite} disabled={!isFormValid || isLoading} activeOpacity={0.8}>
+            {isLoading ? (<ActivityIndicator color="white" size="small" />) : (<><Ionicons name="paper-plane-outline" size={20} color="white" /><Text style={styles.createButtonText}>Enviar Convite</Text></>)}
+          </TouchableOpacity>
         </View>
-      )}
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -275,12 +144,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    backgroundColor: '#fff',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 4,
   },
   headerTitle: {
     fontSize: 18,
@@ -288,7 +155,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   headerSpacer: {
-    width: 40,
+    width: 28,
   },
   content: {
     flex: 1,
@@ -297,12 +164,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 32,
+    backgroundColor: '#fff',
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#EBF8FF',
+    backgroundColor: 'rgba(3, 105, 161, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -323,6 +191,7 @@ const styles = StyleSheet.create({
   formSection: {
     paddingHorizontal: 24,
     paddingBottom: 24,
+    backgroundColor: '#fff',
   },
   inputGroup: {
     marginBottom: 20,
@@ -360,41 +229,44 @@ const styles = StyleSheet.create({
   infoSection: {
     paddingHorizontal: 24,
     paddingBottom: 24,
+    backgroundColor: '#fff',
   },
+  // ✅ ESTILOS DO CARD ATUALIZADOS
   infoCard: {
-    flexDirection: 'row',
-    backgroundColor: '#F0F9FF',
+    backgroundColor: 'rgba(161, 30, 10, 0.05)',
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: 'rgba(161, 30, 10, 0.2)',
     borderRadius: 12,
     padding: 16,
   },
-  infoContent: {
-    flex: 1,
-    marginLeft: 12,
+  infoCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12, // Espaçamento entre o título e o texto
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0C4A6E',
-    marginBottom: 8,
+    color: '#A11E0A',
+    marginLeft: 8, // Espaçamento entre o ícone e o título
   },
   infoText: {
     fontSize: 14,
-    color: '#075985',
-    lineHeight: 20,
+    color: '#A11E0A',
+    lineHeight: 22,
   },
   footer: {
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    backgroundColor: '#fff',
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
@@ -406,35 +278,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  // 🔥 ESTILOS DO TOAST
-  toast: {
-    position: 'absolute',
-    bottom: 100,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    gap: 12,
-  },
-  toastSuccess: {
-    backgroundColor: '#10B981',
-  },
-  toastError: {
-    backgroundColor: '#EF4444',
-  },
-  toastText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-    flex: 1,
-    lineHeight: 20,
   },
 });

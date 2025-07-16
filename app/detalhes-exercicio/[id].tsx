@@ -145,7 +145,7 @@ export default function DetalhesExercicioScreen() {
             <View style={styles.container}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backButtonLayout} onPress={() => router.back()}>
-                        <Ionicons name="chevron-back" size={24} color="#007AFF" />
+                        <Ionicons name="chevron-back" size={24} color="#A11E0A" />
                         <Text style={styles.backButtonText}>Voltar</Text>
                     </TouchableOpacity>
                 </View>
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9FAFB' },
     header: { backgroundColor: 'white', paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
     backButtonLayout: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    backButtonText: { fontSize: 16, color: '#007AFF', fontWeight: '500' },
+    backButtonText: { fontSize: 16, color: '#A11E0A', fontWeight: '500' },
     content: { flex: 1 },
     titleSection: { backgroundColor: 'white', padding: 20, marginBottom: 16 },
     exercicioNome: { fontSize: 28, fontWeight: '700', color: '#1F2937', marginBottom: 8 },

@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#A11E0A',
     marginBottom: 16,
     textAlign: 'center',
     fontStyle: 'italic',

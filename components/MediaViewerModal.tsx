@@ -3,15 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    Modal,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface MediaViewerModalProps {
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

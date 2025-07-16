@@ -555,7 +555,7 @@ export default function CriarCopiaExercicioScreen() {
                 {/* ✅ HEADER */}
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.headerBackButton} onPress={() => router.push('/exercicios')}>
-                        <Ionicons name="chevron-back" size={24} color="#007AFF" />
+                        <Ionicons name="chevron-back" size={24} color="#A11E0A" />
                         <Text style={styles.backButtonText}>Voltar</Text>
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Criar Cópia Personalizada</Text>
@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     },
     backButtonText: { 
         fontSize: 16, 
-        color: '#007AFF', 
+        color: '#A11E0A', 
         fontWeight: '500' 
     },
     headerTitle: { 
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
         borderTopColor: '#E5E7EB'
     },
     saveButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: '#A11E0A',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

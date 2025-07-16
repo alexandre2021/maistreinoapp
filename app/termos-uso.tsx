@@ -13,7 +13,7 @@ export default function TermosUso() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="rgba(0, 122, 255, 1.00)" />
+            <ArrowLeft size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.title}>Termos de Uso</Text>
         </View>
@@ -23,13 +23,13 @@ export default function TermosUso() {
 
           <Text style={styles.sectionTitle}>1. Aceitação dos Termos</Text>
           <Text style={styles.paragraph}>
-            Ao utilizar o aplicativo MaisTreino, você concorda em estar vinculado a estes Termos de Uso. 
+            Ao utilizar o aplicativo titans.fitness, você concorda em estar vinculado a estes Termos de Uso. 
             Se você não concordar com qualquer parte destes termos, não deve usar nosso serviço.
           </Text>
 
           <Text style={styles.sectionTitle}>2. Descrição do Serviço</Text>
           <Text style={styles.paragraph}>
-            O MaisTreino é uma plataforma digital que conecta personal trainers e alunos, permitindo o 
+            O titans.fitness é uma plataforma digital que conecta personal trainers e alunos, permitindo o 
             gerenciamento de treinos, acompanhamento de exercícios e comunicação entre as partes.
           </Text>
 
@@ -56,6 +56,10 @@ export default function TermosUso() {
             4.3. Manter informações precisas sobre qualificações e experiência.
           </Text>
 
+          <Text style={styles.paragraph}>
+            4.4. O personal trainer é o único responsável por garantir que possui todos os direitos necessários para o uso de imagens, vídeos ou quaisquer mídias incluídas em seus exercícios personalizados, incluindo autorização de uso de imagem de terceiros, quando aplicável. O titans.fitness não se responsabiliza por eventuais violações de direitos autorais ou de imagem decorrentes do conteúdo enviado pelos profissionais.
+          </Text>
+
           <Text style={styles.sectionTitle}>5. Responsabilidades do Aluno</Text>
           <Text style={styles.paragraph}>
             5.1. Fornecer informações médicas relevantes e precisas antes de iniciar qualquer programa de exercícios.
@@ -69,14 +73,14 @@ export default function TermosUso() {
 
           <Text style={styles.sectionTitle}>6. Limitação de Responsabilidade</Text>
           <Text style={styles.paragraph}>
-            O MaisTreino atua apenas como intermediário entre personal trainers e alunos. Não somos responsáveis 
+            O titans.fitness atua apenas como intermediário entre personal trainers e alunos. Não somos responsáveis 
             por lesões, danos ou resultados decorrentes do uso dos serviços dos personal trainers.
           </Text>
 
           <Text style={styles.sectionTitle}>7. Propriedade Intelectual</Text>
           <Text style={styles.paragraph}>
             Todo o conteúdo do aplicativo, incluindo textos, gráficos, logos e software, é propriedade 
-            do MaisTreino ou de seus licenciadores e está protegido por leis de direitos autorais.
+            do titans.fitness ou de seus licenciadores e está protegido por leis de direitos autorais.
           </Text>
 
           <Text style={styles.sectionTitle}>8. Modificações dos Termos</Text>
@@ -101,7 +105,7 @@ export default function TermosUso() {
             Para dúvidas sobre estes Termos de Uso, entre em contato conosco:
           </Text>
           <Text style={styles.contactInfo}>
-            Email: contato@maistreino.com{'\n'}
+            Email: contato@titans.fitness{'\n'}
           </Text>
         </View>
       </ScrollView>
@@ -131,8 +135,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
-    color: 'rgba(0, 122, 255, 1.00)',
+    fontWeight: '400',
+    color: '#000',
   },
   content: {
     padding: 20,
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'rgba(0, 122, 255, 1.00)',
+    color: '#A11E0A',
     marginTop: 24,
     marginBottom: 12,
   },

@@ -1,4 +1,4 @@
-// app/criar-rotina/configuracao.tsx - STORAGE CENTRALIZADO
+// app/criar-rotina/configuracao.tsx - STORAGE CENTRALIZADO + OBJETIVO INTELIGENTE
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -54,6 +54,48 @@ export default function ConfiguracaoRotinaScreen() {
     return 12; // Sempre 12 semanas como padrão
   };
 
+  // ✅ FUNÇÃO PARA BUSCAR OBJETIVO SUGERIDO
+  const buscarObjetivoSugerido = async (alunoId: string) => {
+    try {
+      setObjetivoCarregando(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return '';
+
+      const { data: aluno, error } = await supabase
+        .from('alunos')
+        .select('ultimo_objetivo_rotina, objetivo_principal')
+        .eq('id', alunoId)
+        .eq('personal_trainer_id', user.id)
+        .single();
+
+      if (error || !aluno) {
+        console.log('Erro ao buscar objetivo:', error);
+        return '';
+      }
+
+      // 1. Priorizar objetivo da rotina anterior (se existe)
+      if (aluno.ultimo_objetivo_rotina) {
+        console.log('✅ Objetivo da rotina anterior encontrado:', aluno.ultimo_objetivo_rotina);
+        return aluno.ultimo_objetivo_rotina;
+      }
+
+      // 2. Fallback para objetivo do onboarding (primeira rotina)
+      if (aluno.objetivo_principal) {
+        console.log('✅ Objetivo do onboarding encontrado:', aluno.objetivo_principal);
+        return aluno.objetivo_principal;
+      }
+
+      console.log('ℹ️ Nenhum objetivo encontrado');
+      return '';
+    } catch (error) {
+      console.error('Erro ao buscar objetivo sugerido:', error);
+      return '';
+    } finally {
+      setObjetivoCarregando(false);
+    }
+  };
+
   // ✅ BUSCAR NOME DO ALUNO PARA SUGESTÃO AUTOMÁTICA
   const [alunoNome, setAlunoNome] = useState<string>('');
 
@@ -71,6 +113,7 @@ export default function ConfiguracaoRotinaScreen() {
     return configSalva?.objetivo || '';
   });
   const [showObjetivoOptions, setShowObjetivoOptions] = useState(false);
+  const [objetivoCarregando, setObjetivoCarregando] = useState(false);
   
   const [treinosPorSemana, setTreinosPorSemana] = useState(() => {
     return configSalva?.treinosPorSemana || 3;
@@ -135,6 +178,15 @@ export default function ConfiguracaoRotinaScreen() {
             
             console.log('✅ Sugestão de nome gerada:', sugestaoNome);
           }
+
+          // ✅ BUSCAR OBJETIVO SUGERIDO (só se não tem objetivo salvo)
+          if (!configSalva?.objetivo) {
+            const objetivoSugerido = await buscarObjetivoSugerido(alunoId);
+            if (objetivoSugerido) {
+              setObjetivo(objetivoSugerido);
+              console.log('✅ Objetivo sugerido aplicado:', objetivoSugerido);
+            }
+          }
         }
       } catch (error) {
         console.error('Erro ao buscar dados do aluno:', error);
@@ -142,7 +194,7 @@ export default function ConfiguracaoRotinaScreen() {
     };
 
     fetchAlunoData();
-  }, [alunoId, configSalva?.nomeRotina]);
+  }, [alunoId, configSalva?.nomeRotina, configSalva?.objetivo]);
 
   // ✅ ATUALIZAR DURAÇÃO QUANDO TREINOS/SEMANA MUDAR - REMOVIDO
   // Agora a duração é sempre 12 semanas por padrão, independente dos treinos
@@ -321,7 +373,7 @@ export default function ConfiguracaoRotinaScreen() {
           </View>
         </View>
 
-        {/* ✅ NOVA SEÇÃO: OBJETIVO DA ROTINA */}
+        {/* ✅ SEÇÃO OBJETIVO DA ROTINA COM SUGESTÃO INTELIGENTE */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             Objetivo da Rotina <Text style={styles.required}>*</Text>
@@ -330,20 +382,30 @@ export default function ConfiguracaoRotinaScreen() {
           <TouchableOpacity
             style={[
               styles.selectButton,
-              !objetivo && { borderColor: '#CBD5E1' }
+              !objetivo && { borderColor: '#CBD5E1' },
+              objetivoCarregando && styles.selectButtonLoading
             ]}
             onPress={() => setShowObjetivoOptions(!showObjetivoOptions)}
+            disabled={objetivoCarregando}
           >
-            <Text style={[
-              styles.selectText, 
-              !objetivo && styles.placeholderText
-            ]}>
-              {objetivo || 'Selecione o objetivo desta rotina'}
-            </Text>
-            <Ionicons name="chevron-down" size={20} color="#64748B" />
+            {objetivoCarregando ? (
+              <Text style={styles.loadingText}>Carregando objetivo sugerido...</Text>
+            ) : (
+              <Text style={[
+                styles.selectText, 
+                !objetivo && styles.placeholderText
+              ]}>
+                {objetivo || 'Selecione o objetivo desta rotina'}
+              </Text>
+            )}
+            <Ionicons 
+              name="chevron-down" 
+              size={20} 
+              color={objetivoCarregando ? "#9CA3AF" : "#64748B"} 
+            />
           </TouchableOpacity>
 
-          {showObjetivoOptions && (
+          {showObjetivoOptions && !objetivoCarregando && (
             <View style={styles.optionsDropdown}>
               <ScrollView>
                 {OBJETIVOS.map((option) => (
@@ -364,7 +426,10 @@ export default function ConfiguracaoRotinaScreen() {
           
           <View style={styles.inputInfo}>
             <Text style={styles.inputHint}>
-              Define o foco principal desta rotina específica
+              {objetivo 
+                ? 'Objetivo selecionado baseado no histórico do aluno'
+                : 'Define o foco principal desta rotina específica'
+              }
             </Text>
           </View>
         </View>
@@ -629,6 +694,14 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#9CA3AF',
   },
+  loadingText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontStyle: 'italic',
+  },
+  selectButtonLoading: {
+    opacity: 0.7,
+  },
   optionsDropdown: {
     borderWidth: 1,
     borderColor: '#D1D5DB',
@@ -648,59 +721,6 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   
-  // DROPDOWN STYLES
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dropdownContainerOpen: {
-    borderColor: '#007AFF',
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  dropdownOptions: {
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  dropdownOption: {
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  dropdownOptionSelected: {
-    backgroundColor: '#F0F9FF',
-  },
-  dropdownOptionText: {
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  dropdownOptionTextSelected: {
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  
   // OPÇÕES EM GRID
   optionsGrid: {
     flexDirection: 'row',
@@ -718,24 +738,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   optionCardSelected: {
-    borderColor: '#007AFF',
+    borderColor: '#A11E0A',
     backgroundColor: '#F0F9FF',
-  },
-  optionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 2,
-  },
-  optionLabelSelected: {
-    color: '#007AFF',
-  },
-  optionSubtitle: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  optionSubtitleSelected: {
-    color: '#1E40AF',
   },
   optionCardText: {
     fontSize: 16,
@@ -744,12 +748,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   optionCardTextSelected: {
-    color: '#007AFF',
-  },
-  optionCheck: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+    color: '#A11E0A',
   },
   
   // DURAÇÃO
@@ -809,7 +808,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   duracaoPersonalizadaInputActive: {
-    borderColor: '#007AFF',
+    borderColor: '#A11E0A',
     backgroundColor: '#F0F9FF',
   },
   duracaoPersonalizadaHint: {
@@ -875,7 +874,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   nextButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',

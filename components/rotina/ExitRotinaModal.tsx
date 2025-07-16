@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
  rotinaName: {
    fontSize: 16,
    fontWeight: '600',
-   color: '#007AFF',
+   color: '#A11E0A',
    marginBottom: 12,
    textAlign: 'center',
    fontStyle: 'italic',

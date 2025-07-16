@@ -42,7 +42,7 @@ export default function ImageModals({
                 onPickFromCamera();
               }}
             >
-              <Ionicons name="camera" size={24} color="#007AFF" />
+              <Ionicons name="camera" size={24} color="#A11E0A" />
               <Text style={styles.imageOptionText}>Tirar Foto</Text>
             </TouchableOpacity>
             
@@ -53,7 +53,7 @@ export default function ImageModals({
                 onPickFromGallery();
               }}
             >
-              <Ionicons name="images" size={24} color="#007AFF" />
+              <Ionicons name="images" size={24} color="#A11E0A" />
               <Text style={styles.imageOptionText}>Escolher da Galeria</Text>
             </TouchableOpacity>
             

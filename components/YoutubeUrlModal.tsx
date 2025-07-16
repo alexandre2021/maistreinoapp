@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12 },
   cancel: { paddingVertical: 8, paddingHorizontal: 16 },
   cancelText: { color: '#6B7280', fontSize: 16 },
-  save: { backgroundColor: '#007AFF', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  save: { backgroundColor: '#A11E0A', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
   saveDisabled: { backgroundColor: '#9CA3AF' },
   saveText: { color: 'white', fontSize: 16, fontWeight: '600' },
 });

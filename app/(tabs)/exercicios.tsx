@@ -40,6 +40,8 @@ export default function ExerciciosScreen() {
   const params = useLocalSearchParams();
   // Estados principais
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
+  const [exerciciosPadrao, setExerciciosPadrao] = useState<Exercicio[]>([]);
+  const [exerciciosPersonalizados, setExerciciosPersonalizados] = useState<Exercicio[]>([]);
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -152,24 +154,6 @@ export default function ExerciciosScreen() {
     return matchesSearch && matchesGrupo && matchesEquipamento && matchesDificuldade;
   });
 
-  // ✅ Buscar exercícios personalizados para contar corretamente
-  const fetchExerciciosPersonalizados = async (ptId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('exercicios')
-        .select('id')
-        .eq('tipo', 'personalizado')
-        .eq('pt_id', ptId)
-        .eq('is_ativo', true);
-
-      if (error) throw error;
-      return data?.length || 0;
-    } catch (error) {
-      console.error('❌ Erro ao contar exercícios personalizados:', error);
-      return 0;
-    }
-  };
-
   // ✅ Buscar exercícios do Supabase
   const fetchExercicios = useCallback(async () => {
     try {
@@ -183,50 +167,64 @@ export default function ExerciciosScreen() {
         return;
       }
 
-      let query = supabase
-        .from('exercicios')
-        .select(`
-          id,
-          nome,
-          descricao,
-          grupo_muscular,
-          equipamento,
-          dificuldade,
-          tipo,
-          instrucoes,
-          imagem_1_url,
-          imagem_2_url,
-          video_url,
-          youtube_url,
-          is_ativo,
-          created_at,
-          pt_id,
-          exercicio_padrao_id
-        `)
-        .eq('is_ativo', true)
-        .order('created_at', { ascending: false });
+      // ✅ SEMPRE buscar AMBOS os tipos para ter contadores corretos
+      const [padraoResponse, personalizadosResponse] = await Promise.all([
+        // Exercícios padrão
+        supabase
+          .from('exercicios')
+          .select(`
+            id, nome, descricao, grupo_muscular, equipamento, dificuldade, tipo,
+            instrucoes, imagem_1_url, imagem_2_url, video_url, youtube_url,
+            is_ativo, created_at, pt_id, exercicio_padrao_id
+          `)
+          .eq('is_ativo', true)
+          .eq('tipo', 'padrao')
+          .order('created_at', { ascending: false }),
+        
+        // Exercícios personalizados do PT
+        supabase
+          .from('exercicios')
+          .select(`
+            id, nome, descricao, grupo_muscular, equipamento, dificuldade, tipo,
+            instrucoes, imagem_1_url, imagem_2_url, video_url, youtube_url,
+            is_ativo, created_at, pt_id, exercicio_padrao_id
+          `)
+          .eq('is_ativo', true)
+          .eq('tipo', 'personalizado')
+          .eq('pt_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
 
-      // Filtrar por tipo
-      if (activeTab === 'padrao') {
-        query = query.eq('tipo', 'padrao');
-      } else {
-        query = query.eq('tipo', 'personalizado').eq('pt_id', user.id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('❌ Erro ao buscar exercícios:', error);
-        Alert.alert('Erro', 'Não foi possível carregar os exercícios.');
+      if (padraoResponse.error) {
+        console.error('❌ Erro ao buscar exercícios padrão:', padraoResponse.error);
+        Alert.alert('Erro', 'Não foi possível carregar os exercícios padrão.');
         return;
       }
 
-      console.log(`✅ ${data?.length || 0} exercícios carregados para aba: ${activeTab}`);
-      setExercicios(data || []);
+      if (personalizadosResponse.error) {
+        console.error('❌ Erro ao buscar exercícios personalizados:', personalizadosResponse.error);
+        Alert.alert('Erro', 'Não foi possível carregar os exercícios personalizados.');
+        return;
+      }
+
+      const exerciciosPadraoData = padraoResponse.data || [];
+      const exerciciosPersonalizadosData = personalizadosResponse.data || [];
+
+      // ✅ Atualizar estados separados para contadores corretos
+      setExerciciosPadrao(exerciciosPadraoData);
+      setExerciciosPersonalizados(exerciciosPersonalizadosData);
+
+      // ✅ Definir exercícios ativos baseado na aba atual
+      if (activeTab === 'padrao') {
+        setExercicios(exerciciosPadraoData);
+      } else {
+        setExercicios(exerciciosPersonalizadosData);
+      }
+
+      console.log(`✅ Exercícios carregados - Padrão: ${exerciciosPadraoData.length}, Personalizados: ${exerciciosPersonalizadosData.length}`);
       
-      // ✅ SEMPRE buscar status do plano (independente da aba)
-      const totalExerciciosPersonalizados = await fetchExerciciosPersonalizados(user.id);
-      await fetchPlanStatus(user.id, totalExerciciosPersonalizados);
+      // ✅ Buscar status do plano usando contagem real de personalizados
+      await fetchPlanStatus(user.id, exerciciosPersonalizadosData.length);
       
     } catch (error) {
       console.error('💥 Erro inesperado:', error);
@@ -241,6 +239,15 @@ export default function ExerciciosScreen() {
     console.log('🔄 useEffect disparado - carregando exercícios para aba:', activeTab);
     fetchExercicios();
   }, [activeTab, fetchExercicios]); // Recarrega quando a aba mudar
+
+  // ✅ useEffect para atualizar exercícios quando mudar de aba (sem refetch)
+  useEffect(() => {
+    if (activeTab === 'padrao') {
+      setExercicios(exerciciosPadrao);
+    } else {
+      setExercicios(exerciciosPersonalizados);
+    }
+  }, [activeTab, exerciciosPadrao, exerciciosPersonalizados]);
 
   // ✅ Buscar status do plano - SIMPLES MAS CORRETO
   const fetchPlanStatus = async (ptId: string, currentExerciseCount: number) => {
@@ -433,6 +440,11 @@ export default function ExerciciosScreen() {
       // 3. Remover da lista local
       setExercicios(prev => prev.filter(ex => ex.id !== selectedExercicio.id));
       
+      // ✅ 3.1. Atualizar também a lista específica
+      if (selectedExercicio.tipo === 'personalizado') {
+        setExerciciosPersonalizados(prev => prev.filter(ex => ex.id !== selectedExercicio.id));
+      }
+      
       // ✅ 4. ATUALIZAR O CONTADOR DO PLANO
       setPlanStatus(prev => {
         const novoTotal = prev.total_exercicios - 1;
@@ -561,30 +573,14 @@ export default function ExerciciosScreen() {
 
   return (
     <View style={styles.wrapper}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Exercícios</Text>
-        <Text style={styles.headerSubtitle}>
-          {activeTab === 'padrao' ? 'Padrão' : 'Personalizados'} ({filteredExerciciosWithSearch.length})
-        </Text>
-        {activeTab === 'personalizados' && (
-          <Text style={styles.headerLimit}>
-            {planStatus.limite_exercicios === -1 
-              ? 'Exercícios ilimitados' 
-              : `${planStatus.total_exercicios}/${planStatus.limite_exercicios} exercícios`
-            }
-          </Text>
-        )}
-      </View>
-
-      {/* Abas simples */}
+      {/* Abas com contadores integrados - SEM TÍTULO DUPLICADO */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'padrao' && styles.tabActive]}
           onPress={() => setActiveTab('padrao')}
         >
           <Text style={[styles.tabText, activeTab === 'padrao' && styles.tabTextActive]}>
-            Padrão
+            Padrão ({exerciciosPadrao.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -592,13 +588,13 @@ export default function ExerciciosScreen() {
           onPress={() => setActiveTab('personalizados')}
         >
           <Text style={[styles.tabText, activeTab === 'personalizados' && styles.tabTextActive]}>
-            Personalizados
+            Personalizados ({exerciciosPersonalizados.length})
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.container}>
-        {/* ✅ Barra de busca e filtros */}
+        {/* Busca e filtros com altura consistente */}
         <View style={styles.searchContainer}>
           <View style={styles.searchWrapper}>
             <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
@@ -619,7 +615,6 @@ export default function ExerciciosScreen() {
             )}
           </View>
           
-          {/* ✅ Botão de filtro */}
           <TouchableOpacity
             style={[
               styles.filterToggle,
@@ -641,7 +636,7 @@ export default function ExerciciosScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ✅ Seção de filtros reutilizada */}
+        {/* Filtros (quando abertos) */}
         {showFilters && (
           <FiltersSection
             key="filters-section"
@@ -656,38 +651,35 @@ export default function ExerciciosScreen() {
           />
         )}
 
-        {/* Header com contadores e botão */}
-        {filteredExerciciosWithSearch.length > 0 && (
+        {/* Header row com contador e botão (padrão de alunos) */}
+        {filteredExerciciosWithSearch.length > 0 && activeTab === 'personalizados' && (
           <View style={styles.headerRow}>
             <View style={styles.countContainer}>
               <Text style={styles.exerciciosCount}>
-                {filteredExerciciosWithSearch.length} {filteredExerciciosWithSearch.length === 1 ? 'exercício' : 'exercícios'}
+                {filteredExerciciosWithSearch.length} {filteredExerciciosWithSearch.length === 1 ? 'personalizado' : 'personalizados'} ({planStatus.total_exercicios}/{planStatus.limite_exercicios === -1 ? '∞' : planStatus.limite_exercicios})
               </Text>
             </View>
-            
-            {activeTab === 'personalizados' && (
-              <TouchableOpacity
-                style={[
-                  styles.addButton,
-                  !canAddMoreExercises() && styles.addButtonDisabled
-                ]}
-                onPress={canAddMoreExercises() ? handleNovoExercicio : () => openModal('planos')}
-                activeOpacity={0.8}
-              >
-                <Ionicons 
-                  name={canAddMoreExercises() ? "add" : "lock-closed"} 
-                  size={20} 
-                  color="white" 
-                />
-                <Text style={styles.addButtonText}>
-                  {canAddMoreExercises() ? 'Exercício' : 'Limite'}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                !canAddMoreExercises() && styles.addButtonDisabled
+              ]}
+              onPress={canAddMoreExercises() ? handleNovoExercicio : () => openModal('planos')}
+              activeOpacity={0.8}
+            >
+              <Ionicons 
+                name={canAddMoreExercises() ? "add" : "lock-closed"} 
+                size={20} 
+                color="white" 
+              />
+              <Text style={styles.addButtonText}>
+                {canAddMoreExercises() ? 'Exercício' : 'Upgrade'}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Lista de exercícios */}
+        {/* Lista ou estado vazio */}
         {filteredExerciciosWithSearch.length === 0 ? (
           renderEmptyState()
         ) : (
@@ -751,33 +743,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  header: {
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  headerLimit: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 2,
-  },
+
+  // Abas com contadores integrados - ESPAÇO OTIMIZADO
   tabsContainer: {
     flexDirection: 'row',
     backgroundColor: 'white',
     paddingHorizontal: 16,
+    paddingTop: 16, // Reduzido de 50px para 16px
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -789,36 +762,32 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#007AFF',
+    borderBottomColor: '#A11E0A',
+  },
+  tabContent: {
+    alignItems: 'center',
   },
   tabText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600', // Mais bold para destacar
     color: '#6B7280',
   },
   tabTextActive: {
-    color: '#007AFF',
+    color: '#A11E0A',
   },
+
   container: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
   },
-  loadingState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
+
+  // Busca e filtros com altura consistente
   searchContainer: {
     flexDirection: 'row',
     marginBottom: 16,
     gap: 12,
+    alignItems: 'center', // Garante alinhamento
   },
   searchWrapper: {
     flex: 1,
@@ -827,7 +796,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    height: 48, // Altura fixa igual ao botão de filtro
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -847,7 +816,7 @@ const styles = StyleSheet.create({
   },
   filterToggle: {
     width: 48,
-    height: 48,
+    height: 48, // Mesma altura da busca
     borderRadius: 12,
     backgroundColor: 'white',
     justifyContent: 'center',
@@ -881,39 +850,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+
+  // Header row com contador (padrão alunos)
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between', // Contador à esquerda, botão à direita
     alignItems: 'center',
     marginBottom: 16,
   },
   countContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    flex: 1, // Permite quebra de linha se necessário
+    marginRight: 12,
   },
   exerciciosCount: {
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
+    flexWrap: 'wrap',
+  },
+  spacer: {
+    flex: 1, // Empurra o botão para a direita
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
     gap: 6,
+    shadowColor: '#A11E0A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   addButtonDisabled: {
     backgroundColor: '#9CA3AF',
+    shadowColor: '#9CA3AF',
   },
   addButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
   },
+
+  // Cards dos exercícios
   exercicioCard: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -925,7 +909,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center', // Mudado de 'flex-start' para 'center'
     justifyContent: 'space-between',
   },
   exercicioContent: {
@@ -943,7 +927,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
-  // ✅ Badge neutro para grupo muscular e equipamento
+  // Badge neutro para grupo muscular e equipamento
   badgeNeutral: {
     backgroundColor: '#F3F4F6',
     paddingHorizontal: 8,
@@ -957,7 +941,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  // ✅ Badge colorido apenas para dificuldade
+  // Badge colorido apenas para dificuldade
   badgeDifficulty: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -986,6 +970,8 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: 16,
   },
+
+  // Estado vazio
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -1010,7 +996,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 12,

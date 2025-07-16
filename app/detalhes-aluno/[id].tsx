@@ -31,7 +31,7 @@ interface AlunoData {
     objetivoPrincipal: Objetivo | '';
     nivelExperiencia: NivelExperienciaAluno | '';
     frequenciaTreinoDesejada: FrequenciaTreino | '';
-    dataOnboarding?: string; // Nova prop para exibir a data do onboarding
+    dataOnboarding?: string;
 }
 
 export default function DetalhesAluno() {
@@ -131,14 +131,18 @@ export default function DetalhesAluno() {
                     style={styles.backButton}
                     onPress={() => router.push('/(tabs)/alunos')}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#007AFF" />
+                    <Ionicons name="arrow-back" size={28} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.title}>Detalhes</Text>
                 <View style={styles.placeholder} />
             </View>
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                style={styles.scrollView} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
                 {/* CARD DE IDENTIFICAÇÃO DO ALUNO */}
-                <View style={[styles.alunoCard, styles.alunoCardLeftBorderBlue]}>
+                <View style={styles.alunoCard}>
                     <Text style={styles.alunoNome}>{data.nomeCompleto || '-'}</Text>
                     <Text style={styles.alunoEmail}>{data.email || '-'}</Text>
                 </View>
@@ -146,11 +150,7 @@ export default function DetalhesAluno() {
                 {/* CARD DE INFORMAÇÕES INICIAIS (CADASTRO) */}
                 <View style={[styles.onboardingCard, styles.onboardingCardLeftBorderYellow]}>
                     <View style={styles.onboardingHeader}>
-                        <Text style={styles.onboardingTitleYellow}>Informações Iniciais</Text>
-                    </View>
-                    <View style={styles.onboardingInfoRow}>
-                        <Text style={styles.onboardingLabelYellow}>Data do Cadastro:</Text>
-                        <Text style={styles.onboardingValueYellow}>{data.dataOnboarding || '-'}</Text>
+                        <Text style={styles.onboardingTitleYellow}>Informações cadastrais ({data.dataOnboarding || '-'})</Text>
                     </View>
                     <View style={styles.onboardingInfoRow}>
                         <Text style={styles.onboardingLabelYellow}>Objetivo:</Text>
@@ -165,35 +165,29 @@ export default function DetalhesAluno() {
                         <Text style={styles.onboardingValueYellow}>{data.frequenciaTreinoDesejada || '-'}</Text>
                     </View>
                     <Text style={styles.onboardingDescriptionYellow}>
-                        Essas informações são uma fotografia inicial do aluno, coletadas no cadastro e não editáveis. Servem como referência histórica para acompanhamento da evolução.
+                        Informações não editáveis, servem de referência histórica para acompanhamento da evolução.
                     </Text>
                 </View>
 
                 {/* DADOS PESSOAIS */}
-                <Text style={styles.sectionTitle}>Dados Pessoais</Text>
-                <Text style={[styles.sectionDescription, styles.sectionDescriptionRed]}>
-                    Essas informações podem ser editadas pelo próprio aluno.
-                </Text>
-                <View style={styles.row}>
-                    <View style={[styles.halfWidth, { marginRight: 6 }]}> 
-                        <Text style={styles.label}>Gênero</Text>
-                        <TextInput
-                            style={[styles.input, styles.inputDisabled, { marginLeft: 0, marginRight: 0 }]}
-                            value={data.genero}
-                            editable={false}
-                            placeholder="Não informado"
-                        />
-                    </View>
-                    <View style={[styles.halfWidth, { marginLeft: 6 }]}> 
-                        <Text style={styles.label}>Data de Nascimento</Text>
-                        <TextInput
-                            style={[styles.input, styles.inputDisabled, { marginLeft: 0, marginRight: 0 }]}
-                            value={data.dataNascimento}
-                            editable={false}
-                            placeholder="Não informado"
-                        />
-                    </View>
-                </View>
+                <Text style={styles.sectionTitle}>Dados Pessoais (Editáveis pelo aluno)</Text>
+                
+                <Text style={styles.label}>Gênero</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={data.genero}
+                    editable={false}
+                    placeholder="Não informado"
+                />
+                
+                <Text style={styles.label}>Data de Nascimento</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={data.dataNascimento}
+                    editable={false}
+                    placeholder="Não informado"
+                />
+                
                 <Text style={styles.label}>Telefone</Text>
                 <TextInput
                     style={[styles.input, styles.inputDisabled]}
@@ -201,8 +195,9 @@ export default function DetalhesAluno() {
                     editable={false}
                     placeholder="Telefone não cadastrado"
                 />
+                
                 {/* CONTATO DE EMERGÊNCIA */}
-                <Text style={styles.sectionTitle}>Contato de Emergência</Text>
+                <Text style={styles.sectionTitle}>Emergência (Editáveis pelo aluno)</Text>
                 <Text style={styles.label}>Nome do Contato</Text>
                 <TextInput
                     style={[styles.input, styles.inputDisabled]}
@@ -251,27 +246,18 @@ const styles = StyleSheet.create({
     scrollView: {
         flex: 1,
     },
+    scrollContent: {
+        paddingBottom: 40, // Espaço no final da página
+    },
     alunoCard: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 14,
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 20,
         marginHorizontal: 20,
         marginTop: 20,
-        marginBottom: 0,
-        paddingVertical: 16,
-        paddingHorizontal: 18,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    alunoCardLeftBorderBlue: {
         borderLeftWidth: 4,
-        borderLeftColor: '#3B82F6', // azul igual ícone 'Ver Detalhes' na modal
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
+        borderLeftColor: '#3B82F6', // Azul dos detalhes (da modal)
     },
     alunoNome: {
         fontSize: 17,
@@ -286,8 +272,6 @@ const styles = StyleSheet.create({
     },
     onboardingCard: {
         backgroundColor: '#FFF9ED',
-        borderWidth: 1,
-        borderColor: '#F59E42',
         borderRadius: 16,
         padding: 20,
         margin: 20,
@@ -298,15 +282,9 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
-    onboardingCardLeftBorderBlue: {
-        borderLeftWidth: 4,
-        borderLeftColor: '#2563EB', // azul padrão do app
-        borderTopLeftRadius: 16,
-        borderBottomLeftRadius: 16,
-    },
     onboardingCardLeftBorderYellow: {
         borderLeftWidth: 4,
-        borderLeftColor: '#F59E0B', // amarelo igual avaliações
+        borderLeftColor: '#F59E0B',
         borderTopLeftRadius: 16,
         borderBottomLeftRadius: 16,
     },
@@ -315,52 +293,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
-    onboardingTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: '#F59E42',
-    },
     onboardingTitleYellow: {
         fontSize: 17,
         fontWeight: '700',
-        color: '#92400E', // igual avaliações
+        color: '#92400E',
     },
     onboardingInfoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 4,
     },
-    onboardingLabel: {
-        fontSize: 15,
-        color: '#A16207',
-        fontWeight: '500',
-    },
     onboardingLabelYellow: {
-        fontSize: 15,
-        color: '#92400E', // igual avaliações
-        fontWeight: '500',
-    },
-    onboardingValue: {
-        fontSize: 15,
-        color: '#1F2937',
-        fontWeight: '600',
+        fontSize: 14,
+        color: '#92400E',
+        fontWeight: '400',
     },
     onboardingValueYellow: {
-        fontSize: 15,
-        color: '#92400E', // igual avaliações
-        fontWeight: '600',
-    },
-    onboardingDescription: {
-        marginTop: 12,
-        fontSize: 13,
-        color: '#A16207',
-        fontStyle: 'italic',
-        lineHeight: 18,
+        fontSize: 14,
+        color: '#92400E',
+        fontWeight: '400',
+        flex: 1,
+        textAlign: 'right',
     },
     onboardingDescriptionYellow: {
         marginTop: 12,
         fontSize: 13,
-        color: '#92400E', // igual avaliações
+        color: '#92400E',
         fontStyle: 'italic',
         lineHeight: 18,
     },
@@ -371,17 +329,6 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 20,
         marginLeft: 20,
-    },
-    sectionDescription: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginBottom: 16,
-        marginLeft: 20,
-        marginRight: 20,
-    },
-    sectionDescriptionRed: {
-        color: '#EF4444', // vermelho de destaque
-        fontWeight: '600',
     },
     label: {
         fontSize: 16,
@@ -403,13 +350,5 @@ const styles = StyleSheet.create({
     inputDisabled: {
         backgroundColor: '#F9FAFB',
         color: '#6B7280',
-    },
-    row: {
-        flexDirection: 'row',
-        gap: 12,
-        marginHorizontal: 20,
-    },
-    halfWidth: {
-        flex: 1,
     },
 });

@@ -98,14 +98,13 @@ export const useAlunoOperations = () => {
 
       // ✅ 6. SEGUNDO: Tentar deletar do Auth usando RPC
       console.log('🗑️ Tentando deletar do Auth via RPC...');
-      const { data: rpcData, error: rpcError } = await supabase.rpc('delete_user_auth', {
+      const { error: rpcError } = await supabase.rpc('delete_user_auth', {
         user_id: aluno.id
       });
 
       if (rpcError) {
         console.error('❌ [AlunoOperations] RPC falhou:', rpcError);
         console.warn('⚠️ Aluno excluído das tabelas, mas não foi possível excluir do Auth.');
-        
         // Notifica o usuário, mas considera sucesso parcial
         Alert.alert(
           'Parcialmente Excluído', 
@@ -114,7 +113,7 @@ export const useAlunoOperations = () => {
         );
       } else {
         console.log('✅ Usuário excluído do Auth com sucesso');
-        Alert.alert('Sucesso', `${aluno.nome_completo} foi excluído completamente do sistema!`);
+        // Nenhum Alert de sucesso, apenas feedback visual na lista
       }
 
       onSuccess();

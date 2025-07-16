@@ -136,7 +136,7 @@ export default function ParQScreen() {
           style={styles.backButton}
           onPress={() => router.push('/(tabs)/alunos')}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>PAR-Q</Text>
         <View style={styles.placeholder} />

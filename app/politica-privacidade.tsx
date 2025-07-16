@@ -13,7 +13,7 @@ export default function PoliticaPrivacidade() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="rgba(0, 122, 255, 1.00)" />
+            <ArrowLeft size={28} color="#000" />
           </TouchableOpacity>
           <Text style={styles.title}>Política de Privacidade</Text>
         </View>
@@ -23,7 +23,7 @@ export default function PoliticaPrivacidade() {
 
           <Text style={styles.sectionTitle}>1. Informações que Coletamos</Text>
           <Text style={styles.paragraph}>
-            Coletamos as seguintes informações quando você utiliza o MaisTreino:
+            Coletamos as seguintes informações quando você utiliza o titans.fitness:
           </Text>
           <Text style={styles.paragraph}>
             1.1. <Text style={styles.bold}>Informações de Cadastro:</Text> Nome completo, email, 
@@ -129,13 +129,13 @@ export default function PoliticaPrivacidade() {
             Para exercer seus direitos ou esclarecer dúvidas sobre esta política, entre em contato:
           </Text>
           <Text style={styles.contactInfo}>
-            Email: contato@maistreino.com{'\n'}
+            Email: contato@titans.fitness{'\n'}
           </Text>
 
           <Text style={styles.sectionTitle}>10. Encarregado de Proteção de Dados</Text>
           <Text style={styles.paragraph}>
             Nosso Encarregado de Proteção de Dados (DPO) pode ser contatado através do email: 
-            dpo@maistreino.com
+            dpo@titans.fitness
           </Text>
         </View>
       </ScrollView>
@@ -165,8 +165,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
-    color: 'rgba(0, 122, 255, 1.00)',
+    fontWeight: '400',
+    color: '#000',
   },
   content: {
     padding: 20,
@@ -179,8 +179,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: 'rgba(0, 122, 255, 1.00)',
+    fontWeight: '400',
+    color: '#A11E0A',
     marginTop: 24,
     marginBottom: 12,
   },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   contactInfo: {
     fontSize: 14,
-    color: 'rgba(0, 122, 255, 1.00)',
+    color: '#000',
     fontWeight: '500',
     marginTop: 8,
   },

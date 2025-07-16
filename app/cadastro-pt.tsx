@@ -1,7 +1,7 @@
 import { router } from 'expo-router'
 import { Eye, EyeOff } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { supabase } from '../lib/supabase'
 
 export default function CadastroPT() {
@@ -367,170 +367,175 @@ export default function CadastroPT() {
   }
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/tipo-conta')}>
-          <Text style={styles.backText}>← Voltar</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.title}>Cadastro Personal Trainer</Text>
-
-        <View style={styles.form}>
-          <Text style={styles.label}>Nome Completo *</Text>
-          <TextInput
-            style={[styles.input, errors.nomeCompleto && styles.inputError]}
-            placeholder="Digite seu nome completo"
-            value={formData.nomeCompleto}
-            onChangeText={(value) => updateField('nomeCompleto', value)}
-            autoCapitalize="words"
-            returnKeyType="next"
-            editable={!loading}
-          />
-          {errors.nomeCompleto ? (
-            <Text style={styles.errorText}>{errors.nomeCompleto}</Text>
-          ) : null}
-
-          <Text style={styles.label}>Email *</Text>
-          <TextInput
-            style={[styles.input, errors.email && styles.inputError]}
-            placeholder="Digite seu email"
-            value={formData.email}
-            onChangeText={(value) => updateField('email', value)}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            returnKeyType="next"
-            autoComplete="email"
-            editable={!loading}
-          />
-          {errors.email ? (
-            <Text style={styles.errorText}>{errors.email}</Text>
-          ) : null}
-
-          <Text style={styles.label}>Senha *</Text>
-          <View style={[styles.passwordContainer, errors.password && styles.inputError]}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Mínimo 6 caracteres"
-              value={formData.password}
-              onChangeText={(value) => updateField('password', value)}
-              secureTextEntry={!showPassword}
-              returnKeyType="next"
-              autoComplete="password-new"
-              editable={!loading}
-            />
-            <TouchableOpacity 
-              style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
-              disabled={loading}
-            >
-              {showPassword ? (
-                <EyeOff size={20} color="#666" />
-              ) : (
-                <Eye size={20} color="#666" />
-              )}
-            </TouchableOpacity>
-          </View>
-          {errors.password ? (
-            <Text style={styles.errorText}>{errors.password}</Text>
-          ) : null}
-
-          <Text style={styles.label}>Confirmar Senha *</Text>
-          <View style={[styles.passwordContainer, errors.confirmPassword && styles.inputError]}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Digite a senha novamente"
-              value={formData.confirmPassword}
-              onChangeText={(value) => updateField('confirmPassword', value)}
-              secureTextEntry={!showConfirmPassword}
-              returnKeyType="done"
-              onSubmitEditing={cadastrarPT}
-              editable={!loading}
-            />
-            <TouchableOpacity 
-              style={styles.eyeButton}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              disabled={loading}
-            >
-              {showConfirmPassword ? (
-                <EyeOff size={20} color="#666" />
-              ) : (
-                <Eye size={20} color="#666" />
-              )}
-            </TouchableOpacity>
-          </View>
-          {errors.confirmPassword ? (
-            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-          ) : null}
-
-          {/* Termos e Condições */}
-          <View style={styles.termosContainer}>
-            <TouchableOpacity 
-              style={styles.checkboxContainer}
-              onPress={() => {
-                setAceitouTermos(!aceitouTermos)
-                if (errors.termos) {
-                  setErrors({ ...errors, termos: '' })
-                }
-              }}
-            >
-              <View style={[styles.checkbox, aceitouTermos && styles.checkboxChecked]}>
-                {aceitouTermos && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <View style={styles.termosTextContainer}>
-                <Text style={styles.termosText}>
-                  Eu aceito os{' '}
-                  <Text 
-                    style={styles.linkText}
-                    onPress={() => router.push('/termos-uso')}
-                  >
-                    Termos de Uso
-                  </Text>
-                  {' '}e a{' '}
-                  <Text 
-                    style={styles.linkText}
-                    onPress={() => router.push('/politica-privacidade')}
-                  >
-                    Política de Privacidade
-                  </Text>
-                </Text>
-              </View>
-            </TouchableOpacity>
-            {errors.termos ? (
-              <Text style={styles.errorText}>{errors.termos}</Text>
-            ) : null}
-          </View>
-
-          <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={cadastrarPT}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Criando conta...' : 'Cadastrar Personal Trainer'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.loginButton}
-            onPress={() => router.push('/')}
-            disabled={loading}
-          >
-            <Text style={styles.loginText}>
-              Já tem conta? Fazer login
-            </Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.push('/tipo-conta')}>
+            <Text style={styles.backText}>← Voltar</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Toast de Notificação */}
-        {toastVisible && (
-          <View style={[styles.toast, toastType === 'success' ? styles.toastSuccess : styles.toastError]}>
-            <Text style={styles.toastText}>{toastMessage}</Text>
+        <View style={styles.content}>
+          <Text style={styles.title}>Cadastro Personal Trainer</Text>
+
+          <View style={styles.form}>
+            <Text style={styles.label}>Nome Completo *</Text>
+            <TextInput
+              style={[styles.input, errors.nomeCompleto && styles.inputError]}
+              placeholder="Digite seu nome completo"
+              value={formData.nomeCompleto}
+              onChangeText={(value) => updateField('nomeCompleto', value)}
+              autoCapitalize="words"
+              returnKeyType="next"
+              editable={!loading}
+            />
+            {errors.nomeCompleto ? (
+              <Text style={styles.errorText}>{errors.nomeCompleto}</Text>
+            ) : null}
+
+            <Text style={styles.label}>Email *</Text>
+            <TextInput
+              style={[styles.input, errors.email && styles.inputError]}
+              placeholder="Digite seu email"
+              value={formData.email}
+              onChangeText={(value) => updateField('email', value)}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              returnKeyType="next"
+              autoComplete="email"
+              editable={!loading}
+            />
+            {errors.email ? (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            ) : null}
+
+            <Text style={styles.label}>Senha *</Text>
+            <View style={[styles.passwordContainer, errors.password && styles.inputError]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Mínimo 6 caracteres"
+                value={formData.password}
+                onChangeText={(value) => updateField('password', value)}
+                secureTextEntry={!showPassword}
+                returnKeyType="next"
+                autoComplete="password-new"
+                editable={!loading}
+              />
+              <TouchableOpacity 
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color="#666" />
+                ) : (
+                  <Eye size={20} color="#666" />
+                )}
+              </TouchableOpacity>
+            </View>
+            {errors.password ? (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            ) : null}
+
+            <Text style={styles.label}>Confirmar Senha *</Text>
+            <View style={[styles.passwordContainer, errors.confirmPassword && styles.inputError]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Digite a senha novamente"
+                value={formData.confirmPassword}
+                onChangeText={(value) => updateField('confirmPassword', value)}
+                secureTextEntry={!showConfirmPassword}
+                returnKeyType="done"
+                onSubmitEditing={cadastrarPT}
+                editable={!loading}
+              />
+              <TouchableOpacity 
+                style={styles.eyeButton}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color="#666" />
+                ) : (
+                  <Eye size={20} color="#666" />
+                )}
+              </TouchableOpacity>
+            </View>
+            {errors.confirmPassword ? (
+              <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+            ) : null}
+
+            {/* Termos e Condições */}
+            <View style={styles.termosContainer}>
+              <TouchableOpacity 
+                style={styles.checkboxContainer}
+                onPress={() => {
+                  setAceitouTermos(!aceitouTermos)
+                  if (errors.termos) {
+                    setErrors({ ...errors, termos: '' })
+                  }
+                }}
+              >
+                <View style={[styles.checkbox, aceitouTermos && styles.checkboxChecked]}>
+                  {aceitouTermos && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <View style={styles.termosTextContainer}>
+                  <Text style={styles.termosText}>
+                    Eu aceito os{' '}
+                    <Text 
+                      style={styles.linkText}
+                      onPress={() => router.push('/termos-uso')}
+                    >
+                      Termos de Uso
+                    </Text>
+                    {' '}e a{' '}
+                    <Text 
+                      style={styles.linkText}
+                      onPress={() => router.push('/politica-privacidade')}
+                    >
+                      Política de Privacidade
+                    </Text>
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {errors.termos ? (
+                <Text style={styles.errorText}>{errors.termos}</Text>
+              ) : null}
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={cadastrarPT}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Criando conta...' : 'Cadastrar Personal Trainer'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={() => router.push('/')}
+              disabled={loading}
+            >
+              <Text style={styles.loginText}>
+                Já tem conta? Fazer login
+              </Text>
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
-    </ScrollView>
+
+          {/* Toast de Notificação */}
+          {toastVisible && (
+            <View style={[styles.toast, toastType === 'success' ? styles.toastSuccess : styles.toastError]}>
+              <Text style={styles.toastText}>{toastMessage}</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -610,7 +615,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -661,6 +666,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   termosContainer: {
+    marginTop: 20,
     marginBottom: 24,
     width: '100%',
   },

@@ -5,7 +5,7 @@ import { router } from 'expo-router'
 import { CheckCircle, Eye, EyeOff } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { LogoHeader } from '../components/MaisTreinoLogo'
+import { LogoHeader } from '../components/TitansFitnessLogo'
 import { supabase } from '../lib/supabase'
 
 export default function ResetPassword() {
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center' as const,

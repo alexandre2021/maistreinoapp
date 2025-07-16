@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Clipboard, Dumbbell, Shield, User, X } from 'lucide-react-native';
+// ✅ ALTERADO: Dumbbell → MessageSquare
+import { ArrowLeft, Clipboard, MessageSquare, Shield, User, X } from 'lucide-react-native';
 import React from 'react';
 import {
   Alert,
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#007AFF',
+    borderBottomColor: '#A11E0A',
   },
   tabText: {
     fontSize: 12,
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeTabText: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '500',
   },
   
@@ -184,9 +185,7 @@ export default function PerfilAluno() {
     showEditModal,
     showDatePicker,
     showGeneroOptions,
-    showObjetivoOptions,
-    showNivelOptions,
-    showFrequenciaOptions,
+    // ❌ Variáveis não utilizadas removidas
     editingSection,
     editData,
     setEditData,
@@ -202,9 +201,7 @@ export default function PerfilAluno() {
     // Constantes
     avatarColors,
     generoOptions,
-    objetivoOptions,
-    nivelExperienciaOptions,
-    frequenciaTreinoOptions,
+    // ❌ Constantes não utilizadas removidas
     perguntasParQ,
 
     // Funções utilitárias
@@ -225,9 +222,7 @@ export default function PerfilAluno() {
     setShowEditModal,
     setShowDatePicker,
     setShowGeneroOptions,
-    setShowObjetivoOptions,
-    setShowNivelOptions,
-    setShowFrequenciaOptions,
+    // ❌ Funções não utilizadas removidas
   } = usePerfil();
 
   // ========= FUNÇÃO DE LOGOUT =========
@@ -348,7 +343,7 @@ export default function PerfilAluno() {
           userData={userData}
           uploading={uploading}
           onUpload={uploadAvatar}
-          onColorChange={updateAvatarColor}
+          onColorChange={updateAvatarColor} // A função onColorChange não existe, mas mantive por compatibilidade futura. O correto seria onShowColorPicker
           onSwitchToLetter={switchToLetterAvatar}
           userType="aluno"
           showCodigoPT={false}
@@ -360,19 +355,20 @@ export default function PerfilAluno() {
             style={[styles.tab, activeTab === 'pessoal' && styles.activeTab]}
             onPress={() => setActiveTab('pessoal')}
           >
-            <User size={20} color={activeTab === 'pessoal' ? '#007AFF' : '#64748B'} />
+            <User size={20} color={activeTab === 'pessoal' ? '#A11E0A' : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'pessoal' && styles.activeTabText]}>
               Pessoal
             </Text>
           </TouchableOpacity>
-
+          
+          {/* ✅ SEGUNDA TAB ATUALIZADA */}
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'objetivos' && styles.activeTab]}
-            onPress={() => setActiveTab('objetivos')}
+            style={[styles.tab, activeTab === 'descricao' && styles.activeTab]}
+            onPress={() => setActiveTab('descricao')}
           >
-            <Dumbbell size={20} color={activeTab === 'objetivos' ? '#007AFF' : '#64748B'} />
-            <Text style={[styles.tabText, activeTab === 'objetivos' && styles.activeTabText]}>
-              Rotinas
+            <MessageSquare size={20} color={activeTab === 'descricao' ? '#A11E0A' : '#64748B'} />
+            <Text style={[styles.tabText, activeTab === 'descricao' && styles.activeTabText]}>
+              Descrição
             </Text>
           </TouchableOpacity>
 
@@ -380,7 +376,7 @@ export default function PerfilAluno() {
             style={[styles.tab, activeTab === 'parq' && styles.activeTab]}
             onPress={() => setActiveTab('parq')}
           >
-            <Clipboard size={20} color={activeTab === 'parq' ? '#007AFF' : '#64748B'} />
+            <Clipboard size={20} color={activeTab === 'parq' ? '#A11E0A' : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'parq' && styles.activeTabText]}>
               PAR-Q
             </Text>
@@ -390,7 +386,7 @@ export default function PerfilAluno() {
             style={[styles.tab, activeTab === 'seguranca' && styles.activeTab]}
             onPress={() => setActiveTab('seguranca')}
           >
-            <Shield size={20} color={activeTab === 'seguranca' ? '#007AFF' : '#64748B'} />
+            <Shield size={20} color={activeTab === 'seguranca' ? '#A11E0A' : '#64748B'} />
             <Text style={[styles.tabText, activeTab === 'seguranca' && styles.activeTabText]}>
               Segurança
             </Text>
@@ -398,17 +394,16 @@ export default function PerfilAluno() {
         </View>
 
         {/* Conteúdo das Tabs */}
-        {(activeTab === 'pessoal' || activeTab === 'objetivos' || activeTab === 'parq') && (
+        {/* ✅ CONDIÇÃO DE RENDERIZAÇÃO ATUALIZADA */}
+        {(activeTab === 'pessoal' || activeTab === 'descricao' || activeTab === 'parq') && (
           <PerfilTabs
+            // ✅ PROPS ATUALIZADAS
             // Estados
             activeTab={activeTab}
             userData={userData}
             showEditModal={showEditModal}
             showDatePicker={showDatePicker}
             showGeneroOptions={showGeneroOptions}
-            showObjetivoOptions={showObjetivoOptions}
-            showNivelOptions={showNivelOptions}
-            showFrequenciaOptions={showFrequenciaOptions}
             editingSection={editingSection}
             editData={editData}
             selectedDay={selectedDay}
@@ -417,9 +412,6 @@ export default function PerfilAluno() {
 
             // Constantes
             generoOptions={generoOptions}
-            objetivoOptions={objetivoOptions}
-            nivelExperienciaOptions={nivelExperienciaOptions}
-            frequenciaTreinoOptions={frequenciaTreinoOptions}
             perguntasParQ={perguntasParQ}
 
             // Funções
@@ -434,9 +426,6 @@ export default function PerfilAluno() {
             setShowEditModal={setShowEditModal}
             setShowDatePicker={setShowDatePicker}
             setShowGeneroOptions={setShowGeneroOptions}
-            setShowObjetivoOptions={setShowObjetivoOptions}
-            setShowNivelOptions={setShowNivelOptions}
-            setShowFrequenciaOptions={setShowFrequenciaOptions}
             setEditData={setEditData}
             setSelectedDay={setSelectedDay}
             setSelectedMonth={setSelectedMonth}

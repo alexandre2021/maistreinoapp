@@ -11,7 +11,7 @@ interface LoadingScreenProps {
 export default function LoadingScreen({ 
   message = "Carregando...", 
   size = 48, 
-  color = "#3B82F6" 
+  color = "#A11E0A" 
 }: LoadingScreenProps) {
   const spinValue = useRef(new Animated.Value(0)).current;
 

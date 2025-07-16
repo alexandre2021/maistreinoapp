@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     },
     editButtonText: {
         fontSize: 14,
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '500',
     },
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 8,
-        backgroundColor: '#007AFF',
+        backgroundColor: '#A11E0A',
         alignItems: 'center',
     },
     saveEditText: {
@@ -261,8 +261,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     especializacaoEditChipSelected: {
-        backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
+        backgroundColor: '#A11E0A',
+        borderColor: '#A11E0A',
     },
     especializacaoEditChipText: {
         fontSize: 12,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
         color: '#64748B',
     },
     pickerTextSelected: {
-        color: '#007AFF',
+        color: '#A11E0A',
         fontWeight: '600',
     },
     datePickerButtons: {
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 12,
-        backgroundColor: '#007AFF',
+        backgroundColor: '#A11E0A',
         alignItems: 'center',
     },
     confirmButtonText: {
@@ -450,7 +450,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                     style={styles.editButton}
                     onPress={() => openEditModal('pessoal')}
                 >
-                    <Edit2 size={16} color="#007AFF" />
+                    <Edit2 size={16} color="#A11E0A" />
                     <Text style={styles.editButtonText}>Editar</Text>
                 </TouchableOpacity>
             </View>
@@ -494,7 +494,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                     style={styles.editButton}
                     onPress={() => openEditModal('profissional')}
                 >
-                    <Edit2 size={16} color="#007AFF" />
+                    <Edit2 size={16} color="#A11E0A" />
                     <Text style={styles.editButtonText}>Editar</Text>
                 </TouchableOpacity>
             </View>
@@ -536,7 +536,7 @@ export default function PerfilTabs(props: PerfilTabsProps) {
                     style={styles.editButton}
                     onPress={() => openEditModal('redes')}
                 >
-                    <Edit2 size={16} color="#007AFF" />
+                    <Edit2 size={16} color="#A11E0A" />
                     <Text style={styles.editButtonText}>Editar</Text>
                 </TouchableOpacity>
             </View>

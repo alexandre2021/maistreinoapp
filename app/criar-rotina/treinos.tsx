@@ -347,7 +347,7 @@ export default function TreinosRotinaScreen() {
       >
         {/* Info da rotina */}
         <View style={styles.rotinaInfo}>
-          <Ionicons name="information-circle" size={20} color="#007AFF" />
+          <Ionicons name="information-circle" size={20} color="#A11E0A" />
           <View style={styles.rotinaInfoText}>
             <Text style={styles.rotinaInfoTitle}>{configSalva?.nomeRotina}</Text>
             <Text style={styles.rotinaInfoSubtitle}>
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   voltarConfigButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: '#A11E0A',
     gap: 12,
   },
   rotinaInfoText: {
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',

@@ -1,74 +1,16 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
-import { useAuth } from '../../hooks/useAuth'
-import { supabase } from '../../lib/supabase'
+
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+
 
 
 export default function Dashboard() {
-  useAuth()
-  const [stats, setStats] = useState({
-    totalAlunos: 0,
-    totalExercicios: 0,
-    totalTreinos: 0,
-  })
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true)
-      
-      // Obter usuário logado
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        console.error('Usuário não encontrado')
-        return
-      }
-
-      // Contar alunos do personal trainer logado
-      const { count: alunosCount, error: alunosError } = await supabase
-        .from('alunos')
-        .select('*', { count: 'exact', head: true })
-        .eq('personal_trainer_id', user.id)
-
-      if (alunosError) {
-        console.error('Erro ao buscar alunos:', alunosError)
-      }
-
-      // Contar exercícios
-      const { count: exerciciosCount, error: exerciciosError } = await supabase
-        .from('exercicios')
-        .select('*', { count: 'exact', head: true })
-
-      if (exerciciosError) {
-        console.error('Erro ao buscar exercícios:', exerciciosError)
-      }
-
-      // Contar treinos criados pelo personal trainer
-      const { count: treinosCount, error: treinosError } = await supabase
-        .from('treinos')
-        .select('*', { count: 'exact', head: true })
-        .eq('personal_trainer_id', user.id)
-
-      if (treinosError) {
-        console.error('Erro ao buscar treinos:', treinosError)
-      }
-
-      setStats({
-        totalAlunos: alunosCount || 0,
-        totalExercicios: exerciciosCount || 0,
-        totalTreinos: treinosCount || 0,
-      })
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error)
-    } finally {
-      setLoading(false)
-    }
+  // Mock data para exibição
+  const stats = {
+    totalAlunos: 12,
+    totalExercicios: 34,
+    totalTreinos: 8,
   }
 
   return (
@@ -78,23 +20,15 @@ export default function Dashboard() {
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>
-            {loading ? '...' : stats.totalAlunos}
-          </Text>
+          <Text style={styles.statNumber}>{stats.totalAlunos}</Text>
           <Text style={styles.statLabel}>Meus Alunos</Text>
         </View>
-
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>
-            {loading ? '...' : stats.totalExercicios}
-          </Text>
+          <Text style={styles.statNumber}>{stats.totalExercicios}</Text>
           <Text style={styles.statLabel}>Exercícios</Text>
         </View>
-
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>
-            {loading ? '...' : stats.totalTreinos}
-          </Text>
+          <Text style={styles.statNumber}>{stats.totalTreinos}</Text>
           <Text style={styles.statLabel}>Treinos</Text>
         </View>
       </View>
@@ -155,7 +89,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#A11E0A',
     marginBottom: 4,
   },
   statLabel: {

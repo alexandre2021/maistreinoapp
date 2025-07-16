@@ -17,11 +17,6 @@ export default function AlunoHeader({ alunoData }: AlunoHeaderProps) {
     <View style={styles.alunoCard}>
       <Text style={styles.alunoNome}>{alunoData.nomeCompleto}</Text>
       <Text style={styles.alunoEmail}>{alunoData.email}</Text>
-      {alunoData.objetivoPrincipal && (
-        <Text style={styles.alunoObjetivo}>
-          🎯 {alunoData.objetivoPrincipal}
-        </Text>
-      )}
     </View>
   );
 }

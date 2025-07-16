@@ -1,8 +1,8 @@
 import { router } from 'expo-router'
 import { Eye, EyeOff, X } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
-import { Animated, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { LogoSplash } from '../components/MaisTreinoLogo'
+import { Animated, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { LogoSplash } from '../components/TitansFitnessLogo'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
@@ -312,129 +312,139 @@ export default function Login() {
   // ✅ NOVO: Mostrar loading enquanto verifica sessão
   if (isCheckingSession) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <LogoSplash />
-        <Text style={styles.loadingText}>Verificando login...</Text>
-      </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={[styles.container, styles.centered]}>
+          <LogoSplash />
+          <Text style={styles.loadingText}>Verificando login...</Text>
+        </View>
+      </KeyboardAvoidingView>
     )
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <LogoSplash />
-        </View>
-        <Text style={styles.subtitle}>Faça login para continuar</Text>
-        
-        <View style={styles.form}>
-          <TextInput
-            style={[
-              styles.input,
-              emailError ? styles.inputError : null
-            ]}
-            placeholder="Email"
-            value={email}
-            onChangeText={validateEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!loading}
-            autoCorrect={false}
-          />
-          {emailError ? (
-            <Text style={styles.errorText}>{emailError}</Text>
-          ) : null}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.logoContainer}>
+            <LogoSplash />
+          </View>
+          <Text style={styles.subtitle}>Faça login para continuar</Text>
           
-          <View style={[
-            styles.passwordContainer,
-            passwordError ? styles.inputError : null
-          ]}>
+          <View style={styles.form}>
             <TextInput
-              style={styles.passwordInput}
-              placeholder="Senha"
-              value={password}
-              onChangeText={validatePassword}
-              secureTextEntry={!showPassword}
+              style={[
+                styles.input,
+                emailError ? styles.inputError : null
+              ]}
+              placeholder="Email"
+              value={email}
+              onChangeText={validateEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
               editable={!loading}
               autoCorrect={false}
-              autoCapitalize="none"
             />
+            {emailError ? (
+              <Text style={styles.errorText}>{emailError}</Text>
+            ) : null}
+            
+            <View style={[
+              styles.passwordContainer,
+              passwordError ? styles.inputError : null
+            ]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Senha"
+                value={password}
+                onChangeText={validatePassword}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity 
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color="#666" />
+                ) : (
+                  <Eye size={20} color="#666" />
+                )}
+              </TouchableOpacity>
+            </View>
+            {passwordError ? (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            ) : null}
+            
             <TouchableOpacity 
-              style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
+              style={[styles.button, loading && styles.buttonDisabled]} 
+              onPress={signIn}
               disabled={loading}
             >
-              {showPassword ? (
-                <EyeOff size={20} color="#666" />
-              ) : (
-                <Eye size={20} color="#666" />
-              )}
+              <Text style={styles.buttonText}>
+                {loading ? 'Entrando...' : 'Entrar'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.forgotButton}
+              onPress={resetPassword}
+              disabled={loading}
+            >
+              <Text style={styles.forgotText}>
+                {loading ? 'Enviando...' : 'Esqueci minha senha'}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.divider}>
+              <View style={styles.line} />
+              <Text style={styles.dividerText}>ou</Text>
+              <View style={styles.line} />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.signupButton}
+              onPress={() => router.push('/tipo-conta' as any)} // ✅ CORREÇÃO: Casting explícito
+              disabled={loading}
+            >
+              <Text style={styles.signupText}>Não tem conta? Cadastre-se</Text>
             </TouchableOpacity>
           </View>
-          {passwordError ? (
-            <Text style={styles.errorText}>{passwordError}</Text>
-          ) : null}
-          
-          <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]} 
-            onPress={signIn}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Entrando...' : 'Entrar'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.forgotButton}
-            onPress={resetPassword}
-            disabled={loading}
-          >
-            <Text style={styles.forgotText}>
-              {loading ? 'Enviando...' : 'Esqueci minha senha'}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.line} />
-            <Text style={styles.dividerText}>ou</Text>
-            <View style={styles.line} />
-          </View>
-
-          <TouchableOpacity 
-            style={styles.signupButton}
-            onPress={() => router.push('/tipo-conta' as any)} // ✅ CORREÇÃO: Casting explícito
-            disabled={loading}
-          >
-            <Text style={styles.signupText}>Não tem conta? Cadastre-se</Text>
-          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Toast Component */}
-      {toast.visible && (
-        <Animated.View 
-          style={[
-            styles.toastContainer,
-            toast.type === 'success' ? styles.toastSuccess : styles.toastError,
-            {
-              opacity: toastAnimation,
-              transform: [{
-                translateY: toastAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-100, 0]
-                })
-              }]
-            }
-          ]}
-        >
-          <Text style={styles.toastText}>{toast.message}</Text>
-          <TouchableOpacity onPress={hideToast} style={styles.toastCloseButton}>
-            <X size={18} color="white" />
-          </TouchableOpacity>
-        </Animated.View>
-      )}
-    </View>
+        {/* Toast Component */}
+        {toast.visible && (
+          <Animated.View 
+            style={[
+              styles.toastContainer,
+              toast.type === 'success' ? styles.toastSuccess : styles.toastError,
+              {
+                opacity: toastAnimation,
+                transform: [{
+                  translateY: toastAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-100, 0]
+                  })
+                }]
+              }
+            ]}
+          >
+            <Text style={styles.toastText}>{toast.message}</Text>
+            <TouchableOpacity onPress={hideToast} style={styles.toastCloseButton}>
+              <X size={18} color="white" />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -502,7 +512,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#A11E0A', // ✅ ATUALIZADO: Mesma cor do gradiente do ícone
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -521,7 +531,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotText: {
-    color: '#007AFF',
+    color: '#FF8C42', // ✅ NOVO: Cor laranja clara do logo
     fontSize: 14,
   },
   divider: {

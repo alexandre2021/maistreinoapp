@@ -101,7 +101,7 @@ export const useFilters = (alunos: Aluno[], searchText: string) => {
     }
 
     if (activeFilters.objetivo) {
-      filtered = filtered.filter(aluno => aluno.objetivo_principal === activeFilters.objetivo);
+      // objetivo_principal removido do filtro
     }
 
     setFilteredAlunos(filtered);

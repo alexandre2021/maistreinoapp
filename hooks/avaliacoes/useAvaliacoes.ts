@@ -345,7 +345,7 @@ export function useAvaliacoes(alunoId: string | string[]) {
       // Buscar dados do aluno
       const { data: aluno, error: alunoError } = await supabase
         .from('alunos')
-        .select('id, nome_completo, email, genero, altura, peso, objetivo_principal')
+        .select('id, nome_completo, email, genero, altura, peso')
         .eq('id', alunoId)
         .single();
 
@@ -362,7 +362,7 @@ export function useAvaliacoes(alunoId: string | string[]) {
         genero: aluno.genero || '',
         altura: aluno.altura || 0,
         peso: aluno.peso || 0,
-        objetivoPrincipal: aluno.objetivo_principal || ''
+        objetivoPrincipal: ''
       });
 
       // Buscar avaliações

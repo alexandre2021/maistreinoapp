@@ -4,7 +4,6 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 
-
 export default function DashboardAluno() {
   useAuth()
   const [stats, setStats] = useState({
@@ -14,6 +13,7 @@ export default function DashboardAluno() {
   })
   const [loading, setLoading] = useState(true)
   const [nomeAluno, setNomeAluno] = useState('Aluno')
+  const [userType, setUserType] = useState<string | null>(null)
 
   const fetchStats = async () => {
     try {
@@ -24,9 +24,33 @@ export default function DashboardAluno() {
       
       if (!user) {
         console.error('Usuário não encontrado')
+        setLoading(false)
         return
       }
 
+      // ✅ PRIMEIRO: Verificar o tipo de usuário
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError) {
+        console.error('Erro ao buscar perfil do usuário:', profileError)
+        setLoading(false)
+        return
+      }
+
+      setUserType(profile.user_type)
+
+      // ✅ APENAS ALUNOS DEVEM EXECUTAR ESTA FUNÇÃO
+      if (profile.user_type !== 'aluno') {
+        console.log('Usuário não é aluno - parando execução')
+        setLoading(false)
+        return
+      }
+
+      // ✅ CÓDIGO EXCLUSIVO PARA ALUNOS
       // Buscar nome do aluno
       const { data: alunoData, error: alunoError } = await supabase
         .from('alunos')
@@ -65,6 +89,20 @@ export default function DashboardAluno() {
   useEffect(() => {
     fetchStats()
   }, [])
+
+  // ✅ SE FOR PERSONAL TRAINER, NÃO RENDERIZAR NADA (tela não deveria ser acessível)
+  if (userType === 'personal_trainer') {
+    return null // Não renderiza nada - tela não deveria existir para PT
+  }
+
+  // ✅ SE AINDA ESTIVER CARREGANDO O TIPO DE USUÁRIO
+  if (userType === null && loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.loadingText}>Carregando...</Text>
+      </View>
+    )
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -218,5 +256,16 @@ const styles = StyleSheet.create({
   activityTime: {
     fontSize: 12,
     color: '#999',
+  },
+  // ✅ Novos estilos para estados de erro e loading
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 })

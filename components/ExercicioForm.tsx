@@ -2,21 +2,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import {
-    DIFICULDADES,
-    EQUIPAMENTOS,
-    GRUPOS_MUSCULARES,
-    type Dificuldade,
-    type Equipamento,
-    type GrupoMuscular
+  DIFICULDADES,
+  EQUIPAMENTOS,
+  GRUPOS_MUSCULARES,
+  type Dificuldade,
+  type Equipamento,
+  type GrupoMuscular
 } from '../constants/exercicios';
 
 export interface ExercicioFormData {
@@ -103,7 +103,7 @@ export const ExercicioForm: React.FC<ExercicioFormProps> = ({
                   {option}
                 </Text>
                 {selectedValue === option && (
-                  <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  <Ionicons name="checkmark" size={20} color="#A11E0A" />
                 )}
               </TouchableOpacity>
             ))}
@@ -156,7 +156,7 @@ export const ExercicioForm: React.FC<ExercicioFormProps> = ({
       {mode === 'copy' && exercicioOriginal && (
         <View style={styles.originalInfo}>
           <View style={styles.originalHeader}>
-            <Ionicons name="copy-outline" size={20} color="#007AFF" />
+            <Ionicons name="copy-outline" size={20} color="#A11E0A" />
             <Text style={styles.originalTitle}>Baseado no exercício:</Text>
           </View>
           <Text style={styles.originalName}>{exercicioOriginal.nome}</Text>
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: '#A11E0A',
   },
   originalHeader: {
     flexDirection: 'row',
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   modalOptionTextSelected: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '600',
   },
 });

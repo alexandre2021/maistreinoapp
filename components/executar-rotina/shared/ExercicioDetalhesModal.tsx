@@ -1,6 +1,6 @@
 // components/execucao/shared/ExercicioDetalhesModal.tsx
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Image,
@@ -50,14 +50,8 @@ export default function ExercicioDetalhesModal({ visible, exercicioNome, onClose
   const [loading, setLoading] = useState(false);
   const [imagemVisible, setImagemVisible] = useState<string | null>(null);
 
-  // Carregar dados do exercício quando o modal abre
-  useEffect(() => {
-    if (visible && exercicioNome) {
-      carregarExercicio();
-    }
-  }, [visible, exercicioNome]);
-
-  const carregarExercicio = async () => {
+  // ✅ CORRIGIDO: useCallback para estabilizar a função
+  const carregarExercicio = useCallback(async () => {
     try {
       setLoading(true);
       console.log('🔍 Carregando exercício:', exercicioNome);
@@ -81,7 +75,14 @@ export default function ExercicioDetalhesModal({ visible, exercicioNome, onClose
     } finally {
       setLoading(false);
     }
-  };
+  }, [exercicioNome]); // ✅ Dependência adicionada
+
+  // ✅ CORRIGIDO: Agora carregarExercicio está na lista de dependências
+  useEffect(() => {
+    if (visible && exercicioNome) {
+      carregarExercicio();
+    }
+  }, [visible, exercicioNome, carregarExercicio]); // ✅ Dependência adicionada
 
   const formatarData = (dataISO: string) => {
     if (!dataISO) return 'Data indisponível';
@@ -184,7 +185,7 @@ export default function ExercicioDetalhesModal({ visible, exercicioNome, onClose
                         style={styles.imagemContainer}
                         onPress={() => setImagemVisible(exercicio.imagem_1_url!)}
                       >
-                        <Image source={{ uri: exercicio.imagem_1_url }} style={styles.imagem} />
+                        <Image source={{ uri: exercicio.imagem_1_url }} style={styles.imagem} resizeMode="contain" />
                         <Text style={styles.imagemLabel}>Foto 1</Text>
                       </TouchableOpacity>
                     )}
@@ -194,7 +195,7 @@ export default function ExercicioDetalhesModal({ visible, exercicioNome, onClose
                         style={styles.imagemContainer}
                         onPress={() => setImagemVisible(exercicio.imagem_2_url!)}
                       >
-                        <Image source={{ uri: exercicio.imagem_2_url }} style={styles.imagem} />
+                        <Image source={{ uri: exercicio.imagem_2_url }} style={styles.imagem} resizeMode="contain" />
                         <Text style={styles.imagemLabel}>Foto 2</Text>
                       </TouchableOpacity>
                     )}
@@ -399,17 +400,17 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   midiaGrid: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 16,
     marginBottom: 16,
   },
   imagemContainer: {
-    flex: 1,
+    width: '100%',
     alignItems: 'center',
   },
   imagem: {
     width: '100%',
-    height: 120,
+    aspectRatio: 1,
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
   },

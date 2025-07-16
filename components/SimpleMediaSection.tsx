@@ -199,7 +199,7 @@ export const SimpleMediaSection: React.FC<SimpleMediaSectionProps> = ({
         {mediaData?.video_url ? (
           <View>
             <View style={styles.videoPreview}>
-              <Ionicons name="play-circle-outline" size={60} color="#007AFF" />
+              <Ionicons name="play-circle-outline" size={60} color="#A11E0A" />
               <Text style={styles.videoText}>Vídeo carregado</Text>
             </View>
             <View style={styles.buttons}>
@@ -273,7 +273,7 @@ export const SimpleMediaSection: React.FC<SimpleMediaSectionProps> = ({
 
       {uploading && (
         <View style={styles.loading}>
-          <ActivityIndicator size="small" color="#007AFF" />
+          <ActivityIndicator size="small" color="#A11E0A" />
           <Text style={styles.loadingText}>Enviando...</Text>
         </View>
       )}
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '600',
   },
   removeButton: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   loadingText: {
-    color: '#007AFF',
+    color: '#A11E0A',
     fontWeight: '500',
   },
 });
